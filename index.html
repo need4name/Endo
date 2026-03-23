@@ -97,7 +97,7 @@ canvas{display:block;position:fixed;top:0;left:0;touch-action:none;-webkit-tap-h
 .editor-hint{font-size:11px;color:#3B5B81;margin-top:3px;font-style:italic;max-width:240px;line-height:1.3;}
 .editor-cancel{padding:8px 16px;border-radius:20px;background:rgba(231,76,60,0.1);border:1px solid rgba(231,76,60,0.3);color:#E74C3C;font-size:12px;cursor:pointer;touch-action:manipulation;font-family:'IBM Plex Sans',sans-serif;}
 #editor-grid-area{flex:1;display:flex;align-items:center;justify-content:center;min-height:0;position:relative;}
-#editor-canvas-wrap{width:min(300px,78vw);height:min(300px,78vw);position:relative;}
+#editor-canvas-wrap{width:min(190px,48vw);height:min(190px,48vw);}
 #editor-canvas{width:100%;height:100%;}
 /* complexity bar */
 #complexity-bar{display:flex;align-items:center;gap:8px;padding:6px 16px 0;flex-shrink:0;}
@@ -109,9 +109,10 @@ canvas{display:block;position:fixed;top:0;left:0;touch-action:none;-webkit-tap-h
 .e-stat-val{font-family:'IBM Plex Mono',monospace;font-size:14px;color:#00D4FF;font-weight:500;}
 .e-stat-label{font-size:9px;color:#3B5B81;text-transform:uppercase;letter-spacing:0.07em;margin-top:2px;}
 #palette-label{padding:0 16px 6px;font-size:10px;color:#3B5B81;text-transform:uppercase;letter-spacing:0.08em;flex-shrink:0;}
-#palette{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:0 16px;overflow-y:auto;flex-shrink:0;max-height:34vh;}
+#palette{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:0 16px;overflow-y:auto;flex-shrink:0;max-height:30vh;}
 .org-card{background:rgba(7,20,38,0.8);border:1px solid rgba(0,212,255,0.1);border-radius:10px;padding:10px;cursor:pointer;touch-action:manipulation;transition:all 0.15s;display:flex;flex-direction:column;gap:3px;}
 .org-card.selected{background:rgba(0,212,255,0.1);border-color:rgba(0,212,255,0.45);box-shadow:0 0 14px rgba(0,212,255,0.12);}
+.org-card.org-active{background:rgba(38,255,248,0.08);border-color:rgba(38,255,248,0.4);}
 .org-card.locked{opacity:0.35;cursor:default;}
 .org-card:active:not(.locked){transform:scale(0.97);}
 .org-dot{width:26px;height:26px;border-radius:50%;margin-bottom:2px;}
@@ -921,142 +922,247 @@ function setupEdCanvas(){
   const size=wrap.clientWidth;
   edCanvas.width=size;edCanvas.height=size;
   edCtx=edCanvas.getContext('2d');
-  edCanvas.removeEventListener('click',handleEdTap);
-  edCanvas.addEventListener('click',handleEdTap);
+  // Canvas is view-only; organelles placed via palette card taps
 }
 
 function drawEdHex(){
-  if(!edCtx)return;
-  const sz=edCanvas.width,cx=sz/2,cy=sz/2,hexSize=sz/8.5;
+  if(!edCtx) return;
+  const sz=edCanvas.width, cx=sz/2, cy=sz/2, cr=sz*0.42;
   edCtx.clearRect(0,0,sz,sz);
-  // Body
-  const hue=editorGenome.colorHue;
-  const r=sz*0.38;
-  const grad=edCtx.createRadialGradient(cx,cy,0,cx,cy,r);
-  grad.addColorStop(0,`hsla(${hue},40%,18%,0.55)`);
-  grad.addColorStop(1,`hsla(${hue},35%,8%,0.35)`);
-  edCtx.beginPath();edCtx.arc(cx,cy,r,0,Math.PI*2);edCtx.fillStyle=grad;edCtx.fill();
-  edCtx.strokeStyle=`hsla(${hue},55%,50%,0.32)`;edCtx.lineWidth=2;edCtx.stroke();
 
-  // Hex slots
-  const hexList=hexesInRadius(2);
-  for(const h of hexList){
-    const px=hexToPixel(h.q,h.r,hexSize);
-    const x=cx+px.x,y=cy+px.y;
-    const isC=h.q===0&&h.r===0;
-    const idx=hexList.findIndex(hh=>hh.q===h.q&&hh.r===h.r);
-    const org=editorGenome.organelles[idx];
-    const ok=org&&ORG[org]?org:null;
+  // ── Cartoon cell body ──────────────────────────────────────────────────────
+  // Outer glow
+  const glow=edCtx.createRadialGradient(cx,cy,cr*0.5,cx,cy,cr*1.15);
+  glow.addColorStop(0,'rgba(180,230,255,0)');
+  glow.addColorStop(1,'rgba(140,200,255,0.18)');
+  edCtx.beginPath();edCtx.arc(cx,cy,cr*1.15,0,Math.PI*2);
+  edCtx.fillStyle=glow;edCtx.fill();
 
-    edCtx.beginPath();
-    for(let i=0;i<6;i++){const a=Math.PI/6+(i/6)*Math.PI*2;if(i===0)edCtx.moveTo(x+Math.cos(a)*hexSize*0.46,y+Math.sin(a)*hexSize*0.46);else edCtx.lineTo(x+Math.cos(a)*hexSize*0.46,y+Math.sin(a)*hexSize*0.46);}
-    edCtx.closePath();
+  // Cell body fill - light translucent blue like concept art
+  const bodyGrad=edCtx.createRadialGradient(cx-cr*0.2,cy-cr*0.2,0,cx,cy,cr);
+  bodyGrad.addColorStop(0,'rgba(220,240,255,0.92)');
+  bodyGrad.addColorStop(0.7,'rgba(190,220,245,0.88)');
+  bodyGrad.addColorStop(1,'rgba(160,200,235,0.85)');
+  edCtx.beginPath();edCtx.arc(cx,cy,cr,0,Math.PI*2);
+  edCtx.fillStyle=bodyGrad;edCtx.fill();
 
-    if(ok){
-      // Parse hex color to rgba
-      const hc=ORG[ok].color;
-      edCtx.fillStyle=hc+'cc';edCtx.fill();
-      edCtx.strokeStyle='rgba(255,255,255,0.3)';edCtx.lineWidth=1;edCtx.stroke();
-      // Draw iconic shape inside hex
-      drawOrgIcon(edCtx,ok,x,y,hexSize*0.32);
-    }else if(isC){
-      edCtx.fillStyle='rgba(26,58,106,0.55)';edCtx.fill();
-      edCtx.strokeStyle='rgba(0,212,255,0.35)';edCtx.lineWidth=1;edCtx.stroke();
-      // Show CYT text
-      edCtx.fillStyle='rgba(0,212,255,0.5)';edCtx.font=`${hexSize*0.22}px 'IBM Plex Mono',monospace`;edCtx.textAlign='center';edCtx.textBaseline='middle';
-      edCtx.fillText('CYT',x,y);
-    }else{
-      edCtx.fillStyle='rgba(7,20,38,0.65)';edCtx.fill();
-      edCtx.strokeStyle='rgba(0,212,255,0.09)';edCtx.lineWidth=0.8;edCtx.stroke();
+  // Membrane border - thick cartoon outline
+  edCtx.strokeStyle='rgba(100,170,220,0.9)';
+  edCtx.lineWidth=sz*0.032;edCtx.stroke();
+
+  // Inner membrane shimmer
+  edCtx.strokeStyle='rgba(255,255,255,0.45)';
+  edCtx.lineWidth=sz*0.012;
+  edCtx.beginPath();edCtx.arc(cx-cr*0.05,cy-cr*0.05,cr*0.82,Math.PI*1.1,Math.PI*1.7);
+  edCtx.stroke();
+
+  // ── Draw organelles at preset positions ───────────────────────────────────
+  const orgs=editorGenome.organelles.filter(o=>o&&ORG[o]&&o!=='CYTOPLASM');
+  const positions=getOrgPresetPositions(sz, orgs);
+  for(const key of orgs){
+    const pos=positions[key];
+    if(pos) drawCartoonOrg(edCtx, key, pos.x, pos.y, pos.r, sz);
+  }
+
+  // ── Cytoplasm label if empty ───────────────────────────────────────────────
+  if(orgs.length===0){
+    edCtx.fillStyle='rgba(120,170,210,0.4)';
+    edCtx.font=`${sz*0.065}px 'IBM Plex Sans',sans-serif`;
+    edCtx.textAlign='center';edCtx.textBaseline='middle';
+    edCtx.fillText('tap an organelle',cx,cy-sz*0.05);
+    edCtx.font=`${sz*0.052}px 'IBM Plex Sans',sans-serif`;
+    edCtx.fillText('to add it',cx,cy+sz*0.06);
+  }
+
+  // ── Highlight selected organelle ──────────────────────────────────────────
+  if(selectedOrg&&selectedOrg!=='CYTOPLASM'){
+    const pos=positions[selectedOrg];
+    if(pos){
+      edCtx.strokeStyle='rgba(0,212,255,0.8)';
+      edCtx.lineWidth=3;
+      edCtx.setLineDash([4,3]);
+      edCtx.beginPath();edCtx.arc(pos.x,pos.y,pos.r*1.3,0,Math.PI*2);edCtx.stroke();
+      edCtx.setLineDash([]);
     }
   }
 }
 
-function drawOrgIcon(ctx,key,x,y,r){
+// Preset positions for each organelle type within the cell
+function getOrgPresetPositions(sz, presentOrgs){
+  const cx=sz/2, cy=sz/2, cr=sz*0.42;
+  // Fixed biological positions (relative to cell centre)
+  const presets={
+    NUCLEUS:    {dx: 0.05, dy:-0.05, r:0.28},  // Centre-left, large
+    MITOCHONDRIA:{dx: 0.28, dy: 0.22, r:0.14}, // Lower right
+    CHLOROPLAST: {dx:-0.25, dy: 0.10, r:0.16}, // Left
+    VACUOLE:     {dx: 0.15, dy:-0.18, r:0.20}, // Upper right
+    CHEMORECEPTOR:{dx:-0.20, dy:-0.22, r:0.11},// Upper left
+    FLAGELLUM:   {dx: 0.30, dy:-0.10, r:0.10}, // Right edge
+    CILIA:       {dx:-0.10, dy: 0.28, r:0.10}, // Bottom
+    MOUTH:       {dx: 0.22, dy: 0.05, r:0.13}, // Right
+    SPIKE:       {dx:-0.28, dy:-0.10, r:0.11}, // Far left
+    CELL_WALL:   {dx: 0.0,  dy: 0.0,  r:0.40}, // Wraps whole cell
+    BINDING_AGENT:{dx: 0.05,dy: 0.28, r:0.10}, // Bottom centre
+    NUCLEUS_EXTRA:{dx:0,dy:0,r:0.12},
+  };
+  const result={};
+  for(const key of presentOrgs){
+    const p=presets[key];
+    if(p) result[key]={x:cx+p.dx*sz, y:cy+p.dy*sz, r:p.r*sz};
+  }
+  return result;
+}
+
+function drawCartoonOrg(ctx, key, x, y, r, sz){
   ctx.save();
+  const outline=()=>{ctx.strokeStyle='rgba(40,40,60,0.65)';ctx.lineWidth=r*0.18;ctx.stroke();};
+
   switch(key){
-    case 'NUCLEUS':
-      ctx.fillStyle='#1a2a8a';ctx.beginPath();ctx.arc(x,y,r*0.75,0,Math.PI*2);ctx.fill();
-      ctx.strokeStyle='#4466ff';ctx.lineWidth=1.5;ctx.stroke();
-      ctx.fillStyle='rgba(100,136,255,0.3)';ctx.beginPath();ctx.arc(x,y,r*0.35,0,Math.PI*2);ctx.fill();
-      break;
-    case 'MITOCHONDRIA':
-      ctx.fillStyle='#cc3322';ctx.beginPath();ctx.ellipse(x,y,r,r*0.5,0,0,Math.PI*2);ctx.fill();
-      ctx.strokeStyle='#ff6644';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(x-r*0.6,y);ctx.lineTo(x+r*0.6,y);ctx.stroke();
-      break;
-    case 'CHLOROPLAST':
-      ctx.fillStyle='#229944';ctx.beginPath();ctx.ellipse(x,y,r,r*0.5,0,0,Math.PI*2);ctx.fill();
-      ctx.strokeStyle='#55ff44';ctx.lineWidth=0.8;
-      for(let b=-1;b<=1;b++){ctx.beginPath();ctx.moveTo(x-r*0.7,y+b*r*0.22);ctx.lineTo(x+r*0.7,y+b*r*0.22);ctx.stroke();}
-      break;
-    case 'VACUOLE':
-      ctx.strokeStyle='#aaddff';ctx.lineWidth=1.5;ctx.globalAlpha=0.6;
-      ctx.beginPath();ctx.arc(x,y,r*0.75,0,Math.PI*2);ctx.stroke();
-      ctx.globalAlpha=0.12;ctx.fillStyle='#88aacc';ctx.fill();ctx.globalAlpha=1;
-      break;
-    case 'FLAGELLUM':
-      ctx.strokeStyle='#44ff99';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(x,y);
-      for(let s=1;s<=6;s++){const f=s/6;ctx.lineTo(x+f*r*1.4,y+Math.sin(f*Math.PI*2)*r*0.35);}ctx.stroke();
-      break;
-    case 'CILIA':
-      ctx.strokeStyle='#88ffcc';ctx.lineWidth=1;
-      for(let i=0;i<6;i++){const a=(i/6)*Math.PI*2;ctx.beginPath();ctx.moveTo(x+Math.cos(a)*r*0.5,y+Math.sin(a)*r*0.5);ctx.lineTo(x+Math.cos(a)*r,y+Math.sin(a)*r);ctx.stroke();}
-      break;
-    case 'MOUTH':
-      ctx.fillStyle='#220000';ctx.beginPath();ctx.arc(x,y+r*0.15,r*0.6,0.2,Math.PI-0.2);ctx.closePath();ctx.fill();
-      ctx.fillStyle='#ff2211';
-      for(let i=0;i<3;i++){ctx.beginPath();ctx.arc(x+(i-1)*r*0.35,y+r*0.1,2,0,Math.PI*2);ctx.fill();}
-      break;
-    case 'SPIKE':
-      ctx.fillStyle='#ff8833';
-      for(let i=0;i<3;i++){const a=(i/3)*Math.PI*2;ctx.beginPath();ctx.moveTo(x+Math.cos(a-0.3)*r*0.5,y+Math.sin(a-0.3)*r*0.5);ctx.lineTo(x+Math.cos(a+0.3)*r*0.5,y+Math.sin(a+0.3)*r*0.5);ctx.lineTo(x+Math.cos(a)*r,y+Math.sin(a)*r);ctx.closePath();ctx.fill();}
-      break;
-    case 'CHEMORECEPTOR':
-      ctx.fillStyle='#dd88ff';
-      for(let i=0;i<4;i++){const a=(i/4)*Math.PI*2;ctx.beginPath();ctx.arc(x+Math.cos(a)*r*0.7,y+Math.sin(a)*r*0.7,2.5,0,Math.PI*2);ctx.fill();}
-      break;
-    case 'CELL_WALL':
-      ctx.strokeStyle='#c8a45a';ctx.lineWidth=3;ctx.globalAlpha=0.8;
-      ctx.beginPath();ctx.arc(x,y,r*0.85,0,Math.PI*2);ctx.stroke();ctx.globalAlpha=1;
-      break;
-    case 'BINDING_AGENT':
-      ctx.fillStyle='#ffee55';
-      for(let i=0;i<5;i++){const a=(i/5)*Math.PI*2;ctx.beginPath();ctx.arc(x+Math.cos(a)*r*0.7,y+Math.sin(a)*r*0.7,2.5,0,Math.PI*2);ctx.fill();}
-      break;
-    default:
-      ctx.fillStyle='#888';ctx.beginPath();ctx.arc(x,y,r*0.5,0,Math.PI*2);ctx.fill();
+    case 'NUCLEUS':{
+      // Large purple nucleus with hole (nuclear membrane + nucleolus)
+      const ng=ctx.createRadialGradient(x-r*0.2,y-r*0.2,0,x,y,r);
+      ng.addColorStop(0,'#c08aee');ng.addColorStop(1,'#8844cc');
+      ctx.beginPath();ctx.ellipse(x,y,r,r*0.78,0,0,Math.PI*2);
+      ctx.fillStyle=ng;ctx.fill();outline();
+      // Nuclear pore ring
+      ctx.strokeStyle='rgba(80,20,120,0.5)';ctx.lineWidth=r*0.12;
+      ctx.beginPath();ctx.ellipse(x,y,r*0.38,r*0.3,0,0,Math.PI*2);ctx.stroke();
+      // Shine
+      ctx.fillStyle='rgba(255,255,255,0.3)';
+      ctx.beginPath();ctx.ellipse(x-r*0.3,y-r*0.28,r*0.22,r*0.14,-0.4,0,Math.PI*2);ctx.fill();
+      break;}
+
+    case 'MITOCHONDRIA':{
+      // Orange bean shape with cristae
+      const mg=ctx.createRadialGradient(x-r*0.2,y-r*0.2,0,x,y,r);
+      mg.addColorStop(0,'#ffbb44');mg.addColorStop(1,'#e07020');
+      ctx.beginPath();ctx.ellipse(x,y,r,r*0.55,0.3,0,Math.PI*2);
+      ctx.fillStyle=mg;ctx.fill();outline();
+      // Cristae lines
+      ctx.strokeStyle='rgba(180,80,10,0.45)';ctx.lineWidth=r*0.1;
+      for(let i=-1;i<=1;i++){ctx.beginPath();ctx.moveTo(x+i*r*0.28,y-r*0.35);ctx.lineTo(x+i*r*0.28,y+r*0.35);ctx.stroke();}
+      ctx.fillStyle='rgba(255,255,255,0.25)';
+      ctx.beginPath();ctx.ellipse(x-r*0.2,y-r*0.18,r*0.22,r*0.12,-0.3,0,Math.PI*2);ctx.fill();
+      break;}
+
+    case 'CHLOROPLAST':{
+      // Green lens with thylakoid stacks
+      const cg=ctx.createRadialGradient(x-r*0.2,y-r*0.2,0,x,y,r);
+      cg.addColorStop(0,'#88ee44');cg.addColorStop(1,'#44aa22');
+      ctx.beginPath();ctx.ellipse(x,y,r,r*0.5,0.2,0,Math.PI*2);
+      ctx.fillStyle=cg;ctx.fill();outline();
+      // Thylakoid bars
+      ctx.strokeStyle='rgba(20,80,10,0.4)';ctx.lineWidth=r*0.1;
+      for(let b=-1;b<=1;b++){ctx.beginPath();ctx.moveTo(x-r*0.55,y+b*r*0.2);ctx.lineTo(x+r*0.55,y+b*r*0.2);ctx.stroke();}
+      ctx.fillStyle='rgba(255,255,255,0.28)';
+      ctx.beginPath();ctx.ellipse(x-r*0.2,y-r*0.15,r*0.24,r*0.1,-0.2,0,Math.PI*2);ctx.fill();
+      break;}
+
+    case 'VACUOLE':{
+      // Large blue translucent bubble
+      const vg=ctx.createRadialGradient(x-r*0.25,y-r*0.25,0,x,y,r);
+      vg.addColorStop(0,'rgba(160,210,255,0.85)');vg.addColorStop(1,'rgba(80,150,220,0.75)');
+      ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);
+      ctx.fillStyle=vg;ctx.fill();outline();
+      ctx.fillStyle='rgba(255,255,255,0.35)';
+      ctx.beginPath();ctx.ellipse(x-r*0.3,y-r*0.3,r*0.28,r*0.16,-0.5,0,Math.PI*2);ctx.fill();
+      break;}
+
+    case 'MOUTH':{
+      // Red crescent mouth
+      const mtg=ctx.createRadialGradient(x,y,0,x,y,r);
+      mtg.addColorStop(0,'#ff6655');mtg.addColorStop(1,'#cc1100');
+      ctx.beginPath();ctx.arc(x,y,r,0.2,Math.PI-0.2);ctx.closePath();
+      ctx.fillStyle=mtg;ctx.fill();outline();
+      ctx.fillStyle='rgba(255,255,255,0.2)';
+      ctx.beginPath();ctx.ellipse(x-r*0.2,y-r*0.15,r*0.18,r*0.1,-0.3,0,Math.PI*2);ctx.fill();
+      break;}
+
+    case 'FLAGELLUM':{
+      // Green animated whip
+      ctx.strokeStyle='#44ee88';ctx.lineWidth=r*0.45;
+      ctx.lineCap='round';
+      ctx.beginPath();ctx.moveTo(x-r*0.2,y);
+      ctx.bezierCurveTo(x+r*0.5,y-r*1.2,x+r*1.2,y+r*0.8,x+r*2,y-r*0.3);
+      ctx.stroke();
+      ctx.strokeStyle='rgba(20,180,80,0.35)';ctx.lineWidth=r*0.7;ctx.stroke();
+      ctx.fillStyle='rgba(255,255,255,0.25)';
+      ctx.beginPath();ctx.arc(x,y,r*0.35,0,Math.PI*2);ctx.fill();
+      break;}
+
+    case 'CILIA':{
+      // Teal hairs around a small circle
+      ctx.strokeStyle='#44ddcc';ctx.lineWidth=r*0.18;ctx.lineCap='round';
+      for(let i=0;i<8;i++){const a=(i/8)*Math.PI*2;ctx.beginPath();ctx.moveTo(x+Math.cos(a)*r*0.4,y+Math.sin(a)*r*0.4);ctx.lineTo(x+Math.cos(a)*r,y+Math.sin(a)*r);ctx.stroke();}
+      const cilg=ctx.createRadialGradient(x,y,0,x,y,r*0.4);cilg.addColorStop(0,'#88ffee');cilg.addColorStop(1,'#33bbaa');
+      ctx.beginPath();ctx.arc(x,y,r*0.4,0,Math.PI*2);ctx.fillStyle=cilg;ctx.fill();
+      ctx.strokeStyle='rgba(20,120,110,0.6)';ctx.lineWidth=r*0.12;ctx.stroke();
+      break;}
+
+    case 'SPIKE':{
+      // Orange spiky hedgehog shape
+      for(let i=0;i<6;i++){const a=(i/6)*Math.PI*2;
+        const spg=ctx.createLinearGradient(x,y,x+Math.cos(a)*r,y+Math.sin(a)*r);
+        spg.addColorStop(0,'#ffaa44');spg.addColorStop(1,'#ee6600');
+        ctx.beginPath();ctx.moveTo(x+Math.cos(a-0.35)*r*0.45,y+Math.sin(a-0.35)*r*0.45);ctx.lineTo(x+Math.cos(a)*r,y+Math.sin(a)*r);ctx.lineTo(x+Math.cos(a+0.35)*r*0.45,y+Math.sin(a+0.35)*r*0.45);ctx.closePath();ctx.fillStyle=spg;ctx.fill();ctx.strokeStyle='rgba(140,50,0,0.5)';ctx.lineWidth=r*0.1;ctx.stroke();}
+      break;}
+
+    case 'CHEMORECEPTOR':{
+      // Purple receptor cluster
+      const chg=ctx.createRadialGradient(x,y,0,x,y,r);
+      chg.addColorStop(0,'#dd88ff');chg.addColorStop(1,'#9944cc');
+      ctx.beginPath();ctx.arc(x,y,r*0.6,0,Math.PI*2);ctx.fillStyle=chg;ctx.fill();outline();
+      for(let i=0;i<4;i++){const a=(i/4)*Math.PI*2;ctx.beginPath();ctx.arc(x+Math.cos(a)*r*0.85,y+Math.sin(a)*r*0.85,r*0.22,0,Math.PI*2);ctx.fillStyle='#cc66ff';ctx.fill();ctx.strokeStyle='rgba(80,0,100,0.5)';ctx.lineWidth=r*0.1;ctx.stroke();}
+      break;}
+
+    case 'CELL_WALL':{
+      // Amber outer ring
+      ctx.strokeStyle='#c8a45a';ctx.lineWidth=sz*0.028;
+      ctx.beginPath();ctx.arc(sz/2,sz/2,r*0.97,0,Math.PI*2);ctx.stroke();
+      ctx.strokeStyle='rgba(255,200,100,0.3)';ctx.lineWidth=sz*0.015;ctx.stroke();
+      break;}
+
+    case 'BINDING_AGENT':{
+      // Yellow adhesion dots
+      for(let i=0;i<5;i++){const a=(i/5)*Math.PI*2;
+        ctx.beginPath();ctx.arc(x+Math.cos(a)*r*0.7,y+Math.sin(a)*r*0.7,r*0.3,0,Math.PI*2);
+        ctx.fillStyle='#ffee55';ctx.fill();ctx.strokeStyle='rgba(160,120,0,0.5)';ctx.lineWidth=r*0.12;ctx.stroke();}
+      break;}
   }
   ctx.restore();
 }
 
-function handleEdTap(e){
-  const rect=edCanvas.getBoundingClientRect();
-  const rx=(e.clientX-rect.left)*(edCanvas.width/rect.width);
-  const ry=(e.clientY-rect.top)*(edCanvas.height/rect.height);
-  const cx=edCanvas.width/2,cy=edCanvas.height/2,hs=edCanvas.width/8.5;
-  const hex=pixelToHex((rx-cx)/hs,(ry-cy)/hs,1);
-  if(Math.max(Math.abs(hex.q),Math.abs(hex.r),Math.abs(-hex.q-hex.r))>2)return;
-  if(hex.q===0&&hex.r===0)return;
-  const hexList=hexesInRadius(2);
-  const idx=hexList.findIndex(h=>h.q===hex.q&&h.r===hex.r);if(idx<0)return;
-  if(editorGenome.organelles[idx]&&editorGenome.organelles[idx]!==undefined){
-    editorGenome.organelles[idx]=undefined;
-  }else{
-    const def=ORG[selectedOrg];if(!def)return;
-    if(!isUnlocked(selectedOrg)){showEdWarn('Not yet discovered');return;}
-    if(def.needsNucleus&&!editorGenome.organelles.includes('NUCLEUS')){showEdWarn('Nucleus required first');return;}
+// ── Organelle card tap = toggle at preset position (no hex interaction) ───────
+function handleOrgCardTap(key){
+  if(!isUnlocked(key)){ showEdWarn('Not yet discovered'); return; }
+  const orgs=editorGenome.organelles.filter(o=>o&&ORG[o]&&o!=='CYTOPLASM');
+  const alreadyOn=orgs.includes(key);
+
+  if(alreadyOn){
+    // Remove it
+    editorGenome.organelles=editorGenome.organelles.filter(o=>o!==key);
+    if(!editorGenome.organelles.includes('CYTOPLASM')) editorGenome.organelles.unshift('CYTOPLASM');
+  } else {
     const cap=getComplexityCap();
-    const used=editorGenome.organelles.filter(o=>o&&o!=='CYTOPLASM').length;
-    if(used>=cap){showEdWarn(`Complexity limit: ${cap} organelles`);return;}
-    if(editorGenome.organelles.filter(o=>o===selectedOrg).length>=def.max){showEdWarn(`Max ${def.max} per cell`);return;}
-    while(editorGenome.organelles.length<=idx)editorGenome.organelles.push(undefined);
-    editorGenome.organelles[idx]=selectedOrg;
+    const used=orgs.length;
+    if(used>=cap){ showEdWarn('Maximum complexity: '+cap+' organelles'); return; }
+    const def=ORG[key];
+    if(orgs.filter(o=>o===key).length>=def.max){ showEdWarn('Max '+def.max+' of this type'); return; }
+    editorGenome.organelles.push(key);
   }
-  const cleaned=editorGenome.organelles.filter(o=>o&&o!==undefined);
-  if(!cleaned.includes('CYTOPLASM'))cleaned.unshift('CYTOPLASM');
-  editorGenome.organelles=cleaned;
-  drawEdHex();updateEdStats();updateComplexityBar();
+  selectedOrg=key;
+  drawEdHex(); updateEdStats(); updateComplexityBar();
+  // Refresh palette selection highlights
+  document.querySelectorAll('.org-card').forEach(c=>{
+    c.classList.toggle('selected', c.dataset.orgKey===key&&!alreadyOn);
+    const isOn=editorGenome.organelles.includes(c.dataset.orgKey);
+    c.classList.toggle('org-active', isOn);
+  });
 }
+
+// handleEdTap no longer needed (canvas is view-only) but keep stub
+function handleEdTap(e){ /* positions are now set via palette card taps */ }
+
 
 function showEdWarn(msg){
   const w=document.createElement('div');
@@ -1085,16 +1191,15 @@ function updateComplexityBar(){
 function buildPalette(){
   const palette=document.getElementById('palette');palette.innerHTML='';
   const visSet=getVisibleOrgs();
+  const activeOrgs=new Set(editorGenome.organelles.filter(o=>o&&ORG[o]&&o!=='CYTOPLASM'));
   for(const key of PALETTE_KEYS){
-    const def=ORG[key];
-    const locked=!visSet.has(key);
+    const def=ORG[key];const locked=!visSet.has(key);
+    const isActive=activeOrgs.has(key);
     const card=document.createElement('div');
-    card.className='org-card'+(key===selectedOrg&&!locked?' selected':'')+(locked?' locked':'');
-    card.innerHTML=`<div class="org-dot" style="background:radial-gradient(circle at 35% 35%,${def.color}cc,${def.color}44)"></div><div class="org-name">${def.name}</div><div class="${locked?'org-locked-txt':'org-desc'}">${locked?'Not yet discovered':def.desc}</div><div class="org-cost">${locked?'':'⧬ '+def.mp+' MP'}</div>`;
-    if(!locked){card.addEventListener('click',()=>{selectedOrg=key;document.querySelectorAll('.org-card').forEach(c=>{c.classList.remove('selected');if(c===card)c.classList.add('selected');});});}
+    card.dataset.orgKey=key;
+    card.className='org-card'+(isActive?' org-active selected':'')+(locked?' locked':'');
+    card.innerHTML=`<div class="org-dot" style="background:radial-gradient(circle at 35% 35%,${def.color}cc,${def.color}33)"></div><div class="org-name">${def.name}</div><div class="${locked?'org-locked-txt':'org-desc'}">${locked?'Not yet discovered':def.desc}</div>`;
+    if(!locked) card.addEventListener('click',()=>handleOrgCardTap(key));
     palette.appendChild(card);
   }
 }
-</script>
-</body>
-</html>
