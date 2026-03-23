@@ -5,51 +5,1118 @@
 <meta name="viewport" content="viewport-fit=cover, width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#020A13">
 <title>Endo</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-  *, *::before, *::after { box-sizing: border-box; }
-  html, body {
-    margin: 0; padding: 0; width: 100%; height: 100%;
-    background: #03080f; overflow: hidden;
-    position: fixed; overscroll-behavior: none;
-  }
-  canvas {
-    display: block; touch-action: none;
-    -webkit-tap-highlight-color: transparent;
-    -webkit-touch-callout: none;
-    user-select: none; -webkit-user-select: none;
-  }
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{height:100%;background:#020A13;}
+body{
+  width:100%;height:100dvh;
+  background:#020A13;
+  overflow:hidden;position:fixed;
+  overscroll-behavior:none;
+  -webkit-user-select:none;user-select:none;
+  -webkit-touch-callout:none;
+  font-family:'IBM Plex Sans',system-ui,sans-serif;
+  color:#E0F4FF;
+  touch-action:none;
+}
+canvas{
+  display:block;position:fixed;
+  top:0;left:0;
+  touch-action:none;
+  -webkit-tap-highlight-color:transparent;
+}
+/* Microscope vignette */
+#vignette{
+  position:fixed;inset:0;pointer-events:none;z-index:5;
+  background:radial-gradient(circle at 50% 50%,transparent 40%,rgba(2,10,19,0.25) 62%,rgba(2,10,19,0.65) 80%,rgba(2,10,19,0.92) 100%);
+}
+/* HUD - top strip */
+#hud{
+  position:fixed;top:0;left:0;right:0;
+  padding:calc(env(safe-area-inset-top,0px) + 10px) 16px 10px;
+  display:flex;align-items:center;gap:8px;
+  z-index:20;pointer-events:none;
+  background:linear-gradient(to bottom,rgba(2,10,19,0.7) 0%,transparent 100%);
+}
+.hud-pill{
+  display:flex;align-items:center;gap:5px;
+  background:rgba(7,20,38,0.7);
+  border:1px solid rgba(0,212,255,0.18);
+  border-radius:20px;padding:5px 10px;
+  font-family:'IBM Plex Mono',monospace;
+  font-size:11px;color:#7BA8C9;
+  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+}
+.hud-pill .val{color:#00D4FF;font-weight:500;}
+.hud-pill .icon{font-size:12px;}
+/* Biome toast */
+#biome-toast{
+  position:fixed;top:calc(env(safe-area-inset-top,0px) + 56px);
+  left:50%;transform:translateX(-50%);
+  background:rgba(7,20,38,0.85);
+  border:1px solid rgba(0,212,255,0.2);
+  border-radius:20px;padding:8px 18px;
+  font-size:12px;color:#A5F8E5;
+  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  z-index:30;transition:opacity 0.5s;opacity:0;pointer-events:none;
+  text-align:center;white-space:pre;line-height:1.5;
+}
+/* Speed controls - bottom left */
+#speed-controls{
+  position:fixed;
+  bottom:calc(env(safe-area-inset-bottom,0px) + 16px);
+  left:16px;
+  display:flex;gap:6px;z-index:20;
+}
+.speed-btn{
+  width:42px;height:42px;border-radius:50%;
+  background:rgba(7,20,38,0.8);
+  border:1px solid rgba(0,212,255,0.2);
+  color:#4C8DC2;font-family:'IBM Plex Mono',monospace;
+  font-size:11px;font-weight:500;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;-webkit-tap-highlight-color:transparent;
+  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+  transition:all 0.15s;
+  touch-action:manipulation;
+}
+.speed-btn.active{
+  background:rgba(0,212,255,0.15);
+  border-color:rgba(0,212,255,0.5);
+  color:#00D4FF;
+  box-shadow:0 0 12px rgba(0,212,255,0.2);
+}
+/* Create cell button - bottom right */
+#create-btn{
+  position:fixed;
+  bottom:calc(env(safe-area-inset-bottom,0px) + 16px);
+  right:16px;
+  width:58px;height:58px;border-radius:50%;
+  background:rgba(0,212,255,0.12);
+  border:1.5px solid rgba(0,212,255,0.45);
+  color:#00D4FF;font-size:28px;line-height:1;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;-webkit-tap-highlight-color:transparent;
+  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+  z-index:20;transition:all 0.2s;
+  box-shadow:0 0 20px rgba(0,212,255,0.15);
+  touch-action:manipulation;
+}
+#create-btn:active{
+  background:rgba(0,212,255,0.25);
+  box-shadow:0 0 30px rgba(0,212,255,0.3);
+  transform:scale(0.95);
+}
+/* Inspector overlay */
+#inspector{
+  position:fixed;inset:0;z-index:50;
+  display:none;align-items:center;justify-content:center;
+  background:rgba(2,10,19,0.6);
+  backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);
+}
+#inspector.open{display:flex;}
+#inspector-panel{
+  width:min(340px,92vw);
+  background:rgba(7,20,38,0.92);
+  border:1px solid rgba(0,212,255,0.2);
+  border-radius:16px;
+  padding:20px;
+  backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+  box-shadow:0 8px 40px rgba(0,0,0,0.6),inset 0 1px 0 rgba(0,212,255,0.07);
+  max-height:80vh;overflow-y:auto;
+}
+.inspector-header{
+  display:flex;justify-content:space-between;align-items:flex-start;
+  margin-bottom:14px;
+}
+.inspector-stage{font-size:18px;font-weight:500;color:#A5F8E5;letter-spacing:0.02em;}
+.inspector-gen{font-family:'IBM Plex Mono',monospace;font-size:11px;color:#3B5B81;margin-top:3px;}
+.inspector-close{
+  width:32px;height:32px;border-radius:50%;
+  background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);
+  color:#3B5B81;font-size:16px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  touch-action:manipulation;
+}
+.inspector-cell-preview{
+  width:80px;height:80px;border-radius:50%;
+  margin:0 auto 16px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:32px;
+}
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;}
+.stat-item{
+  background:rgba(255,255,255,0.03);
+  border:1px solid rgba(255,255,255,0.06);
+  border-radius:8px;padding:10px 12px;
+}
+.stat-label{font-size:10px;color:#3B5B81;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:3px;}
+.stat-value{font-family:'IBM Plex Mono',monospace;font-size:14px;color:#00D4FF;font-weight:500;}
+.organelle-list{margin-top:12px;}
+.organelle-list h4{font-size:10px;color:#3B5B81;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px;}
+.organelle-chip{
+  display:inline-flex;align-items:center;gap:5px;
+  background:rgba(0,212,255,0.07);
+  border:1px solid rgba(0,212,255,0.15);
+  border-radius:12px;padding:4px 10px;
+  font-size:11px;color:#7BA8C9;margin:0 4px 4px 0;
+}
+.organelle-chip .chip-dot{
+  width:7px;height:7px;border-radius:50%;
+}
+.gen-bar-wrap{margin-top:14px;}
+.gen-bar-label{font-size:10px;color:#3B5B81;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:5px;display:flex;justify-content:space-between;}
+.gen-bar-track{height:5px;background:rgba(255,255,255,0.06);border-radius:3px;overflow:hidden;}
+.gen-bar-fill{height:100%;background:linear-gradient(90deg,#00D4FF,#26FFF8);border-radius:3px;transition:width 0.4s;}
+
+/* Editor overlay */
+#editor{
+  position:fixed;inset:0;z-index:60;
+  display:none;flex-direction:column;
+  background:rgba(2,10,19,0.97);
+}
+#editor.open{display:flex;}
+.editor-header{
+  padding:calc(env(safe-area-inset-top,0px) + 12px) 20px 12px;
+  display:flex;align-items:center;justify-content:space-between;
+  border-bottom:1px solid rgba(0,212,255,0.1);
+  flex-shrink:0;
+}
+.editor-title{font-size:13px;font-weight:500;color:#A5F8E5;letter-spacing:0.1em;text-transform:uppercase;}
+.editor-cancel{
+  padding:8px 16px;border-radius:20px;
+  background:rgba(231,76,60,0.1);border:1px solid rgba(231,76,60,0.3);
+  color:#E74C3C;font-size:12px;cursor:pointer;touch-action:manipulation;
+  font-family:'IBM Plex Sans',sans-serif;
+}
+/* Editor hex grid area */
+#editor-grid-area{
+  flex:1;display:flex;align-items:center;justify-content:center;
+  min-height:0;
+  position:relative;
+}
+#editor-canvas-wrap{
+  width:min(320px,80vw);height:min(320px,80vw);
+  position:relative;
+}
+#editor-canvas{width:100%;height:100%;}
+/* Stats bar */
+#editor-stats{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:8px;
+  padding:0 16px 10px;flex-shrink:0;
+}
+.e-stat{text-align:center;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:8px;padding:8px 4px;}
+.e-stat-val{font-family:'IBM Plex Mono',monospace;font-size:14px;color:#00D4FF;font-weight:500;}
+.e-stat-label{font-size:9px;color:#3B5B81;text-transform:uppercase;letter-spacing:0.07em;margin-top:2px;}
+/* Organelle palette */
+#palette-label{
+  padding:0 16px 6px;font-size:10px;color:#3B5B81;
+  text-transform:uppercase;letter-spacing:0.08em;flex-shrink:0;
+}
+#palette{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:8px;
+  padding:0 16px;overflow-y:auto;flex-shrink:0;
+  max-height:38vh;
+}
+.org-card{
+  background:rgba(7,20,38,0.8);
+  border:1px solid rgba(0,212,255,0.1);
+  border-radius:10px;padding:10px;
+  cursor:pointer;touch-action:manipulation;
+  transition:all 0.15s;position:relative;
+  display:flex;flex-direction:column;gap:4px;
+}
+.org-card.selected{
+  background:rgba(0,212,255,0.1);
+  border-color:rgba(0,212,255,0.45);
+  box-shadow:0 0 14px rgba(0,212,255,0.12);
+}
+.org-card:active{transform:scale(0.97);}
+.org-dot{
+  width:28px;height:28px;border-radius:50%;
+  margin-bottom:2px;
+  display:flex;align-items:center;justify-content:center;
+}
+.org-name{font-size:11px;font-weight:500;color:#E0F4FF;line-height:1.2;}
+.org-desc{font-size:9px;color:#3B5B81;line-height:1.35;font-style:italic;}
+.org-cost{
+  font-family:'IBM Plex Mono',monospace;font-size:9px;
+  color:#00D4FF;margin-top:2px;
+}
+/* Release button */
+#editor-footer{
+  padding:12px 16px calc(env(safe-area-inset-bottom,0px) + 12px);
+  flex-shrink:0;
+}
+#release-btn{
+  width:100%;padding:16px;border-radius:12px;
+  background:rgba(0,212,255,0.12);
+  border:1.5px solid rgba(0,212,255,0.35);
+  color:#00D4FF;font-size:14px;font-weight:500;
+  font-family:'IBM Plex Sans',sans-serif;
+  cursor:pointer;touch-action:manipulation;
+  letter-spacing:0.05em;
+  box-shadow:0 0 20px rgba(0,212,255,0.08);
+  transition:all 0.2s;
+}
+#release-btn:active{
+  background:rgba(0,212,255,0.22);
+  box-shadow:0 0 30px rgba(0,212,255,0.2);
+}
 </style>
 </head>
 <body>
+
+<div id="vignette"></div>
+
+<!-- HUD -->
+<div id="hud">
+  <div class="hud-pill"><span class="icon">◉</span><span id="h-cells" class="val">0</span><span>cells</span></div>
+  <div class="hud-pill"><span class="icon">⌬</span><span id="h-gen" class="val">0</span><span>gen</span></div>
+  <div class="hud-pill"><span class="icon">✦</span><span id="h-nuts" class="val">0</span><span>nutrients</span></div>
+</div>
+
+<div id="biome-toast"></div>
+
+<!-- Speed controls -->
+<div id="speed-controls">
+  <div class="speed-btn" data-speed="0">⏸</div>
+  <div class="speed-btn active" data-speed="1">1×</div>
+  <div class="speed-btn" data-speed="2">2×</div>
+  <div class="speed-btn" data-speed="4">4×</div>
+</div>
+
+<!-- Create button -->
+<div id="create-btn">+</div>
+
+<!-- Inspector -->
+<div id="inspector">
+  <div id="inspector-panel">
+    <div class="inspector-header">
+      <div>
+        <div class="inspector-stage" id="insp-stage">Prokaryote</div>
+        <div class="inspector-gen" id="insp-gen">Generation 0</div>
+      </div>
+      <div class="inspector-close" id="insp-close">✕</div>
+    </div>
+    <div class="inspector-cell-preview" id="insp-preview"></div>
+    <div class="stat-grid">
+      <div class="stat-item"><div class="stat-label">Speed</div><div class="stat-value" id="insp-speed">—</div></div>
+      <div class="stat-item"><div class="stat-label">Energy</div><div class="stat-value" id="insp-energy">—</div></div>
+      <div class="stat-item"><div class="stat-label">Sense range</div><div class="stat-value" id="insp-sense">—</div></div>
+      <div class="stat-item"><div class="stat-label">Defense</div><div class="stat-value" id="insp-defense">—</div></div>
+      <div class="stat-item"><div class="stat-label">Mutation rate</div><div class="stat-value" id="insp-mut">—</div></div>
+      <div class="stat-item"><div class="stat-label">Vitality</div><div class="stat-value" id="insp-vitality">—</div></div>
+    </div>
+    <div class="organelle-list">
+      <h4>Active Organelles</h4>
+      <div id="insp-organelles"></div>
+    </div>
+    <div class="gen-bar-wrap">
+      <div class="gen-bar-label"><span>Lineage depth</span><span id="insp-gen-num">Gen 0</span></div>
+      <div class="gen-bar-track"><div class="gen-bar-fill" id="insp-gen-bar" style="width:0%"></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- Cell Editor -->
+<div id="editor">
+  <div class="editor-header">
+    <div class="editor-title">Cell Designer</div>
+    <div class="editor-cancel" id="editor-cancel-btn">Cancel</div>
+  </div>
+  <div id="editor-grid-area">
+    <div id="editor-canvas-wrap">
+      <canvas id="editor-canvas"></canvas>
+    </div>
+  </div>
+  <div id="editor-stats">
+    <div class="e-stat"><div class="e-stat-val" id="es-speed">0</div><div class="e-stat-label">Speed</div></div>
+    <div class="e-stat"><div class="e-stat-val" id="es-energy">+0</div><div class="e-stat-label">Energy/s</div></div>
+    <div class="e-stat"><div class="e-stat-val" id="es-defense">0</div><div class="e-stat-label">Defense</div></div>
+  </div>
+  <div id="palette-label">Select organelle — tap hex to place</div>
+  <div id="palette"></div>
+  <div id="editor-footer">
+    <div id="release-btn">🌊  Release into the ocean</div>
+  </div>
+</div>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/phaser/3.60.0/phaser.min.js"></script>
 <script>
-const WORLD_RADIUS=2600,WORLD_CX=0,WORLD_CY=0,SOFT_EDGE=380,MAX_CELLS=120,MAX_NUTRIENTS=240,DPR=Math.min(window.devicePixelRatio||1,2),SW=window.innerWidth,SH=window.innerHeight;
-const BIOMES=[{name:'Vents',inner:0,outer:600,bg:0x1a0305,accent:0xcc2200,mutMult:2.0,drainMult:2.0,nutrientMult:0.8,lightMult:0.0},{name:'Abyss',inner:600,outer:1200,bg:0x050810,accent:0x1133aa,mutMult:1.5,drainMult:1.8,nutrientMult:0.2,lightMult:0.0},{name:'Twilight',inner:1200,outer:1900,bg:0x071525,accent:0x2255aa,mutMult:1.2,drainMult:1.3,nutrientMult:0.6,lightMult:0.25},{name:'Shallows',inner:1900,outer:2600,bg:0x083040,accent:0x44aacc,mutMult:1.0,drainMult:1.0,nutrientMult:1.0,lightMult:1.0}];
-function getBiome(x,y){const d=Math.sqrt(x*x+y*y);for(let i=0;i<BIOMES.length;i++){if(d>=BIOMES[i].inner&&d<=BIOMES[i].outer)return BIOMES[i];}return BIOMES[3];}
-const ORG={CYTOPLASM:{name:'Cytoplasm',short:'CYT',color:0xaaddff,speed:0,energy:0.3,eat:0,sense:0,defense:0.5,mp:0,max:99,needsNucleus:false},NUCLEUS:{name:'Nucleus',short:'NUC',color:0xffbb44,speed:0,energy:-0.4,eat:0,sense:25,defense:0,mp:20,max:1,needsNucleus:false},FLAGELLUM:{name:'Flagellum',short:'FLA',color:0x44ff99,speed:42,energy:-0.7,eat:0,sense:0,defense:0,mp:10,max:4,needsNucleus:false},CILIA:{name:'Cilia',short:'CIL',color:0x88ffcc,speed:18,energy:-0.3,eat:0,sense:0,defense:0,mp:6,max:6,needsNucleus:false},MITOCHONDRIA:{name:'Mitochondria',short:'MIT',color:0xff6644,speed:0,energy:2.2,eat:0.5,sense:0,defense:0,mp:15,max:4,needsNucleus:true},CHLOROPLAST:{name:'Chloroplast',short:'CHL',color:0x55dd22,speed:0,energy:1.8,eat:0,sense:0,defense:0,mp:15,max:4,needsNucleus:true},VACUOLE:{name:'Vacuole',short:'VAC',color:0xbbddff,speed:0,energy:0,eat:0.3,sense:0,defense:1.0,mp:8,max:3,needsNucleus:false},MOUTH:{name:'Mouth',short:'MTH',color:0xff4444,speed:0,energy:-0.3,eat:2.0,sense:0,defense:0,mp:12,max:2,needsNucleus:false},SPIKE:{name:'Spike',short:'SPK',color:0xff8833,speed:0,energy:-0.2,eat:0,sense:0,defense:2.5,mp:10,max:4,needsNucleus:false},CHEMORECEPTOR:{name:'Chemoreceptor',short:'CHM',color:0xdd88ff,speed:0,energy:-0.3,eat:0,sense:70,defense:0,mp:10,max:2,needsNucleus:false}};
-const ORG_KEYS=Object.keys(ORG),PALETTE_KEYS=['FLAGELLUM','CILIA','MOUTH','VACUOLE','CHEMORECEPTOR','SPIKE','NUCLEUS','MITOCHONDRIA','CHLOROPLAST'];
-function computeStats(organelles){let speed=0,energy=0,eat=1,sense=55,defense=0,hasMouth=false,hasChloro=false,hasNucleus=false,hasFlag=false,vacCount=0,mpUsed=0;for(const k of organelles){if(!ORG[k])continue;const o=ORG[k];speed+=o.speed;energy+=o.energy;eat+=o.eat;sense+=o.sense;defense+=o.defense;mpUsed+=o.mp;if(k==='MOUTH')hasMouth=true;if(k==='CHLOROPLAST')hasChloro=true;if(k==='NUCLEUS')hasNucleus=true;if(k==='FLAGELLUM')hasFlag=true;if(k==='VACUOLE')vacCount++;}return{speed,energy:energy-0.18,eat,sense,defense,hasMouth,hasChloro,hasNucleus,hasFlag,maxEnergy:80+vacCount*30+(hasNucleus?20:0),organelleCount:organelles.length,mpUsed};}
+// ─── DESIGN TOKENS ────────────────────────────────────────────────────────────
+const C = {
+  bgAbyss:   0x020A13, bgDeep:    0x071426,
+  bgMid:     0x0C2340, bgShallow: 0x132E4F,
+  cyan:      0x00D4FF, teal:      0x26FFF8,
+  green:     0x76E0B0, blue:      0x4C8DC2,
+  purple:    0x958CF9, indigo:    0x494F8B,
+  textPri:   0xE0F4FF, textSec:   0x7BA8C9,
+  textMuted: 0x3B5B81, textHead:  0xA5F8E5,
+  danger:    0xE74C3C, warn:      0xF39C12, ok: 0x2ECC71,
+};
+
+// ─── WORLD CONSTANTS ──────────────────────────────────────────────────────────
+const WORLD_RADIUS = 2600, SOFT_EDGE = 380;
+const MAX_CELLS = 120, MAX_NUTRIENTS = 240;
+const DPR = Math.min(window.devicePixelRatio || 1, 2);
+const SW = window.innerWidth, SH = window.innerHeight;
+
+// ─── BIOMES ───────────────────────────────────────────────────────────────────
+const BIOMES = [
+  { name:'Hydrothermal Vents', emoji:'🔥', desc:'High mutation · Intense heat',
+    inner:0,   outer:600,  bg:0x1a0305, accent:0xcc2200, mutMult:2.0, drainMult:2.0, nutMult:0.8, lightMult:0.0 },
+  { name:'The Abyss',          emoji:'🌑', desc:'No light · Crushing pressure',
+    inner:600, outer:1200, bg:0x030610, accent:0x1133aa, mutMult:1.5, drainMult:1.8, nutMult:0.2, lightMult:0.0 },
+  { name:'Twilight Zone',      emoji:'🌊', desc:'Fading light · Marine snow',
+    inner:1200,outer:1900, bg:0x071525, accent:0x2255aa, mutMult:1.2, drainMult:1.3, nutMult:0.6, lightMult:0.25 },
+  { name:'Sunlit Shallows',    emoji:'☀️', desc:'Rich nutrients · UV exposure',
+    inner:1900,outer:2600, bg:0x083040, accent:0x44aacc, mutMult:1.0, drainMult:1.0, nutMult:1.0, lightMult:1.0 },
+];
+function getBiome(x,y){ const d=Math.sqrt(x*x+y*y); for(const b of BIOMES) if(d>=b.inner&&d<=b.outer) return b; return BIOMES[3]; }
+
+// ─── ORGANELLE DEFINITIONS ────────────────────────────────────────────────────
+const ORG = {
+  CYTOPLASM:{
+    name:'Cytoplasm', short:'CYT', color:'#aaddff', phColor:0xaaddff,
+    desc:'The living substrate. Passive energy harvest through chemical gradients.',
+    effect:'+Energy/s', speed:0,energy:0.3,eat:0,sense:0,defense:0.5,mp:0,max:99,needsNucleus:false
+  },
+  NUCLEUS:{
+    name:'Nucleus', short:'NUC', color:'#ffbb44', phColor:0xffbb44,
+    desc:'Command centre. Unlocks advanced organelles and true evolutionary potential.',
+    effect:'Unlocks advanced', speed:0,energy:-0.4,eat:0,sense:25,defense:0,mp:20,max:1,needsNucleus:false
+  },
+  FLAGELLUM:{
+    name:'Flagellum', short:'FLA', color:'#44ff99', phColor:0x44ff99,
+    desc:'Rhythmic contractions propel the cell through viscous media with surprising precision.',
+    effect:'+Speed +42', speed:42,energy:-0.7,eat:0,sense:0,defense:0,mp:10,max:4,needsNucleus:false
+  },
+  CILIA:{
+    name:'Cilia', short:'CIL', color:'#88ffcc', phColor:0x88ffcc,
+    desc:'Thousands of hair-like projections beat in coordinated waves. Efficient, quiet propulsion.',
+    effect:'+Speed +18', speed:18,energy:-0.3,eat:0,sense:0,defense:0,mp:6,max:6,needsNucleus:false
+  },
+  MITOCHONDRIA:{
+    name:'Mitochondria', short:'MIT', color:'#ff6644', phColor:0xff6644,
+    desc:'Powerhouse of the cell. Oxidative phosphorylation converts nutrients to raw ATP.',
+    effect:'+Energy/s +2.2', speed:0,energy:2.2,eat:0.5,sense:0,defense:0,mp:15,max:4,needsNucleus:true
+  },
+  CHLOROPLAST:{
+    name:'Chloroplast', short:'CHL', color:'#55dd22', phColor:0x55dd22,
+    desc:'Ancient endosymbiont. Photons absorbed near the surface power sugar synthesis.',
+    effect:'Light→Energy', speed:0,energy:1.8,eat:0,sense:0,defense:0,mp:15,max:4,needsNucleus:true
+  },
+  VACUOLE:{
+    name:'Vacuole', short:'VAC', color:'#bbddff', phColor:0xbbddff,
+    desc:'Fluid-filled reservoir. Stores nutrients, regulates buoyancy, buffers toxic compounds.',
+    effect:'+Max energy', speed:0,energy:0,eat:0.3,sense:0,defense:1.0,mp:8,max:3,needsNucleus:false
+  },
+  MOUTH:{
+    name:'Cytostome', short:'MTH', color:'#ff4444', phColor:0xff4444,
+    desc:"It doesn't digest so much as disassemble. Engulfs weaker cells and reclaims their stored energy.",
+    effect:'Predation', speed:0,energy:-0.3,eat:2.0,sense:0,defense:0,mp:12,max:2,needsNucleus:false
+  },
+  SPIKE:{
+    name:'Acanthocyte', short:'SPK', color:'#ff8833', phColor:0xff8833,
+    desc:'Hardened protein spurs. Passive contact damage to any cell that collides with you.',
+    effect:'Contact damage', speed:0,energy:-0.2,eat:0,sense:0,defense:2.5,mp:10,max:4,needsNucleus:false
+  },
+  CHEMORECEPTOR:{
+    name:'Chemoreceptor', short:'CHM', color:'#dd88ff', phColor:0xdd88ff,
+    desc:'Detects nutrient gradients and chemical signals at extreme range. The cell knows before it sees.',
+    effect:'+Sense +70', speed:0,energy:-0.3,eat:0,sense:70,defense:0,mp:10,max:2,needsNucleus:false
+  },
+};
+const ORG_KEYS = Object.keys(ORG);
+const PALETTE_KEYS = ['FLAGELLUM','CILIA','MOUTH','VACUOLE','CHEMORECEPTOR','SPIKE','NUCLEUS','MITOCHONDRIA','CHLOROPLAST'];
+
+function computeStats(organelles){
+  let speed=0,energy=0,eat=1,sense=55,defense=0,hasMouth=false,hasChloro=false,hasNucleus=false,hasFlag=false,vacCount=0;
+  for(const k of organelles){
+    if(!ORG[k]) continue;
+    const o=ORG[k];
+    speed+=o.speed; energy+=o.energy; eat+=o.eat; sense+=o.sense; defense+=o.defense;
+    if(k==='MOUTH') hasMouth=true; if(k==='CHLOROPLAST') hasChloro=true;
+    if(k==='NUCLEUS') hasNucleus=true; if(k==='FLAGELLUM') hasFlag=true;
+    if(k==='VACUOLE') vacCount++;
+  }
+  return{speed,energy:energy-0.18,eat,sense,defense,hasMouth,hasChloro,hasNucleus,hasFlag,
+         maxEnergy:80+vacCount*30+(hasNucleus?20:0),organelleCount:organelles.length};
+}
+
 function hexToPixel(q,r,size){return{x:size*(Math.sqrt(3)*q+Math.sqrt(3)/2*r),y:size*(3/2*r)};}
 function pixelToHex(x,y,size){const q=(Math.sqrt(3)/3*x-1/3*y)/size,r=(2/3*y)/size;return hexRound(q,r);}
 function hexRound(q,r){const s=-q-r;let rq=Math.round(q),rr=Math.round(r),rs=Math.round(s);const dq=Math.abs(rq-q),dr=Math.abs(rr-r),ds=Math.abs(rs-s);if(dq>dr&&dq>ds)rq=-rr-rs;else if(dr>ds)rr=-rq-rs;return{q:rq,r:rr};}
 function hexesInRadius(radius){const result=[];for(let q=-radius;q<=radius;q++){const r1=Math.max(-radius,-q-radius),r2=Math.min(radius,-q+radius);for(let r=r1;r<=r2;r++)result.push({q,r});}return result;}
 function gaussianRandom(){let u=0,v=0;while(u===0)u=Math.random();while(v===0)v=Math.random();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v);}
-function mutateGenome(genome){const rate=genome.mutationRate,orgs=[...genome.organelles];if(Math.random()<rate*0.22&&orgs.length<7){const hasNuc=orgs.includes('NUCLEUS');const candidates=ORG_KEYS.filter(k=>!ORG[k].needsNucleus||hasNuc);const type=candidates[Math.floor(Math.random()*candidates.length)];if(orgs.filter(o=>o===type).length<ORG[type].max)orgs.push(type);}if(orgs.length>2&&Math.random()<rate*0.18)orgs.splice(1+Math.floor(Math.random()*(orgs.length-1)),1);let newRate=genome.mutationRate;if(Math.random()<0.05){newRate*=Math.exp(0.1*gaussianRandom());newRate=Math.max(0.005,Math.min(0.3,newRate));}return{organelles:orgs,colorHue:((genome.colorHue+(Math.random()<rate?gaussianRandom()*12:0))+360)%360,mutationRate:newRate,divisionThreshold:Math.max(0.5,Math.min(0.95,genome.divisionThreshold+(Math.random()<rate?gaussianRandom()*0.04:0)))};}
-class SpatialHash{constructor(cellSize,worldSize){this.cellSize=cellSize;this.invSize=1/cellSize;this.halfWorld=worldSize/2;this.cols=Math.ceil(worldSize/cellSize)+2;this.cells=new Map();}key(x,y){return(((y+this.halfWorld)*this.invSize)|0)*this.cols+((((x+this.halfWorld)*this.invSize)|0));}clear(){this.cells.clear();}insert(item){const k=this.key(item.x,item.y);const c=this.cells.get(k);if(c)c.push(item);else this.cells.set(k,[item]);}rebuild(items){this.clear();for(const i of items)this.insert(i);}query(cx,cy,radius){const result=[],rSq=radius*radius,span=Math.ceil(radius*this.invSize)+1,cCol=((cx+this.halfWorld)*this.invSize)|0,cRow=((cy+this.halfWorld)*this.invSize)|0;for(let dc=-span;dc<=span;dc++)for(let dr=-span;dr<=span;dr++){const cell=this.cells.get((cRow+dr)*this.cols+(cCol+dc));if(!cell)continue;for(const item of cell){const dx=item.x-cx,dy=item.y-cy;if(dx*dx+dy*dy<=rSq)result.push(item);}}return result;}}
-class BootScene extends Phaser.Scene{constructor(){super('Boot');}create(){const W=this.scale.width,H=this.scale.height;const g=this.add.graphics();g.fillStyle(0x03080f,1);g.fillRect(0,0,W,H);const hexGfx=this.add.graphics();const hexes=Array.from({length:18},()=>({x:Math.random()*W,y:Math.random()*H,r:8+Math.random()*22,a:Math.random()*Math.PI*2,spd:0.008+Math.random()*0.012}));this.add.text(W/2,H*0.32,'ENDO',{fontFamily:'monospace',fontSize:'58px',color:'#1a3a6a',stroke:'#000a1a',strokeThickness:6}).setOrigin(0.5);this.add.text(W/2,H*0.32+60,'evolution simulation',{fontFamily:'monospace',fontSize:'14px',color:'#1a3a55'}).setOrigin(0.5);const tapTxt=this.add.text(W/2,H*0.76,'tap to begin',{fontFamily:'monospace',fontSize:'15px',color:'#1a4a66'}).setOrigin(0.5).setAlpha(0);this.tweens.add({targets:tapTxt,alpha:0.9,duration:900,yoyo:true,repeat:-1});let ready=false;this.time.delayedCall(600,()=>{ready=true;});this.events.on('update',(_s,time)=>{hexGfx.clear();for(const h of hexes){h.a+=h.spd;h.y-=0.2;if(h.y<-30)h.y=H+30;const alpha=0.05+Math.sin(h.a*2)*0.04;hexGfx.lineStyle(1,0x1144aa,alpha);hexGfx.beginPath();for(let i=0;i<6;i++){const ang=(i/6)*Math.PI*2+Math.PI/6+time*0.0002;if(i===0)hexGfx.moveTo(h.x+Math.cos(ang)*h.r,h.y+Math.sin(ang)*h.r);else hexGfx.lineTo(h.x+Math.cos(ang)*h.r,h.y+Math.sin(ang)*h.r);}hexGfx.closePath();hexGfx.strokePath();}});this.input.once('pointerdown',()=>{if(!ready)return;this.cameras.main.fadeOut(400,0,0,0);this.time.delayedCall(400,()=>this.scene.start('World'));});}}
-class Cell{constructor(genome,x,y,generation=0){this.genome=genome;this.x=x;this.y=y;this.vx=0;this.vy=0;this.generation=generation;this.age=0;this.dead=false;this.dying=false;this.deathAlpha=1;this.damagePulse=0;this.moveAngle=Math.random()*Math.PI*2;this.timeOffset=Math.random()*10000;this.targetNutrient=null;this.targetPrey=null;this.lastDivideTime=0;this.lastSpikeTime=0;this.stats=computeStats(genome.organelles);this.radius=11+this.stats.organelleCount*1.4;this.energy=this.stats.maxEnergy*(0.45+Math.random()*0.2);}computePower(){return this.stats.speed*0.4+this.stats.defense*12+this.stats.eat*8+this.radius*1.5+(this.stats.hasMouth?25:0)+(this.energy/this.stats.maxEnergy)*15;}seekTarget(nutrients,nearbyCells){const myPower=this.computePower();for(const oc of nearbyCells){if(oc.computePower()>myPower*1.4){this.moveAngle=Math.atan2(this.y-oc.y,this.x-oc.x);this.targetPrey=null;this.targetNutrient=null;return;}}const hungry=this.energy<this.stats.maxEnergy*0.65;if(this.stats.hasMouth&&hungry&&!this.stats.hasChloro){if(this.targetPrey&&this.targetPrey.dead)this.targetPrey=null;if(!this.targetPrey){let nd=this.stats.sense*0.9,best=null;for(const oc of nearbyCells){if(oc.dead)continue;if(oc.computePower()>=myPower*0.85)continue;const d=Math.hypot(oc.x-this.x,oc.y-this.y);if(d<nd){nd=d;best=oc;}}this.targetPrey=best;}if(this.targetPrey){this.targetNutrient=null;this.moveAngle=Math.atan2(this.targetPrey.y-this.y,this.targetPrey.x-this.x);return;}}this.targetPrey=null;if(this.targetNutrient&&(!this.targetNutrient.available||this.targetNutrient.dead))this.targetNutrient=null;if(!this.targetNutrient){let nd=this.stats.sense,best=null;for(const n of nutrients){if(!n.available)continue;const d=Math.hypot(n.x-this.x,n.y-this.y);if(d<nd){nd=d;best=n;}}this.targetNutrient=best;}if(this.targetNutrient)this.moveAngle=Math.atan2(this.targetNutrient.y-this.y,this.targetNutrient.x-this.x);}tryEat(prey,_t,dt){if(!this.stats.hasMouth||prey.dead)return;if(Math.hypot(prey.x-this.x,prey.y-this.y)>this.radius+prey.radius+6)return;if(prey.computePower()>=this.computePower()*0.85)return;const drain=22*dt;prey.takeDamage(drain);this.energy=Math.min(this.stats.maxEnergy,this.energy+drain*0.12*this.stats.eat);}applySpikeContact(other,time){if(time-this.lastSpikeTime<800)return;if(Math.hypot(other.x-this.x,other.y-this.y)>this.radius+other.radius+4)return;const sc=this.genome.organelles.filter(o=>o==='SPIKE').length;if(!sc)return;other.takeDamage(8*sc);this.lastSpikeTime=time;}takeDamage(amount){if(this.dead)return;this.energy-=amount/(1+this.stats.defense*0.08);this.damagePulse=1;if(this.energy<=0)this.startDying();}startDying(){if(this.dying||this.dead)return;this.dying=true;this.deathAlpha=1;}update(dt,time){if(this.dead)return;if(this.dying){this.deathAlpha-=dt*1.8;if(this.deathAlpha<=0){this.dead=true;this.dying=false;}return;}this.age++;const biome=getBiome(this.x,this.y);const lightBonus=this.stats.hasChloro?this.stats.energy*biome.lightMult*0.5:0;this.energy+=this.stats.energy*dt*7+lightBonus*dt*7;this.energy-=1.2*biome.drainMult*dt;this.energy=Math.max(0,Math.min(this.stats.maxEnergy,this.energy));if(this.energy<=0){this.startDying();return;}if(this.damagePulse>0)this.damagePulse=Math.max(0,this.damagePulse-dt*3.5);if(this.stats.speed>0){if(!this.targetPrey&&!this.targetNutrient)this.moveAngle+=Math.sin((time/1000+this.timeOffset)*0.4)*dt*0.7;this.vx=Math.cos(this.moveAngle)*this.stats.speed*dt;this.vy=Math.sin(this.moveAngle)*this.stats.speed*dt;this.x+=this.vx;this.y+=this.vy;}else{const w=time/1000+this.timeOffset;this.x+=Math.sin(w*1.1)*0.25;this.y+=Math.cos(w*0.8)*0.25;}}canDivide(time){return!this.dead&&!this.dying&&this.age>150&&this.energy>=this.stats.maxEnergy*this.genome.divisionThreshold&&time-this.lastDivideTime>6000;}divide(time){this.lastDivideTime=time;const cost=this.stats.maxEnergy*0.44;this.energy-=cost;const biome=getBiome(this.x,this.y);const childGenome=Math.random()<this.genome.mutationRate*6*biome.mutMult?mutateGenome(this.genome):{...this.genome,organelles:[...this.genome.organelles]};const ang=this.moveAngle+Math.PI+(Math.random()-0.5)*0.6;const child=new Cell(childGenome,this.x+Math.cos(ang)*this.radius*2.6,this.y+Math.sin(ang)*this.radius*2.6,this.generation+1);child.energy=cost*0.78;return child;}render(g,time){const alpha=this.dying?this.deathAlpha:1;if(alpha<=0)return;const r=this.radius*(this.dying?1+(1-this.deathAlpha)*0.3:1),hue=this.genome.colorHue/360,er=Math.max(0,this.energy/this.stats.maxEnergy),glow=this.damagePulse>0?0:hue,sat=this.damagePulse>0?0:(0.45+er*0.2),val=this.damagePulse>0?0.85:(0.30+er*0.25);const glowC=Phaser.Display.Color.HSVToRGB(glow,sat,0.85).color,bodyC=Phaser.Display.Color.HSVToRGB(glow,sat,val).color;g.fillStyle(glowC,(0.10+er*0.07)*(1+this.damagePulse*0.6)*alpha);g.fillCircle(this.x,this.y,r+6);g.fillStyle(bodyC,0.88*alpha);g.fillCircle(this.x,this.y,r);g.fillStyle(Phaser.Display.Color.HSVToRGB(glow,0.2,0.65+er*0.15).color,0.55*alpha);g.fillCircle(this.x,this.y,r*0.72);g.lineStyle(1.5,glowC,0.75*alpha);g.strokeCircle(this.x,this.y,r);const t=time/1000,orgsU=[...new Set(this.genome.organelles)].filter(k=>k!=='CYTOPLASM'),orgR=3.5+this.stats.organelleCount*0.2,hexes=hexesInRadius(2).filter(h=>!(h.q===0&&h.r===0)).slice(0,orgsU.length*2);orgsU.forEach((k,idx)=>{if(idx>=hexes.length||!ORG[k])return;const px=hexToPixel(hexes[idx].q,hexes[idx].r,7);if(Math.hypot(px.x,px.y)>r*0.85)return;g.fillStyle(ORG[k].color,0.9*alpha);g.fillCircle(this.x+px.x,this.y+px.y,orgR);});if(this.stats.hasNucleus){const pulse=1+Math.sin(t*1.1+this.timeOffset*0.001)*0.18;g.fillStyle(ORG.NUCLEUS.color,0.15*pulse*alpha);g.fillCircle(this.x,this.y,r*0.5*pulse);}if(this.stats.hasFlag){const wT=t*3.5,ang=this.moveAngle,len=r*1.5;g.lineStyle(1.5,ORG.FLAGELLUM.color,0.7*alpha);g.beginPath();g.moveTo(this.x,this.y);for(let s=1;s<=10;s++){const frac=s/10,fx=this.x+Math.cos(ang)*frac*len,fy=this.y+Math.sin(ang)*frac*len,wave=Math.sin(frac*Math.PI*2.5+wT)*4*frac;g.lineTo(fx-Math.sin(ang)*wave,fy+Math.cos(ang)*wave);}g.strokePath();}const sc=this.genome.organelles.filter(o=>o==='SPIKE').length;if(sc>0){const pts=sc*3;for(let i=0;i<pts;i++){const a=(i/pts)*Math.PI*2;g.fillStyle(ORG.SPIKE.color,0.85*alpha);g.fillTriangle(this.x+Math.cos(a-0.18)*(r-1),this.y+Math.sin(a-0.18)*(r-1),this.x+Math.cos(a+0.18)*(r-1),this.y+Math.sin(a+0.18)*(r-1),this.x+Math.cos(a)*(r+10),this.y+Math.sin(a)*(r+10));}}if(this.stats.hasMouth){const ma=this.moveAngle;g.fillStyle(0x220000,0.7*alpha);g.beginPath();for(let i=-4;i<=4;i++){const a=ma+(i/4)*0.55;if(i===-4)g.moveTo(this.x+Math.cos(a)*r*0.78,this.y+Math.sin(a)*r*0.78);else g.lineTo(this.x+Math.cos(a)*r*0.78,this.y+Math.sin(a)*r*0.78);}g.fillPath();}if(er>0.04){const arcC=er>0.5?0x55ff88:er>0.25?0xffdd44:0xff4444,arcR=r+3.5,steps=Math.max(3,Math.floor(er*32));g.lineStyle(1.5,arcC,0.65*alpha);g.beginPath();for(let i=0;i<=steps;i++){const a=-Math.PI/2+(i/steps)*(er*Math.PI*2);if(i===0)g.moveTo(this.x+Math.cos(a)*arcR,this.y+Math.sin(a)*arcR);else g.lineTo(this.x+Math.cos(a)*arcR,this.y+Math.sin(a)*arcR);}g.strokePath();}}}
-class Nutrient{constructor(x,y){this.x=x;this.y=y;this.available=true;this.dead=false;this.phase=Math.random()*Math.PI*2;this.dx=0.3+Math.random()*0.9;this.dy=0.3+Math.random()*0.9;this.size=1.8+Math.random()*2;const types=['organic','organic','organic','mineral','light'],t=types[Math.floor(Math.random()*types.length)];this.color=t==='organic'?0x88ff44:t==='mineral'?0x44aaff:0xffee44;this.energy=10+Math.random()*15;}consume(){this.available=false;this.dead=true;return this.energy;}update(dt,time){if(!this.available)return;const t=time/1000;this.x+=Math.sin(t*this.dx+this.phase)*0.28;this.y+=Math.cos(t*this.dy+this.phase*1.3)*0.28;}}
-class WorldScene extends Phaser.Scene{constructor(){super('World');}create(){this.cells=[];this.nutrients=[];this.pendingCells=[];this.tick=0;this.stagger=0;this.nutrientAcc=0;this.maxGen=0;this.simSpeed=1;this.currentBiomeName='Shallows';this.cellHash=new SpatialHash(200,WORLD_RADIUS*2+200);this.nutrientHash=new SpatialHash(100,WORLD_RADIUS*2+200);this.bgGfx=this.add.graphics().setDepth(0);this.nutrientLayer=this.add.graphics().setDepth(1);this.cellLayer=this.add.graphics().setDepth(2);this.drawBackground();this.spawnNutrients(Math.floor(MAX_NUTRIENTS*0.65));this.cameras.main.setBackgroundColor(0x03080f);this.cameras.main.centerOn(0,0);this.cameras.main.setZoom(1.4);this.scene.launch('UI');this.uiScene=this.scene.get('UI');this.events.on('openEditor',()=>this.openEditor());this.events.on('setSpeed',s=>{this.simSpeed=s;});this.events.on('cellReleased',genome=>this.spawnCell(genome));this.setupCamera();}drawBackground(){const g=this.bgGfx;g.clear();const steps=80;for(let i=steps;i>=0;i--){const r=(i/steps)*WORLD_RADIUS,biome=getBiome(r,0),t=Math.max(0,(r-biome.inner)/(biome.outer-biome.inner||1)),nextBiome=getBiome(Math.max(0,r-50),0),c1=Phaser.Display.Color.IntegerToColor(biome.bg),c2=Phaser.Display.Color.IntegerToColor(nextBiome.bg),col=Phaser.Display.Color.Interpolate.ColorWithColor(c1,c2,100,Math.floor(t*100));g.fillStyle(Phaser.Display.Color.GetColor(col.r,col.g,col.b),1);g.fillCircle(0,0,r+WORLD_RADIUS/steps+2);}for(const biome of BIOMES){g.lineStyle(2,biome.accent,0.12);g.strokeCircle(0,0,biome.outer);}const hexSize=60,cols=Math.ceil(WORLD_RADIUS*2/(hexSize*1.5))+2,rows=Math.ceil(WORLD_RADIUS*2/(hexSize*0.866))+2;g.lineStyle(0.5,0x0e2540,0.2);for(let row=-rows;row<rows;row++)for(let col=-cols;col<cols;col++){const x=col*hexSize*1.5+(row%2===0?0:hexSize*0.75)-WORLD_RADIUS,y=row*hexSize*0.866-WORLD_RADIUS;if(x*x+y*y>(WORLD_RADIUS+100)*(WORLD_RADIUS+100))continue;for(let i=0;i<6;i++){const a1=(i/6)*Math.PI*2+Math.PI/6,a2=((i+1)/6)*Math.PI*2+Math.PI/6;g.beginPath();g.moveTo(x+Math.cos(a1)*hexSize*0.5,y+Math.sin(a1)*hexSize*0.5);g.lineTo(x+Math.cos(a2)*hexSize*0.5,y+Math.sin(a2)*hexSize*0.5);g.strokePath();}}for(let i=0;i<40;i++){const ang=Math.random()*Math.PI*2,dist=1800+Math.random()*700,px=Math.cos(ang)*dist,py=Math.sin(ang)*dist,cr=30+Math.random()*90;g.fillStyle(0x0f3355,0.05+Math.random()*0.05);g.fillEllipse(px,py,cr,cr*(0.3+Math.random()*0.4));}for(let r=WORLD_RADIUS+10;r<WORLD_RADIUS+400;r+=8){g.lineStyle(10,0x01030a,Math.min(1,(r-WORLD_RADIUS)/200));g.strokeCircle(0,0,r);}}setupCamera(){const cam=this.cameras.main;let isDragging=false,dragStartX=0,dragStartY=0,camStartX=0,camStartY=0,pinching=false,pinchStartDist=0,pinchStartZoom=1,tapDownX=0,tapDownY=0;this.input.on('pointerdown',p=>{if(p.id===1){isDragging=true;dragStartX=p.x;dragStartY=p.y;camStartX=cam.scrollX;camStartY=cam.scrollY;tapDownX=p.x;tapDownY=p.y;}});this.input.on('pointermove',p=>{const p1=this.input.pointer1,p2=this.input.pointer2;if(p1.isDown&&p2.isDown){isDragging=false;const d=Phaser.Math.Distance.Between(p1.x,p1.y,p2.x,p2.y);if(!pinching){pinching=true;pinchStartDist=d;pinchStartZoom=cam.zoom;}else cam.setZoom(Phaser.Math.Clamp(pinchStartZoom*(d/pinchStartDist),0.3,5));const mx=(p1.x+p2.x)/2,my=(p1.y+p2.y)/2,pmx=(p1.prevPosition.x+p2.prevPosition.x)/2,pmy=(p1.prevPosition.y+p2.prevPosition.y)/2;cam.scrollX-=(mx-pmx)/cam.zoom;cam.scrollY-=(my-pmy)/cam.zoom;return;}pinching=false;if(isDragging&&p.id===1){cam.scrollX=camStartX-(p.x-dragStartX)/cam.zoom;cam.scrollY=camStartY-(p.y-dragStartY)/cam.zoom;this.clampCamera();}});this.input.on('pointerup',p=>{if(p.id!==1)return;pinching=false;const wasDrag=Math.abs(p.x-tapDownX)>8||Math.abs(p.y-tapDownY)>8;if(!wasDrag)this.handleWorldTap(p.x,p.y);isDragging=false;});this.input.on('wheel',(_p,_dx,_dy,dz)=>{cam.setZoom(Phaser.Math.Clamp(cam.zoom-dz*0.001,0.3,5));this.clampCamera();});}clampCamera(){const cam=this.cameras.main,vr=Math.hypot(cam.width,cam.height)/(2*cam.zoom),maxDist=Math.max(0,WORLD_RADIUS-vr),cx=cam.scrollX+cam.width/(2*cam.zoom),cy=cam.scrollY+cam.height/(2*cam.zoom),d=Math.hypot(cx,cy);if(d>maxDist){const s=maxDist/d;cam.scrollX=cx*s-cam.width/(2*cam.zoom);cam.scrollY=cy*s-cam.height/(2*cam.zoom);}}handleWorldTap(sx,sy){const cam=this.cameras.main,wx=cam.scrollX+sx/cam.zoom,wy=cam.scrollY+sy/cam.zoom;let nearest=null,nearestD=40;for(const c of this.cells){if(c.dead)continue;const d=Math.hypot(c.x-wx,c.y-wy);if(d<nearestD){nearestD=d;nearest=c;}}if(nearest&&this.uiScene)this.uiScene.events.emit('inspectCell',nearest);}openEditor(){this.scene.pause('World');this.scene.launch('Editor');this.cameras.main.setAlpha(0.3);}resumeFromEditor(){this.scene.resume('World');this.cameras.main.setAlpha(1);}spawnCell(genome,x,y){const cam=this.cameras.main,wx=x??(cam.scrollX+cam.width/(2*cam.zoom)+(Math.random()-0.5)*60),wy=y??(cam.scrollY+cam.height/(2*cam.zoom)+(Math.random()-0.5)*60),cell=new Cell(genome,wx,wy);this.cells.push(cell);if(cell.generation>this.maxGen)this.maxGen=cell.generation;}spawnNutrients(count){for(let i=0;i<count&&this.nutrients.length<MAX_NUTRIENTS;i++){const ang=Math.random()*Math.PI*2,dist=Math.random()*WORLD_RADIUS*0.95,x=Math.cos(ang)*dist,y=Math.sin(ang)*dist,biome=getBiome(x,y);if(Math.random()>biome.nutrientMult*0.8)continue;this.nutrients.push(new Nutrient(x,y));}}update(time,delta){if(this.simSpeed===0)return;const dt=delta/1000*this.simSpeed;this.tick++;for(const c of this.pendingCells){this.cells.push(c);if(c.generation>this.maxGen)this.maxGen=c.generation;}this.pendingCells=[];this.nutrientAcc+=dt*0.55;while(this.nutrientAcc>=1&&this.nutrients.length<MAX_NUTRIENTS){this.nutrientAcc--;this.spawnNutrients(1);}if(this.nutrients.filter(n=>n.available).length<25)this.spawnNutrients(12);for(let i=this.nutrients.length-1;i>=0;i--)if(this.nutrients[i].dead)this.nutrients.splice(i,1);for(let i=this.cells.length-1;i>=0;i--)if(this.cells[i].dead&&!this.cells[i].dying)this.cells.splice(i,1);this.cellHash.rebuild(this.cells.filter(c=>!c.dead));this.nutrientHash.rebuild(this.nutrients.filter(n=>n.available));const aiGroup=this.stagger++%4;for(let i=0;i<this.cells.length;i++){const c=this.cells[i];if(c.dead)continue;c.update(dt,time);const dist=Math.hypot(c.x,c.y);if(dist>WORLD_RADIUS-SOFT_EDGE){if(dist>WORLD_RADIUS){const s=WORLD_RADIUS/dist;c.x*=s;c.y*=s;c.vx*=-0.3;c.vy*=-0.3;}else{const t=((dist-(WORLD_RADIUS-SOFT_EDGE))/SOFT_EDGE)**2,force=t*120;c.vx-=(c.x/dist)*force*dt;c.vy-=(c.y/dist)*force*dt;}}if(i%4===aiGroup){const near=this.nutrientHash.query(c.x,c.y,c.stats.sense),nearCells=this.cellHash.query(c.x,c.y,c.stats.sense).filter(oc=>oc!==c);c.seekTarget(near,nearCells);if(c.stats.hasMouth){const prey=this.cellHash.query(c.x,c.y,c.radius+30);for(const p of prey)if(p!==c&&!p.dead)c.tryEat(p,time,dt);}if(c.stats.defense>2){const contacts=this.cellHash.query(c.x,c.y,c.radius+16);for(const oc of contacts)if(oc!==c&&!oc.dead)c.applySpikeContact(oc,time);}}if(c.targetNutrient?.available){const dn=Math.hypot(c.targetNutrient.x-c.x,c.targetNutrient.y-c.y);if(dn<20+c.radius){c.energy=Math.min(c.stats.maxEnergy,c.energy+c.targetNutrient.consume()*c.stats.eat);c.targetNutrient=null;}}if(this.cells.length<MAX_CELLS&&this.tick%8===0&&c.canDivide(time)){const child=c.divide(time);if(child)this.pendingCells.push(child);}}for(const n of this.nutrients)n.update(dt,time);const ng=this.nutrientLayer;ng.clear();for(const n of this.nutrients){if(!n.available)continue;const pulse=1+Math.sin(time/1000*2+n.phase)*0.3;ng.fillStyle(n.color,0.8);ng.fillCircle(n.x,n.y,n.size*pulse);ng.fillStyle(0xffffff,0.3);ng.fillCircle(n.x-n.size*0.2,n.y-n.size*0.2,n.size*0.35);}const cg=this.cellLayer;cg.clear();for(const c of this.cells){if(c.dead&&!c.dying)continue;c.render(cg,time);}const cam=this.cameras.main,camX=cam.scrollX+cam.width/(2*cam.zoom),camY=cam.scrollY+cam.height/(2*cam.zoom),b=getBiome(camX,camY);if(b.name!==this.currentBiomeName){this.currentBiomeName=b.name;if(this.uiScene)this.uiScene.events.emit('biomeChanged',b);}if(this.tick%20===0&&this.uiScene)this.uiScene.events.emit('statsUpdate',{cells:this.cells.filter(c=>!c.dead).length,nutrients:this.nutrients.filter(n=>n.available).length,gen:this.maxGen,zoom:cam.zoom,paused:this.simSpeed===0,biome:this.currentBiomeName});}}
-class UIScene extends Phaser.Scene{constructor(){super({key:'UI',active:false});}create(){this.cameras.main.setScroll(0,0).setZoom(1);const W=this.scale.width,H=this.scale.height;this.hudGfx=this.add.graphics();this.hudTexts=[];this.buildHUD();this.buildButtons();this.buildBiomeToast();this.events.on('statsUpdate',s=>this.refreshHUD(s));this.events.on('biomeChanged',b=>this.showBiomeToast(b));this.events.on('inspectCell',c=>this.showInspector(c));}buildHUD(){const W=this.scale.width,g=this.hudGfx;g.fillStyle(0x030c18,0.82);g.fillRoundedRect(10,10,W-20,78,10);g.lineStyle(1,0x0d2235,1);g.strokeRoundedRect(10,10,W-20,78,10);this.statsTxt=this.add.text(W/2,86,'',{fontFamily:'monospace',fontSize:'8px',color:'#1a3a55',align:'center'}).setOrigin(0.5,0).setDepth(10);}refreshHUD(s){const W=this.scale.width;for(const t of this.hudTexts)t.destroy();this.hudTexts=[];this.hudGfx.clear();this.hudGfx.fillStyle(0x030c18,0.82);this.hudGfx.fillRoundedRect(10,10,W-20,78,10);this.hudGfx.lineStyle(1,0x0d2235,1);this.hudGfx.strokeRoundedRect(10,10,W-20,78,10);const pills=[{label:`CELLS ${s.cells}`,bg:0x0a2035,border:0x1a4466,color:'#4488aa'},{label:`GEN ${s.gen}`,bg:0x0a1a08,border:0x2a5010,color:'#88cc33'},{label:`NUTS ${s.nutrients}`,bg:0x1a1a08,border:0x5a5010,color:'#ccbb22'}];let px=18;for(const p of pills){const lbl=this.add.text(0,0,p.label,{fontFamily:'monospace',fontSize:'9px',color:p.color}),pw=lbl.width+12;lbl.destroy();this.hudGfx.fillStyle(p.bg,1);this.hudGfx.fillRoundedRect(px,18,pw,20,5);this.hudGfx.lineStyle(1,p.border,1);this.hudGfx.strokeRoundedRect(px,18,pw,20,5);const t=this.add.text(px+6,23,p.label,{fontFamily:'monospace',fontSize:'9px',color:p.color}).setDepth(10);this.hudTexts.push(t);px+=pw+6;}const barX=18,barY=46,barW=W-36,barH=6,nutFrac=Math.min(1,s.nutrients/MAX_NUTRIENTS);this.hudGfx.fillStyle(0x071015,1);this.hudGfx.fillRect(barX,barY,barW,barH);this.hudGfx.fillStyle(nutFrac<0.3?0xff4422:nutFrac<0.6?0xffcc22:0x22cc66,0.85);this.hudGfx.fillRect(barX,barY,barW*nutFrac,barH);this.hudGfx.lineStyle(0.8,0x0d2235,1);this.hudGfx.strokeRect(barX,barY,barW,barH);this.statsTxt?.setText(`${s.biome}  ·  ${s.paused?'⏸ PAUSED':`ZOOM ${s.zoom.toFixed(1)}×`}`);}buildButtons(){const W=this.scale.width,H=this.scale.height;this.addBtn=this.makeCircleBtn(W-56,H-74,'+',0x0a2a44,0x2266aa,'#66bbdd',30,()=>{this.scene.get('World').openEditor();});this.speedBtns=[];[{s:0,label:'⏸'},{s:1,label:'1×'},{s:2,label:'2×'},{s:4,label:'4×'}].forEach((sp,i)=>{const btn=this.makeRectBtn(16+i*44,H-74,38,38,sp.label,sp.s===1,()=>{this.scene.get('World').events.emit('setSpeed',sp.s);this.speedBtns.forEach((b,j)=>b.setAlpha(j===i?1:0.6));});this.speedBtns.push(btn);});}makeCircleBtn(x,y,label,fillColor,strokeColor,textColor,r,cb){const g=this.add.graphics().setDepth(50);const draw=active=>{g.clear();g.fillStyle(fillColor,active?0.65:0.85);g.fillCircle(x,y,r);g.lineStyle(2,strokeColor,active?0.5:1);g.strokeCircle(x,y,r);};draw(false);this.add.text(x,y,label,{fontFamily:'monospace',fontSize:'26px',color:textColor}).setOrigin(0.5,0.55).setDepth(51);const zone=this.add.zone(x,y,r*2,r*2).setInteractive().setDepth(52);zone.on('pointerdown',()=>{draw(true);cb();});zone.on('pointerup',()=>draw(false));zone.on('pointerout',()=>draw(false));return g;}makeRectBtn(x,y,w,h,label,active,cb){const g=this.add.graphics().setDepth(50);const draw=a=>{g.clear();g.fillStyle(a?0x0e2d50:0x050d18,0.95);g.fillRoundedRect(x,y,w,h,8);g.lineStyle(1.5,a?0x2a6699:0x0d1e2e,1);g.strokeRoundedRect(x,y,w,h,8);};draw(active);this.add.text(x+w/2,y+h/2,label,{fontFamily:'monospace',fontSize:'11px',color:active?'#66ccee':'#5588aa'}).setOrigin(0.5).setDepth(51);const zone=this.add.zone(x+w/2,y+h/2,w,h).setInteractive().setDepth(52);zone.on('pointerdown',()=>{draw(true);cb();});zone.on('pointerup',()=>draw(false));zone.on('pointerout',()=>draw(false));return g;}buildBiomeToast(){const W=this.scale.width,H=this.scale.height;this.biomeToast=this.add.text(W/2,H*0.15,'',{fontFamily:'monospace',fontSize:'14px',color:'#88ffcc',backgroundColor:'#001122cc',padding:{x:16,y:8},align:'center'}).setOrigin(0.5).setDepth(100).setAlpha(0);}showBiomeToast(biome){const labels={'Vents':'🔥 Hydrothermal Vents\nHigh mutation · Intense heat','Abyss':'🌑 The Abyss\nNo light · High pressure','Twilight':'🌊 Twilight Zone\nFading light · Marine snow','Shallows':'☀️ Sunlit Shallows\nRich in nutrients · UV exposure'};this.biomeToast.setText(labels[biome.name]||biome.name);this.biomeToast.setAlpha(1);if(this.biomeToastTween)this.biomeToastTween.stop();this.biomeToastTween=this.tweens.add({targets:this.biomeToast,alpha:0,delay:2800,duration:600});}showInspector(cell){if(this.inspectorPanel)this.inspectorPanel.destroy();const W=this.scale.width,H=this.scale.height,pw=300,ph=380,px=(W-pw)/2,py=(H-ph)/2,panel=this.add.container(0,0).setDepth(200),dim=this.add.graphics();dim.fillStyle(0x000000,0.55);dim.fillRect(0,0,W,H);panel.add(dim);const bg=this.add.graphics();bg.fillStyle(0x04111e,0.97);bg.fillRoundedRect(px,py,pw,ph,14);bg.lineStyle(1.5,0x1a4a7a,1);bg.strokeRoundedRect(px,py,pw,ph,14);panel.add(bg);const closeZone=this.add.zone(W/2,H/2,W,H).setInteractive();closeZone.on('pointerdown',()=>{panel.destroy();this.inspectorPanel=null;});panel.add(closeZone);const s=cell.stats,stage=s.hasNucleus?'Eukaryote':'Prokaryote',er=Math.max(0,cell.energy/s.maxEnergy),add=(x,y,txt,style)=>{const t=this.add.text(x,y,txt,{fontFamily:'monospace',fontSize:'11px',color:'#88bbcc',...style});panel.add(t);return t;};add(px+16,py+14,`Gen ${cell.generation}  ·  ${stage}`,{fontSize:'13px',color:s.hasNucleus?'#ffdd55':'#6699bb'});const hue=cell.genome.colorHue/360,previewG=this.add.graphics();previewG.fillStyle(Phaser.Display.Color.HSVToRGB(hue,0.55,0.65).color,0.8);previewG.fillCircle(px+60,py+110,42);previewG.lineStyle(2,Phaser.Display.Color.HSVToRGB(hue,0.55,0.85).color,0.8);previewG.strokeCircle(px+60,py+110,42);panel.add(previewG);[['Speed',s.speed.toFixed(0)],['Energy',`${Math.round(er*100)}%`],['Sense',s.sense.toFixed(0)+'px'],['Defense',s.defense.toFixed(1)],['Mut',`${(cell.genome.mutationRate*100).toFixed(1)}%`]].forEach(([k,v],i)=>{add(px+130,py+75+i*22,k,{fontSize:'10px',color:'#335566'});add(px+200,py+75+i*22,v,{fontSize:'10px',color:'#88bbcc'});});const uniq=[...new Set(cell.genome.organelles)];add(px+16,py+185,'Organelles:',{fontSize:'10px',color:'#335566'});uniq.forEach((k,i)=>{if(!ORG[k])return;const og=this.add.graphics();og.fillStyle(ORG[k].color,0.9);og.fillCircle(px+22,py+205+i*18,5);panel.add(og);add(px+32,py+198+i*18,ORG[k].name,{fontSize:'9px',color:'#8aabb8'});});const genFrac=Math.min(1,cell.generation/30),barBg=this.add.graphics();barBg.fillStyle(0x071822,1);barBg.fillRect(px+16,py+ph-44,pw-32,8);barBg.fillStyle(0x1a6688,1);barBg.fillRect(px+16,py+ph-44,(pw-32)*genFrac,8);barBg.lineStyle(1,0x0e2a3a,1);barBg.strokeRect(px+16,py+ph-44,pw-32,8);panel.add(barBg);add(px+16,py+ph-56,`GENERATION ${cell.generation}`,{fontSize:'9px',color:'#2a5566'});this.inspectorPanel=panel;}}
-class EditorScene extends Phaser.Scene{constructor(){super({key:'Editor',active:false});}init(){this.genome={organelles:['CYTOPLASM'],colorHue:150+Math.random()*60,mutationRate:0.08,divisionThreshold:0.75};this.selectedOrg='FLAGELLUM';}create(){const W=this.scale.width,H=this.scale.height;this.cameras.main.setScroll(0,0).setZoom(1);const bg=this.add.graphics();bg.fillStyle(0x04101e,0.97);bg.fillRect(0,0,W,H);this.add.text(W/2,26,'CELL EDITOR',{fontFamily:'monospace',fontSize:'18px',color:'#66bbdd'}).setOrigin(0.5);this.gridCX=W/2;this.gridCY=H*0.30;this.bodyGfx=this.add.graphics();this.hexGfx=this.add.graphics();this.statsText=this.add.text(14,H*0.56,'',{fontFamily:'monospace',fontSize:'11px',color:'#77bbaa',lineSpacing:4});this.descText=this.add.text(W-14,H*0.56,'',{fontFamily:'monospace',fontSize:'10px',color:'#cc9955',align:'right',wordWrap:{width:W*0.42}}).setOrigin(1,0);this.drawBody();this.drawGrid();this.updateStats();this.buildPalette();this.buildButtons();this.input.on('pointerdown',p=>{const lx=p.x-this.gridCX,ly=p.y-this.gridCY,hex=pixelToHex(lx,ly,34),md=Math.max(Math.abs(hex.q),Math.abs(hex.r),Math.abs(-hex.q-hex.r));if(md<=2)this.handleHexTap(hex.q,hex.r);});}drawGrid(){const g=this.hexGfx;g.clear();const hexList=hexesInRadius(2);for(const h of hexList){const px=hexToPixel(h.q,h.r,34),cx=this.gridCX+px.x,cy=this.gridCY+px.y,isC=h.q===0&&h.r===0,idx=hexList.findIndex(hh=>hh.q===h.q&&hh.r===h.r),org=this.genome.organelles[idx];if(org&&org!=='CYTOPLASM'&&ORG[org])g.fillStyle(ORG[org].color,0.82);else if(isC)g.fillStyle(0x1a3a6a,0.6);else g.fillStyle(0x070f1e,0.7);this.drawHex(g,cx,cy,34*0.46,true);g.lineStyle(1.2,org?0xffffff:isC?0x4488cc:0x1a3a5a,org?0.55:isC?0.5:0.22);this.drawHex(g,cx,cy,34*0.46,false);}}drawHex(g,cx,cy,r,fill){g.beginPath();for(let i=0;i<6;i++){const a=Math.PI/6+(i/6)*Math.PI*2;if(i===0)g.moveTo(cx+Math.cos(a)*r,cy+Math.sin(a)*r);else g.lineTo(cx+Math.cos(a)*r,cy+Math.sin(a)*r);}g.closePath();if(fill)g.fillPath();else g.strokePath();}drawBody(){const g=this.bodyGfx;g.clear();const r=34*2*0.88+10,hue=this.genome.colorHue/360,gc=Phaser.Display.Color.HSVToRGB(hue,0.45,0.65).color;g.fillStyle(gc,0.12);g.fillCircle(this.gridCX,this.gridCY,r+12);g.fillStyle(gc,0.22);g.fillCircle(this.gridCX,this.gridCY,r);g.lineStyle(2,gc,0.5);g.strokeCircle(this.gridCX,this.gridCY,r);}handleHexTap(q,r){const hexList=hexesInRadius(2),idx=hexList.findIndex(h=>h.q===q&&h.r===r);if(idx<0||q===0&&r===0)return;if(this.genome.organelles[idx]&&this.genome.organelles[idx]!==undefined){this.genome.organelles[idx]=undefined;}else{const def=ORG[this.selectedOrg];if(!def)return;if(def.needsNucleus&&!this.genome.organelles.includes('NUCLEUS')){this.flashWarn('⚠ Needs Nucleus first');return;}if(this.genome.organelles.filter(o=>o===this.selectedOrg).length>=def.max){this.flashWarn(`⚠ Max ${def.max}`);return;}while(this.genome.organelles.length<=idx)this.genome.organelles.push(undefined);this.genome.organelles[idx]=this.selectedOrg;}const cleaned=this.genome.organelles.filter(o=>o&&o!==undefined);if(!cleaned.includes('CYTOPLASM'))cleaned.unshift('CYTOPLASM');this.genome.organelles=cleaned;this.drawGrid();this.drawBody();this.updateStats();}flashWarn(msg){const w=this.add.text(this.scale.width/2,this.gridCY-90,msg,{fontFamily:'monospace',fontSize:'12px',color:'#ff6644',backgroundColor:'#1a0000aa',padding:{x:10,y:6}}).setOrigin(0.5).setDepth(100);this.tweens.add({targets:w,alpha:0,y:w.y-18,delay:700,duration:350,onComplete:()=>w.destroy()});}updateStats(){const clean=this.genome.organelles.filter(o=>o&&ORG[o]),s=computeStats(clean),eSign=s.energy>=0?'+':'';this.statsText?.setText(`Stage:   ${s.hasNucleus?'Eukaryote':'Prokaryote'}\nSpeed:   ${s.speed.toFixed(0)}\nEnergy:  ${eSign}${s.energy.toFixed(1)}/s\nMax E:   ${s.maxEnergy}\nSense:   ${s.sense.toFixed(0)}\nDefense: ${s.defense.toFixed(1)}`);const def=ORG[this.selectedOrg];if(def)this.descText?.setText(`[${def.name}]\nneeds nucleus: ${def.needsNucleus?'Yes':'No'}\nCost: ${def.mp} MP`);}buildPalette(){const W=this.scale.width,H=this.scale.height,pY=H*0.715,itemW=52,gap=6,totalW=PALETTE_KEYS.length*(itemW+gap)-gap,startX=Math.max(8,(W-totalW)/2),tray=this.add.graphics();tray.fillStyle(0x030c18,0.85);tray.fillRoundedRect(0,pY-8,W,itemW+24,0);this.palBgs=[];PALETTE_KEYS.forEach((key,i)=>{const def=ORG[key],x=startX+i*(itemW+gap)+itemW/2,y=pY+itemW/2,bg=this.add.graphics(),half=itemW/2,drawBg=sel=>{bg.clear();bg.fillStyle(sel?0x0e2d50:0x060e1c,0.95);bg.fillRoundedRect(x-half,y-half,itemW,itemW,7);bg.lineStyle(1.5,sel?0x3388bb:0x0e2030,1);bg.strokeRoundedRect(x-half,y-half,itemW,itemW,7);};drawBg(key===this.selectedOrg);const dot=this.add.graphics();dot.fillStyle(def.color,0.92);dot.fillCircle(x,y-7,13);dot.fillStyle(0xffffff,0.25);dot.fillCircle(x-4,y-11,5);this.add.text(x,y+14,def.short,{fontFamily:'monospace',fontSize:'8px',color:'#8aabb8'}).setOrigin(0.5);this.palBgs.push({bg,drawBg,key});const zone=this.add.zone(x,y,itemW,itemW).setInteractive().setDepth(10);zone.on('pointerdown',()=>{this.selectedOrg=key;this.palBgs.forEach(pb=>pb.drawBg(pb.key===key));this.updateStats();});});}buildButtons(){const W=this.scale.width,H=this.scale.height,bY=H-34,bW=(W-32)/2,bH=48,relBg=this.add.graphics();relBg.fillStyle(0x0c3055,0.92);relBg.fillRoundedRect(W/2+8,bY-bH/2,bW,bH,10);relBg.lineStyle(1.5,0x2266aa,1);relBg.strokeRoundedRect(W/2+8,bY-bH/2,bW,bH,10);this.add.text(W/2+8+bW/2,bY,'🌊  Release',{fontFamily:'monospace',fontSize:'12px',color:'#66ccee'}).setOrigin(0.5);const relZone=this.add.zone(W/2+8+bW/2,bY,bW,bH).setInteractive().setDepth(10);relZone.on('pointerdown',()=>this.releaseCell());relZone.on('pointerover',()=>relBg.setAlpha(0.65));relZone.on('pointerout',()=>relBg.setAlpha(1));const canBg=this.add.graphics();canBg.fillStyle(0x1e0818,0.92);canBg.fillRoundedRect(8,bY-bH/2,bW,bH,10);canBg.lineStyle(1.5,0x552244,1);canBg.strokeRoundedRect(8,bY-bH/2,bW,bH,10);this.add.text(8+bW/2,bY,'✕  Cancel',{fontFamily:'monospace',fontSize:'12px',color:'#aa4466'}).setOrigin(0.5);const canZone=this.add.zone(8+bW/2,bY,bW,bH).setInteractive().setDepth(10);canZone.on('pointerdown',()=>this.closeEditor());canZone.on('pointerover',()=>canBg.setAlpha(0.65));canZone.on('pointerout',()=>canBg.setAlpha(1));}releaseCell(){const clean=this.genome.organelles.filter(o=>o&&ORG[o]);if(!clean.includes('CYTOPLASM'))clean.unshift('CYTOPLASM');this.scene.get('World').events.emit('cellReleased',{...this.genome,organelles:clean});this.closeEditor();}closeEditor(){this.scene.get('World').resumeFromEditor();this.scene.stop('Editor');}}
-const config={type:Phaser.AUTO,width:Math.round(SW*DPR),height:Math.round(SH*DPR),backgroundColor:'#03080f',antialias:false,antialiasGL:false,roundPixels:true,powerPreference:'high-performance',autoMobilePipeline:true,disableContextMenu:true,scale:{mode:Phaser.Scale.NONE,width:Math.round(SW*DPR),height:Math.round(SH*DPR)},input:{activePointers:3,touch:{capture:true}},scene:[BootScene,WorldScene,UIScene,EditorScene],fps:{target:60,forceSetTimeOut:false},banner:false};
-const game=new Phaser.Game(config);
+
+function mutateGenome(genome){
+  const rate=genome.mutationRate, orgs=[...genome.organelles];
+  if(Math.random()<rate*0.22&&orgs.length<7){
+    const hasNuc=orgs.includes('NUCLEUS');
+    const cands=ORG_KEYS.filter(k=>!ORG[k].needsNucleus||hasNuc);
+    const type=cands[Math.floor(Math.random()*cands.length)];
+    if(orgs.filter(o=>o===type).length<ORG[type].max) orgs.push(type);
+  }
+  if(orgs.length>2&&Math.random()<rate*0.18) orgs.splice(1+Math.floor(Math.random()*(orgs.length-1)),1);
+  let newRate=genome.mutationRate;
+  if(Math.random()<0.05){newRate*=Math.exp(0.1*gaussianRandom());newRate=Math.max(0.005,Math.min(0.3,newRate));}
+  return{organelles:orgs,colorHue:((genome.colorHue+(Math.random()<rate?gaussianRandom()*12:0))+360)%360,
+         mutationRate:newRate,divisionThreshold:Math.max(0.5,Math.min(0.95,genome.divisionThreshold+(Math.random()<rate?gaussianRandom()*0.04:0)))};
+}
+
+// ─── SPATIAL HASH ─────────────────────────────────────────────────────────────
+class SpatialHash{
+  constructor(cs,ws){this.invSize=1/cs;this.halfWorld=ws/2;this.cols=Math.ceil(ws/cs)+2;this.cells=new Map();}
+  key(x,y){return(((y+this.halfWorld)*this.invSize)|0)*this.cols+((((x+this.halfWorld)*this.invSize)|0));}
+  clear(){this.cells.clear();}
+  insert(item){const k=this.key(item.x,item.y),c=this.cells.get(k);if(c)c.push(item);else this.cells.set(k,[item]);}
+  rebuild(items){this.clear();for(const i of items)this.insert(i);}
+  query(cx,cy,radius){const result=[],rSq=radius*radius,span=Math.ceil(radius*this.invSize)+1;
+    const cC=((cx+this.halfWorld)*this.invSize)|0,cR=((cy+this.halfWorld)*this.invSize)|0;
+    for(let dc=-span;dc<=span;dc++)for(let dr=-span;dr<=span;dr++){
+      const cell=this.cells.get((cR+dr)*this.cols+(cC+dc));if(!cell)continue;
+      for(const item of cell){const dx=item.x-cx,dy=item.y-cy;if(dx*dx+dy*dy<=rSq)result.push(item);}
+    }return result;}
+}
+
+// ─── CELL ─────────────────────────────────────────────────────────────────────
+class Cell{
+  constructor(genome,x,y,generation=0){
+    this.genome=genome; this.x=x; this.y=y; this.vx=0; this.vy=0;
+    this.generation=generation; this.age=0;
+    this.dead=false; this.dying=false; this.deathAlpha=1;
+    this.damagePulse=0;
+    this.moveAngle=Math.random()*Math.PI*2;
+    this.timeOffset=Math.random()*10000;
+    this.targetNutrient=null; this.targetPrey=null;
+    this.lastDivideTime=0; this.lastSpikeTime=0;
+    this.stats=computeStats(genome.organelles);
+    this.radius=11+this.stats.organelleCount*1.4;
+    this.energy=this.stats.maxEnergy*(0.45+Math.random()*0.2);
+  }
+  power(){return this.stats.speed*0.4+this.stats.defense*12+this.stats.eat*8+this.radius*1.5+(this.stats.hasMouth?25:0)+(this.energy/this.stats.maxEnergy)*15;}
+  seekTarget(nutrients,cells){
+    const mp=this.power();
+    for(const oc of cells){if(oc.power()>mp*1.4){this.moveAngle=Math.atan2(this.y-oc.y,this.x-oc.x);this.targetPrey=null;this.targetNutrient=null;return;}}
+    const hungry=this.energy<this.stats.maxEnergy*0.65;
+    if(this.stats.hasMouth&&hungry&&!this.stats.hasChloro){
+      if(this.targetPrey&&this.targetPrey.dead)this.targetPrey=null;
+      if(!this.targetPrey){let nd=this.stats.sense*0.9,best=null;for(const oc of cells){if(oc.dead||oc.power()>=mp*0.85)continue;const d=Math.hypot(oc.x-this.x,oc.y-this.y);if(d<nd){nd=d;best=oc;}}this.targetPrey=best;}
+      if(this.targetPrey){this.targetNutrient=null;this.moveAngle=Math.atan2(this.targetPrey.y-this.y,this.targetPrey.x-this.x);return;}
+    }
+    this.targetPrey=null;
+    if(this.targetNutrient&&(!this.targetNutrient.available||this.targetNutrient.dead))this.targetNutrient=null;
+    if(!this.targetNutrient){let nd=this.stats.sense,best=null;for(const n of nutrients){if(!n.available)continue;const d=Math.hypot(n.x-this.x,n.y-this.y);if(d<nd){nd=d;best=n;}}this.targetNutrient=best;}
+    if(this.targetNutrient)this.moveAngle=Math.atan2(this.targetNutrient.y-this.y,this.targetNutrient.x-this.x);
+  }
+  tryEat(prey,dt){
+    if(!this.stats.hasMouth||prey.dead)return;
+    if(Math.hypot(prey.x-this.x,prey.y-this.y)>this.radius+prey.radius+6)return;
+    if(prey.power()>=this.power()*0.85)return;
+    const drain=22*dt; prey.takeDamage(drain);
+    this.energy=Math.min(this.stats.maxEnergy,this.energy+drain*0.12*this.stats.eat);
+  }
+  spikeContact(other,time){
+    if(time-this.lastSpikeTime<800)return;
+    if(Math.hypot(other.x-this.x,other.y-this.y)>this.radius+other.radius+4)return;
+    const sc=this.genome.organelles.filter(o=>o==='SPIKE').length;if(!sc)return;
+    other.takeDamage(8*sc);this.lastSpikeTime=time;
+  }
+  takeDamage(amount){if(this.dead)return;this.energy-=amount/(1+this.stats.defense*0.08);this.damagePulse=1;if(this.energy<=0)this.startDying();}
+  startDying(){if(this.dying||this.dead)return;this.dying=true;this.deathAlpha=1;}
+  update(dt,time){
+    if(this.dead)return;
+    if(this.dying){this.deathAlpha-=dt*1.8;if(this.deathAlpha<=0){this.dead=true;this.dying=false;}return;}
+    this.age++;
+    const biome=getBiome(this.x,this.y);
+    const lightBonus=this.stats.hasChloro?this.stats.energy*biome.lightMult*0.5:0;
+    this.energy+=this.stats.energy*dt*7+lightBonus*dt*7;
+    this.energy-=1.2*biome.drainMult*dt;
+    this.energy=Math.max(0,Math.min(this.stats.maxEnergy,this.energy));
+    if(this.energy<=0){this.startDying();return;}
+    if(this.damagePulse>0)this.damagePulse=Math.max(0,this.damagePulse-dt*3.5);
+    if(this.stats.speed>0){
+      if(!this.targetPrey&&!this.targetNutrient)this.moveAngle+=Math.sin((time/1000+this.timeOffset)*0.4)*dt*0.7;
+      this.vx=Math.cos(this.moveAngle)*this.stats.speed*dt;
+      this.vy=Math.sin(this.moveAngle)*this.stats.speed*dt;
+      this.x+=this.vx;this.y+=this.vy;
+    }else{const w=time/1000+this.timeOffset;this.x+=Math.sin(w*1.1)*0.25;this.y+=Math.cos(w*0.8)*0.25;}
+  }
+  canDivide(time){return!this.dead&&!this.dying&&this.age>150&&this.energy>=this.stats.maxEnergy*this.genome.divisionThreshold&&time-this.lastDivideTime>6000;}
+  divide(time){
+    this.lastDivideTime=time;
+    const cost=this.stats.maxEnergy*0.44;this.energy-=cost;
+    const biome=getBiome(this.x,this.y);
+    const childGenome=Math.random()<this.genome.mutationRate*6*biome.mutMult?mutateGenome(this.genome):{...this.genome,organelles:[...this.genome.organelles]};
+    const ang=this.moveAngle+Math.PI+(Math.random()-0.5)*0.6;
+    const child=new Cell(childGenome,this.x+Math.cos(ang)*this.radius*2.6,this.y+Math.sin(ang)*this.radius*2.6,this.generation+1);
+    child.energy=cost*0.78;return child;
+  }
+  render(g,time){
+    const alpha=this.dying?this.deathAlpha:1;if(alpha<=0)return;
+    const r=this.radius*(this.dying?1+(1-this.deathAlpha)*0.3:1);
+    const hue=this.genome.colorHue/360;
+    const er=Math.max(0,this.energy/this.stats.maxEnergy);
+    const dp=this.damagePulse;
+    const gH=dp>0?0:hue, sat=dp>0?0:(0.45+er*0.2), val=dp>0?0.85:(0.28+er*0.28);
+    const glowC=Phaser.Display.Color.HSVToRGB(gH,sat,0.9).color;
+    const bodyC=Phaser.Display.Color.HSVToRGB(gH,sat,val).color;
+    const innerC=Phaser.Display.Color.HSVToRGB(gH,0.18,0.7+er*0.15).color;
+
+    // Outer glow (bioluminescent)
+    g.fillStyle(glowC,(0.06+er*0.06)*(1+dp*0.8)*alpha);
+    g.fillCircle(this.x,this.y,r+10);
+    // Second glow ring
+    g.fillStyle(glowC,(0.09+er*0.05)*alpha);
+    g.fillCircle(this.x,this.y,r+5);
+    // Body
+    g.fillStyle(bodyC,0.9*alpha);
+    g.fillCircle(this.x,this.y,r);
+    // Inner highlight
+    g.fillStyle(innerC,0.5*alpha);
+    g.fillCircle(this.x,this.y,r*0.68);
+    // Membrane ring
+    g.lineStyle(1.5,glowC,(0.7+er*0.2)*alpha);
+    g.strokeCircle(this.x,this.y,r);
+
+    const t=time/1000;
+    const orgsU=[...new Set(this.genome.organelles)].filter(k=>k!=='CYTOPLASM');
+    const orgR=3.5+this.stats.organelleCount*0.2;
+    const hexes=hexesInRadius(2).filter(h=>!(h.q===0&&h.r===0)).slice(0,orgsU.length*2);
+    orgsU.forEach((k,idx)=>{
+      if(idx>=hexes.length||!ORG[k])return;
+      const px=hexToPixel(hexes[idx].q,hexes[idx].r,7);
+      if(Math.hypot(px.x,px.y)>r*0.85)return;
+      g.fillStyle(ORG[k].phColor,0.9*alpha);
+      g.fillCircle(this.x+px.x,this.y+px.y,orgR);
+      g.fillStyle(0xffffff,0.22*alpha);
+      g.fillCircle(this.x+px.x-orgR*0.3,this.y+px.y-orgR*0.3,orgR*0.35);
+    });
+
+    if(this.stats.hasNucleus){
+      const pulse=1+Math.sin(t*1.1+this.timeOffset*0.001)*0.2;
+      g.fillStyle(ORG.NUCLEUS.phColor,0.12*pulse*alpha);
+      g.fillCircle(this.x,this.y,r*0.52*pulse);
+    }
+    if(this.stats.hasFlag){
+      const wT=t*3.5,ang=this.moveAngle,len=r*1.6;
+      g.lineStyle(1.5,ORG.FLAGELLUM.phColor,0.7*alpha);
+      g.beginPath();g.moveTo(this.x,this.y);
+      for(let s=1;s<=10;s++){const f=s/10,wave=Math.sin(f*Math.PI*2.5+wT)*4*f;g.lineTo(this.x+Math.cos(ang)*f*len-Math.sin(ang)*wave,this.y+Math.sin(ang)*f*len+Math.cos(ang)*wave);}
+      g.strokePath();
+    }
+    const sc=this.genome.organelles.filter(o=>o==='SPIKE').length;
+    if(sc>0){const pts=sc*3;for(let i=0;i<pts;i++){const a=(i/pts)*Math.PI*2;g.fillStyle(ORG.SPIKE.phColor,0.88*alpha);g.fillTriangle(this.x+Math.cos(a-0.2)*(r-1),this.y+Math.sin(a-0.2)*(r-1),this.x+Math.cos(a+0.2)*(r-1),this.y+Math.sin(a+0.2)*(r-1),this.x+Math.cos(a)*(r+11),this.y+Math.sin(a)*(r+11));}}
+    if(this.stats.hasMouth){
+      const ma=this.moveAngle;g.fillStyle(0x110000,0.75*alpha);g.beginPath();
+      for(let i=-4;i<=4;i++){const a=ma+(i/4)*0.55;if(i===-4)g.moveTo(this.x+Math.cos(a)*r*0.78,this.y+Math.sin(a)*r*0.78);else g.lineTo(this.x+Math.cos(a)*r*0.78,this.y+Math.sin(a)*r*0.78);}
+      g.fillPath();
+      g.fillStyle(0xff2211,0.7*alpha);
+      for(let i=-2;i<=2;i++){const a=ma+(i/4)*0.45;g.fillCircle(this.x+Math.cos(a)*r*0.82,this.y+Math.sin(a)*r*0.82,2);}
+    }
+    if(er>0.04){
+      const arcC=er>0.5?C.green:er>0.25?C.warn:C.danger;
+      const arcR=r+4,steps=Math.max(3,Math.floor(er*32));
+      g.lineStyle(2,arcC,0.7*alpha);g.beginPath();
+      for(let i=0;i<=steps;i++){const a=-Math.PI/2+(i/steps)*(er*Math.PI*2);if(i===0)g.moveTo(this.x+Math.cos(a)*arcR,this.y+Math.sin(a)*arcR);else g.lineTo(this.x+Math.cos(a)*arcR,this.y+Math.sin(a)*arcR);}
+      g.strokePath();
+    }
+  }
+}
+
+// ─── NUTRIENT ─────────────────────────────────────────────────────────────────
+class Nutrient{
+  constructor(x,y){
+    this.x=x;this.y=y;this.available=true;this.dead=false;
+    this.phase=Math.random()*Math.PI*2;this.dx=0.3+Math.random()*0.9;this.dy=0.3+Math.random()*0.9;
+    this.size=1.6+Math.random()*2.2;
+    const types=['organic','organic','organic','mineral','light'];
+    const tp=types[Math.floor(Math.random()*types.length)];
+    this.color=tp==='organic'?C.green:tp==='mineral'?C.cyan:0xffee44;
+    this.energy=10+Math.random()*15;
+  }
+  consume(){this.available=false;this.dead=true;return this.energy;}
+  update(dt,time){if(!this.available)return;const t=time/1000;this.x+=Math.sin(t*this.dx+this.phase)*0.28;this.y+=Math.cos(t*this.dy+this.phase*1.3)*0.28;}
+}
+
+// ─── PHASER BOOT SCENE ────────────────────────────────────────────────────────
+class BootScene extends Phaser.Scene{
+  constructor(){super('Boot');}
+  create(){
+    const W=this.scale.width,H=this.scale.height;
+    // Draw atmospheric background
+    const g=this.add.graphics();
+    // Deep radial gradient simulation
+    for(let r=W*1.5;r>0;r-=8){
+      const t=1-(r/(W*1.5));
+      const R=Math.floor(2+t*10),G=Math.floor(10+t*8),B=Math.floor(19+t*22);
+      g.fillStyle(Phaser.Display.Color.GetColor(R,G,B),1);
+      g.fillCircle(W/2,H/2,r);
+    }
+    // Animated hex particles
+    const hexGfx=this.add.graphics();
+    const hexes=Array.from({length:22},()=>({x:Math.random()*W,y:Math.random()*H,r:6+Math.random()*18,a:Math.random()*Math.PI*2,spd:0.006+Math.random()*0.01}));
+    // Title
+    this.add.text(W/2,H*0.30,'ENDO',{fontFamily:"'IBM Plex Sans',monospace",fontSize:'64px',fontStyle:'300',color:'#1a3a6a',stroke:'#000a1a',strokeThickness:4}).setOrigin(0.5);
+    this.add.text(W/2,H*0.30+68,'evolution simulation',{fontFamily:"'IBM Plex Mono',monospace",fontSize:'13px',color:'#2a5577',letterSpacing:4}).setOrigin(0.5);
+    // Hint dots (biome indicators)
+    const biomeColors=[0xcc2200,0x1133aa,0x2255aa,0x44aacc];
+    biomeColors.forEach((c,i)=>{
+      const bx=W/2+(i-1.5)*28,by=H*0.42;
+      const dg=this.add.graphics();
+      dg.fillStyle(c,0.7);dg.fillCircle(bx,by,5);
+      dg.fillStyle(c,0.15);dg.fillCircle(bx,by,10);
+    });
+    this.add.text(W/2,H*0.42+18,'vents · abyss · twilight · shallows',{fontFamily:"'IBM Plex Mono',monospace",fontSize:'9px',color:'#1a3a55',letterSpacing:2}).setOrigin(0.5);
+    const tapTxt=this.add.text(W/2,H*0.74,'tap to begin',{fontFamily:"'IBM Plex Mono',monospace",fontSize:'13px',color:'#1a4a66',letterSpacing:3}).setOrigin(0.5).setAlpha(0);
+    this.tweens.add({targets:tapTxt,alpha:0.85,duration:1000,yoyo:true,repeat:-1});
+    let ready=false;
+    this.time.delayedCall(700,()=>{ready=true;});
+    this.events.on('update',(_s,time)=>{
+      hexGfx.clear();
+      for(const h of hexes){
+        h.a+=h.spd;h.y-=0.18;if(h.y<-25)h.y=H+25;
+        const al=0.04+Math.sin(h.a*2)*0.03;
+        hexGfx.lineStyle(1,0x0d3366,al);
+        hexGfx.beginPath();
+        for(let i=0;i<6;i++){const ang=(i/6)*Math.PI*2+Math.PI/6+time*0.00015;if(i===0)hexGfx.moveTo(h.x+Math.cos(ang)*h.r,h.y+Math.sin(ang)*h.r);else hexGfx.lineTo(h.x+Math.cos(ang)*h.r,h.y+Math.sin(ang)*h.r);}
+        hexGfx.closePath();hexGfx.strokePath();
+      }
+    });
+    this.input.once('pointerdown',()=>{if(!ready)return;this.cameras.main.fadeOut(500,0,0,0);this.time.delayedCall(500,()=>this.scene.start('World'));});
+  }
+}
+
+// ─── WORLD SCENE ──────────────────────────────────────────────────────────────
+class WorldScene extends Phaser.Scene{
+  constructor(){super('World');}
+  create(){
+    this.cells=[];this.nutrients=[];this.pendingCells=[];
+    this.tick=0;this.stagger=0;this.nutrientAcc=0;this.maxGen=0;this.simSpeed=1;
+    this.currentBiomeName='Sunlit Shallows';
+    this.cellHash=new SpatialHash(200,WORLD_RADIUS*2+200);
+    this.nutrientHash=new SpatialHash(100,WORLD_RADIUS*2+200);
+    this.bgLayer=this.add.graphics().setDepth(0);
+    this.particleLayer=this.add.graphics().setDepth(1);
+    this.nutrientLayer=this.add.graphics().setDepth(2);
+    this.cellLayer=this.add.graphics().setDepth(3);
+    this.drawBackground();
+    this.spawnNutrients(Math.floor(MAX_NUTRIENTS*0.65));
+    this.cameras.main.setBackgroundColor(0x020A13);
+    this.cameras.main.centerOn(0,0);
+    this.cameras.main.setZoom(1.5);
+    this.setupCamera();
+    this.setupParticles();
+  }
+  drawBackground(){
+    const g=this.bgLayer;g.clear();
+    // Biome rings with smooth colour interpolation
+    const steps=100;
+    for(let i=steps;i>=0;i--){
+      const r=(i/steps)*WORLD_RADIUS;
+      const biome=getBiome(r,0);
+      const nxt=getBiome(Math.max(0,r-40),0);
+      const t=Math.max(0,(r-biome.inner)/(biome.outer-biome.inner||1));
+      const c1=Phaser.Display.Color.IntegerToColor(biome.bg);
+      const c2=Phaser.Display.Color.IntegerToColor(nxt.bg);
+      const col=Phaser.Display.Color.Interpolate.ColorWithColor(c1,c2,100,Math.floor(t*100));
+      g.fillStyle(Phaser.Display.Color.GetColor(col.r,col.g,col.b),1);
+      g.fillCircle(0,0,r+WORLD_RADIUS/steps+2);
+    }
+    // Biome boundary glows
+    for(const b of BIOMES){
+      g.lineStyle(3,b.accent,0.08);g.strokeCircle(0,0,b.outer);
+      g.lineStyle(1.5,b.accent,0.05);g.strokeCircle(0,0,b.outer-8);
+    }
+    // Hex grid overlay
+    const hs=58,cols=Math.ceil(WORLD_RADIUS*2/(hs*1.5))+2,rows=Math.ceil(WORLD_RADIUS*2/(hs*0.866))+2;
+    g.lineStyle(0.6,0x0e2540,0.18);
+    for(let row=-rows;row<rows;row++)for(let col=-cols;col<cols;col++){
+      const x=col*hs*1.5+(row%2===0?0:hs*0.75)-WORLD_RADIUS,y=row*hs*0.866-WORLD_RADIUS;
+      if(x*x+y*y>(WORLD_RADIUS+80)*(WORLD_RADIUS+80))continue;
+      for(let i=0;i<6;i++){const a1=(i/6)*Math.PI*2+Math.PI/6,a2=((i+1)/6)*Math.PI*2+Math.PI/6;g.beginPath();g.moveTo(x+Math.cos(a1)*hs*0.5,y+Math.sin(a1)*hs*0.5);g.lineTo(x+Math.cos(a2)*hs*0.5,y+Math.sin(a2)*hs*0.5);g.strokePath();}
+    }
+    // Caustic light patches in shallows
+    for(let i=0;i<50;i++){
+      const ang=Math.random()*Math.PI*2,dist=1700+Math.random()*800;
+      const px=Math.cos(ang)*dist,py=Math.sin(ang)*dist,cr=25+Math.random()*100;
+      g.fillStyle(0x0f3355,0.04+Math.random()*0.05);
+      g.fillEllipse(px,py,cr,cr*(0.25+Math.random()*0.45));
+    }
+    // Outer darkness fade
+    for(let r=WORLD_RADIUS+5;r<WORLD_RADIUS+350;r+=7){
+      g.lineStyle(10,0x010508,Math.min(1,(r-WORLD_RADIUS)/180));
+      g.strokeCircle(0,0,r);
+    }
+  }
+  setupParticles(){
+    // Floating debris/marine snow particles
+    this._particles=[];
+    for(let i=0;i<60;i++){
+      this._particles.push({
+        x:(Math.random()-0.5)*WORLD_RADIUS*2,
+        y:(Math.random()-0.5)*WORLD_RADIUS*2,
+        size:0.5+Math.random()*1.5,
+        speed:0.08+Math.random()*0.25,
+        ang:Math.random()*Math.PI*2,
+        alpha:0.05+Math.random()*0.15,
+        color:[C.cyan,C.teal,C.green,0xffffff,C.blue][Math.floor(Math.random()*5)],
+        drift:Math.random()*Math.PI*2,
+      });
+    }
+  }
+  setupCamera(){
+    const cam=this.cameras.main;
+    let isDragging=false,dsx=0,dsy=0,csx=0,csy=0,pinching=false,psd=0,psz=1,tpx=0,tpy=0;
+    this.input.on('pointerdown',p=>{if(p.id===1){isDragging=true;dsx=p.x;dsy=p.y;csx=cam.scrollX;csy=cam.scrollY;tpx=p.x;tpy=p.y;}});
+    this.input.on('pointermove',p=>{
+      const p1=this.input.pointer1,p2=this.input.pointer2;
+      if(p1.isDown&&p2.isDown){isDragging=false;const d=Phaser.Math.Distance.Between(p1.x,p1.y,p2.x,p2.y);if(!pinching){pinching=true;psd=d;psz=cam.zoom;}else cam.setZoom(Phaser.Math.Clamp(psz*(d/psd),0.3,5));const mx=(p1.x+p2.x)/2,my=(p1.y+p2.y)/2,pmx=(p1.prevPosition.x+p2.prevPosition.x)/2,pmy=(p1.prevPosition.y+p2.prevPosition.y)/2;cam.scrollX-=(mx-pmx)/cam.zoom;cam.scrollY-=(my-pmy)/cam.zoom;return;}
+      pinching=false;
+      if(isDragging&&p.id===1){cam.scrollX=csx-(p.x-dsx)/cam.zoom;cam.scrollY=csy-(p.y-dsy)/cam.zoom;this.clampCamera();}
+    });
+    this.input.on('pointerup',p=>{if(p.id!==1)return;pinching=false;if(Math.abs(p.x-tpx)<8&&Math.abs(p.y-tpy)<8)this.tapWorld(p.x,p.y);isDragging=false;});
+    this.input.on('wheel',(_p,_dx,_dy,dz)=>{cam.setZoom(Phaser.Math.Clamp(cam.zoom-dz*0.001,0.3,5));this.clampCamera();});
+  }
+  clampCamera(){
+    const cam=this.cameras.main,vr=Math.hypot(cam.width,cam.height)/(2*cam.zoom),maxD=Math.max(0,WORLD_RADIUS-vr);
+    const cx=cam.scrollX+cam.width/(2*cam.zoom),cy=cam.scrollY+cam.height/(2*cam.zoom),d=Math.hypot(cx,cy);
+    if(d>maxD){const s=maxD/d;cam.scrollX=cx*s-cam.width/(2*cam.zoom);cam.scrollY=cy*s-cam.height/(2*cam.zoom);}
+  }
+  tapWorld(sx,sy){
+    const cam=this.cameras.main,wx=cam.scrollX+sx/cam.zoom,wy=cam.scrollY+sy/cam.zoom;
+    let nearest=null,nearestD=40;
+    for(const c of this.cells){if(c.dead)continue;const d=Math.hypot(c.x-wx,c.y-wy);if(d<nearestD){nearestD=d;nearest=c;}}
+    if(nearest) openInspector(nearest);
+  }
+  spawnCell(genome,x,y){
+    const cam=this.cameras.main;
+    const wx=x??(cam.scrollX+cam.width/(2*cam.zoom)+(Math.random()-0.5)*60);
+    const wy=y??(cam.scrollY+cam.height/(2*cam.zoom)+(Math.random()-0.5)*60);
+    const cell=new Cell(genome,wx,wy);
+    this.cells.push(cell);if(cell.generation>this.maxGen)this.maxGen=cell.generation;
+  }
+  spawnNutrients(count){
+    for(let i=0;i<count&&this.nutrients.length<MAX_NUTRIENTS;i++){
+      const ang=Math.random()*Math.PI*2,dist=Math.random()*WORLD_RADIUS*0.95;
+      const x=Math.cos(ang)*dist,y=Math.sin(ang)*dist;
+      const biome=getBiome(x,y);
+      if(Math.random()>biome.nutMult*0.8)continue;
+      this.nutrients.push(new Nutrient(x,y));
+    }
+  }
+  update(time,delta){
+    if(this.simSpeed===0)return;
+    const dt=delta/1000*this.simSpeed;this.tick++;
+    for(const c of this.pendingCells){this.cells.push(c);if(c.generation>this.maxGen)this.maxGen=c.generation;}
+    this.pendingCells=[];
+    this.nutrientAcc+=dt*0.55;
+    while(this.nutrientAcc>=1&&this.nutrients.length<MAX_NUTRIENTS){this.nutrientAcc--;this.spawnNutrients(1);}
+    if(this.nutrients.filter(n=>n.available).length<25)this.spawnNutrients(12);
+    for(let i=this.nutrients.length-1;i>=0;i--)if(this.nutrients[i].dead)this.nutrients.splice(i,1);
+    for(let i=this.cells.length-1;i>=0;i--)if(this.cells[i].dead&&!this.cells[i].dying)this.cells.splice(i,1);
+    this.cellHash.rebuild(this.cells.filter(c=>!c.dead));
+    this.nutrientHash.rebuild(this.nutrients.filter(n=>n.available));
+    const aiGroup=this.stagger++%4;
+    for(let i=0;i<this.cells.length;i++){
+      const c=this.cells[i];if(c.dead)continue;
+      c.update(dt,time);
+      const dist=Math.hypot(c.x,c.y);
+      if(dist>WORLD_RADIUS-SOFT_EDGE){
+        if(dist>WORLD_RADIUS){const s=WORLD_RADIUS/dist;c.x*=s;c.y*=s;c.vx*=-0.3;c.vy*=-0.3;}
+        else{const tf=((dist-(WORLD_RADIUS-SOFT_EDGE))/SOFT_EDGE)**2,force=tf*120;c.vx-=(c.x/dist)*force*dt;c.vy-=(c.y/dist)*force*dt;}
+      }
+      if(i%4===aiGroup){
+        c.seekTarget(this.nutrientHash.query(c.x,c.y,c.stats.sense),this.cellHash.query(c.x,c.y,c.stats.sense).filter(oc=>oc!==c));
+        if(c.stats.hasMouth){const prey=this.cellHash.query(c.x,c.y,c.radius+30);for(const p of prey)if(p!==c&&!p.dead)c.tryEat(p,dt);}
+        if(c.stats.defense>2){const contacts=this.cellHash.query(c.x,c.y,c.radius+16);for(const oc of contacts)if(oc!==c&&!oc.dead)c.spikeContact(oc,time);}
+      }
+      if(c.targetNutrient?.available){const dn=Math.hypot(c.targetNutrient.x-c.x,c.targetNutrient.y-c.y);if(dn<20+c.radius){c.energy=Math.min(c.stats.maxEnergy,c.energy+c.targetNutrient.consume()*c.stats.eat);c.targetNutrient=null;}}
+      if(this.cells.length<MAX_CELLS&&this.tick%8===0&&c.canDivide(time)){const child=c.divide(time);if(child)this.pendingCells.push(child);}
+    }
+    for(const n of this.nutrients)n.update(dt,time);
+    this.renderFrame(time,dt);
+    // Biome detection
+    const cam=this.cameras.main,camX=cam.scrollX+cam.width/(2*cam.zoom),camY=cam.scrollY+cam.height/(2*cam.zoom);
+    const b=getBiome(camX,camY);
+    if(b.name!==this.currentBiomeName){this.currentBiomeName=b.name;showBiomeToast(b);}
+    // HUD update
+    if(this.tick%15===0){
+      document.getElementById('h-cells').textContent=this.cells.filter(c=>!c.dead).length;
+      document.getElementById('h-gen').textContent=this.maxGen;
+      document.getElementById('h-nuts').textContent=this.nutrients.filter(n=>n.available).length;
+    }
+  }
+  renderFrame(time,dt){
+    // Floating particles
+    const pg=this.particleLayer;pg.clear();
+    for(const p of this._particles){
+      p.drift+=dt*0.2;p.x+=Math.cos(p.drift)*p.speed;p.y+=Math.sin(p.drift)*p.speed;
+      // Slowly drift upward
+      p.y-=p.speed*0.3;
+      const dist=Math.hypot(p.x,p.y);
+      if(dist>WORLD_RADIUS*0.98){const s=(WORLD_RADIUS*0.5)/dist;p.x*=s;p.y*=s;}
+      const a=p.alpha*(0.7+Math.sin(time/3000+p.drift)*0.3);
+      pg.fillStyle(p.color,a);pg.fillCircle(p.x,p.y,p.size);
+    }
+    // Nutrients
+    const ng=this.nutrientLayer;ng.clear();
+    for(const n of this.nutrients){
+      if(!n.available)continue;
+      const pulse=1+Math.sin(time/1000*2+n.phase)*0.35;
+      ng.fillStyle(n.color,0.08);ng.fillCircle(n.x,n.y,n.size*pulse*2.5);
+      ng.fillStyle(n.color,0.85);ng.fillCircle(n.x,n.y,n.size*pulse);
+      ng.fillStyle(0xffffff,0.35);ng.fillCircle(n.x-n.size*0.25,n.y-n.size*0.25,n.size*0.4);
+    }
+    // Cells
+    const cg=this.cellLayer;cg.clear();
+    for(const c of this.cells){if(c.dead&&!c.dying)continue;c.render(cg,time);}
+  }
+}
+
+// ─── PHASER GAME ──────────────────────────────────────────────────────────────
+const game = new Phaser.Game({
+  type:Phaser.WEBGL,
+  width:Math.round(SW*DPR),height:Math.round(SH*DPR),
+  backgroundColor:0x020A13,
+  antialias:false,antialiasGL:false,roundPixels:true,
+  powerPreference:'high-performance',
+  autoMobilePipeline:true,
+  disableContextMenu:true,
+  scale:{mode:Phaser.Scale.NONE,width:Math.round(SW*DPR),height:Math.round(SH*DPR)},
+  input:{activePointers:3,touch:{capture:true}},
+  scene:[BootScene,WorldScene],
+  fps:{target:60,forceSetTimeOut:false},
+  banner:false,
+});
 game.canvas.style.width=SW+'px';
 game.canvas.style.height=SH+'px';
 game.canvas.style.position='fixed';
 game.canvas.style.top='0';
 game.canvas.style.left='0';
+
+function getWorldScene(){return game.scene.getScene('World');}
+
+// ─── BIOME TOAST ──────────────────────────────────────────────────────────────
+let biomeToastTimer=null;
+function showBiomeToast(biome){
+  const el=document.getElementById('biome-toast');
+  el.textContent=biome.emoji+'  '+biome.name+'\n'+biome.desc;
+  el.style.opacity='1';
+  if(biomeToastTimer)clearTimeout(biomeToastTimer);
+  biomeToastTimer=setTimeout(()=>{el.style.opacity='0';},3000);
+}
+
+// ─── INSPECTOR ────────────────────────────────────────────────────────────────
+function openInspector(cell){
+  const s=cell.stats;
+  const stage=s.hasNucleus?'Eukaryote':'Prokaryote';
+  const stageColor=s.hasNucleus?'#A5F8E5':'#7BA8C9';
+  document.getElementById('insp-stage').textContent=stage;
+  document.getElementById('insp-stage').style.color=stageColor;
+  document.getElementById('insp-gen').textContent='Generation '+cell.generation+'  ·  Lineage';
+  // Preview
+  const hue=Math.round(cell.genome.colorHue);
+  const prev=document.getElementById('insp-preview');
+  prev.style.background=`radial-gradient(circle at 35% 35%, hsl(${hue},60%,55%), hsl(${hue},50%,22%))`;
+  prev.style.boxShadow=`0 0 20px hsla(${hue},70%,50%,0.3), inset 0 0 20px rgba(0,0,0,0.3)`;
+  prev.textContent='';
+  // Stats
+  const er=Math.max(0,cell.energy/s.maxEnergy);
+  document.getElementById('insp-speed').textContent=s.speed.toFixed(0);
+  document.getElementById('insp-energy').textContent=(s.energy>=0?'+':'')+s.energy.toFixed(1)+'/s';
+  document.getElementById('insp-sense').textContent=s.sense.toFixed(0)+'px';
+  document.getElementById('insp-defense').textContent=s.defense.toFixed(1);
+  document.getElementById('insp-mut').textContent=(cell.genome.mutationRate*100).toFixed(1)+'%';
+  document.getElementById('insp-vitality').textContent=Math.round(er*100)+'%';
+  // Organelles
+  const uniq=[...new Set(cell.genome.organelles)];
+  const orgEl=document.getElementById('insp-organelles');
+  orgEl.innerHTML='';
+  for(const k of uniq){
+    if(!ORG[k])continue;
+    const chip=document.createElement('div');chip.className='organelle-chip';
+    chip.innerHTML=`<div class="chip-dot" style="background:${ORG[k].color}"></div>${ORG[k].name}`;
+    orgEl.appendChild(chip);
+  }
+  // Gen bar
+  const genFrac=Math.min(1,cell.generation/30);
+  document.getElementById('insp-gen-bar').style.width=(genFrac*100)+'%';
+  document.getElementById('insp-gen-num').textContent='Gen '+cell.generation;
+  document.getElementById('inspector').classList.add('open');
+}
+document.getElementById('insp-close').addEventListener('click',()=>document.getElementById('inspector').classList.remove('open'));
+document.getElementById('inspector').addEventListener('click',e=>{if(e.target===document.getElementById('inspector'))document.getElementById('inspector').classList.remove('open');});
+
+// ─── SPEED CONTROLS ───────────────────────────────────────────────────────────
+document.querySelectorAll('.speed-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    const speed=parseInt(btn.dataset.speed);
+    const ws=getWorldScene();if(ws)ws.simSpeed=speed;
+    document.querySelectorAll('.speed-btn').forEach(b=>b.classList.toggle('active',parseInt(b.dataset.speed)===speed));
+  });
+});
+
+// ─── EDITOR ───────────────────────────────────────────────────────────────────
+let editorGenome={organelles:['CYTOPLASM'],colorHue:150+Math.random()*80,mutationRate:0.08,divisionThreshold:0.75};
+let selectedOrg='FLAGELLUM';
+let editorCanvas, editorCtx;
+
+function openEditor(){
+  editorGenome={organelles:['CYTOPLASM'],colorHue:150+Math.random()*80,mutationRate:0.08,divisionThreshold:0.75};
+  selectedOrg='FLAGELLUM';
+  document.getElementById('editor').classList.add('open');
+  setupEditorCanvas();
+  buildPalette();
+  updateEditorStats();
+  drawEditorHex();
+  const ws=getWorldScene();if(ws)ws.simSpeed=0;
+}
+function closeEditor(){
+  document.getElementById('editor').classList.remove('open');
+  const ws=getWorldScene();if(ws)ws.simSpeed=1;
+  document.querySelectorAll('.speed-btn').forEach(b=>b.classList.toggle('active',parseInt(b.dataset.speed)===1));
+}
+
+document.getElementById('create-btn').addEventListener('click',openEditor);
+document.getElementById('editor-cancel-btn').addEventListener('click',closeEditor);
+document.getElementById('release-btn').addEventListener('click',()=>{
+  const clean=editorGenome.organelles.filter(o=>o&&ORG[o]);
+  if(!clean.includes('CYTOPLASM'))clean.unshift('CYTOPLASM');
+  const genome={...editorGenome,organelles:clean};
+  const ws=getWorldScene();
+  if(ws){ws.simSpeed=1;ws.spawnCell(genome);}
+  document.querySelectorAll('.speed-btn').forEach(b=>b.classList.toggle('active',parseInt(b.dataset.speed)===1));
+  closeEditor();
+});
+
+function setupEditorCanvas(){
+  const wrap=document.getElementById('editor-canvas-wrap');
+  editorCanvas=document.getElementById('editor-canvas');
+  const size=wrap.clientWidth*DPR;
+  editorCanvas.width=size;editorCanvas.height=size;
+  editorCanvas.style.width=wrap.clientWidth+'px';editorCanvas.style.height=wrap.clientWidth+'px';
+  editorCtx=editorCanvas.getContext('2d');
+  editorCanvas.addEventListener('click',handleEditorTap);
+}
+
+function drawEditorHex(){
+  if(!editorCtx)return;
+  const sz=editorCanvas.width,cx=sz/2,cy=sz/2;
+  const hexSize=sz/8.5;
+  editorCtx.clearRect(0,0,sz,sz);
+  // Cell body background
+  const hue=editorGenome.colorHue;
+  const r=sz*0.38;
+  const grad=editorCtx.createRadialGradient(cx,cy,0,cx,cy,r);
+  grad.addColorStop(0,`hsla(${hue},45%,18%,0.5)`);
+  grad.addColorStop(1,`hsla(${hue},40%,8%,0.3)`);
+  editorCtx.beginPath();editorCtx.arc(cx,cy,r,0,Math.PI*2);
+  editorCtx.fillStyle=grad;editorCtx.fill();
+  editorCtx.strokeStyle=`hsla(${hue},60%,50%,0.3)`;editorCtx.lineWidth=1.5;editorCtx.stroke();
+
+  // Draw hex grid
+  const hexList=hexesInRadius(2);
+  for(const h of hexList){
+    const px=hexToPixel(h.q,h.r,hexSize*DPR);
+    const x=cx+px.x/DPR,y=cy+px.y/DPR;
+    const isC=h.q===0&&h.r===0;
+    const idx=hexList.findIndex(hh=>hh.q===h.q&&hh.r===h.r);
+    const org=editorGenome.organelles[idx];
+    const orgKey=org&&ORG[org]?org:null;
+
+    editorCtx.beginPath();
+    for(let i=0;i<6;i++){
+      const a=Math.PI/6+(i/6)*Math.PI*2;
+      if(i===0)editorCtx.moveTo(x+Math.cos(a)*hexSize*0.47,y+Math.sin(a)*hexSize*0.47);
+      else editorCtx.lineTo(x+Math.cos(a)*hexSize*0.47,y+Math.sin(a)*hexSize*0.47);
+    }
+    editorCtx.closePath();
+    if(orgKey){
+      editorCtx.fillStyle=ORG[orgKey].color+'cc';
+      editorCtx.fill();
+      editorCtx.strokeStyle='rgba(255,255,255,0.35)';editorCtx.lineWidth=1;editorCtx.stroke();
+      // Small label
+      editorCtx.fillStyle='rgba(255,255,255,0.7)';
+      editorCtx.font=`bold ${hexSize*0.28}px 'IBM Plex Mono',monospace`;
+      editorCtx.textAlign='center';editorCtx.textBaseline='middle';
+      editorCtx.fillText(ORG[orgKey].short,x,y);
+    }else if(isC){
+      editorCtx.fillStyle='rgba(26,58,106,0.6)';editorCtx.fill();
+      editorCtx.strokeStyle='rgba(0,212,255,0.4)';editorCtx.lineWidth=1;editorCtx.stroke();
+      editorCtx.fillStyle='rgba(0,212,255,0.5)';
+      editorCtx.font=`${hexSize*0.25}px 'IBM Plex Mono',monospace`;
+      editorCtx.textAlign='center';editorCtx.textBaseline='middle';
+      editorCtx.fillText('CYT',x,y);
+    }else{
+      editorCtx.fillStyle='rgba(7,20,38,0.7)';editorCtx.fill();
+      editorCtx.strokeStyle='rgba(0,212,255,0.1)';editorCtx.lineWidth=0.8;editorCtx.stroke();
+    }
+  }
+}
+
+function handleEditorTap(e){
+  const rect=editorCanvas.getBoundingClientRect();
+  const rawX=(e.clientX-rect.left)*(editorCanvas.width/rect.width);
+  const rawY=(e.clientY-rect.top)*(editorCanvas.height/rect.height);
+  const cx=editorCanvas.width/2,cy=editorCanvas.height/2;
+  const hexSize=editorCanvas.width/8.5;
+  const hex=pixelToHex((rawX-cx)/hexSize,(rawY-cy)/hexSize,1);
+  const maxD=Math.max(Math.abs(hex.q),Math.abs(hex.r),Math.abs(-hex.q-hex.r));
+  if(maxD>2)return;
+  if(hex.q===0&&hex.r===0)return;
+  const hexList=hexesInRadius(2);
+  const idx=hexList.findIndex(h=>h.q===hex.q&&h.r===hex.r);
+  if(idx<0)return;
+  if(editorGenome.organelles[idx]&&editorGenome.organelles[idx]!==undefined){
+    editorGenome.organelles[idx]=undefined;
+  }else{
+    const def=ORG[selectedOrg];if(!def)return;
+    if(def.needsNucleus&&!editorGenome.organelles.includes('NUCLEUS')){showEditorWarning('Nucleus required first');return;}
+    if(editorGenome.organelles.filter(o=>o===selectedOrg).length>=def.max){showEditorWarning(`Max ${def.max} per cell`);return;}
+    while(editorGenome.organelles.length<=idx)editorGenome.organelles.push(undefined);
+    editorGenome.organelles[idx]=selectedOrg;
+  }
+  const cleaned=editorGenome.organelles.filter(o=>o&&o!==undefined);
+  if(!cleaned.includes('CYTOPLASM'))cleaned.unshift('CYTOPLASM');
+  editorGenome.organelles=cleaned;
+  drawEditorHex();updateEditorStats();
+}
+
+function showEditorWarning(msg){
+  const w=document.createElement('div');
+  w.style.cssText='position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(231,76,60,0.9);color:white;padding:10px 20px;border-radius:20px;font-size:13px;z-index:200;pointer-events:none;';
+  w.textContent=msg;document.body.appendChild(w);
+  setTimeout(()=>w.remove(),1800);
+}
+
+function updateEditorStats(){
+  const clean=editorGenome.organelles.filter(o=>o&&ORG[o]);
+  const s=computeStats(clean);
+  document.getElementById('es-speed').textContent=s.speed.toFixed(0);
+  document.getElementById('es-energy').textContent=(s.energy>=0?'+':'')+s.energy.toFixed(1);
+  document.getElementById('es-defense').textContent=s.defense.toFixed(1);
+}
+
+function buildPalette(){
+  const palette=document.getElementById('palette');palette.innerHTML='';
+  for(const key of PALETTE_KEYS){
+    const def=ORG[key];
+    const card=document.createElement('div');card.className='org-card'+(key===selectedOrg?' selected':'');
+    card.innerHTML=`<div class="org-dot" style="background:radial-gradient(circle at 35% 35%,${def.color}cc,${def.color}55)"></div><div class="org-name">${def.name}</div><div class="org-desc">${def.desc}</div><div class="org-cost">⧬ ${def.mp} DNA</div>`;
+    card.addEventListener('click',()=>{
+      selectedOrg=key;
+      document.querySelectorAll('.org-card').forEach(c=>c.classList.remove('selected'));
+      card.classList.add('selected');
+    });
+    palette.appendChild(card);
+  }
+}
 </script>
 </body>
 </html>
