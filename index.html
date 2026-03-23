@@ -11,272 +11,121 @@
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 html{height:100%;background:#020A13;}
-body{
-  width:100%;height:100dvh;
-  background:#020A13;
-  overflow:hidden;position:fixed;
-  overscroll-behavior:none;
-  -webkit-user-select:none;user-select:none;
-  -webkit-touch-callout:none;
-  font-family:'IBM Plex Sans',system-ui,sans-serif;
-  color:#E0F4FF;
-  touch-action:none;
-}
-canvas{
-  display:block;position:fixed;
-  top:0;left:0;
-  touch-action:none;
-  -webkit-tap-highlight-color:transparent;
-}
-/* Microscope vignette */
-#vignette{
-  position:fixed;inset:0;pointer-events:none;z-index:5;
-  background:radial-gradient(circle at 50% 50%,transparent 40%,rgba(2,10,19,0.25) 62%,rgba(2,10,19,0.65) 80%,rgba(2,10,19,0.92) 100%);
-}
-/* HUD - top strip */
-#hud{
-  position:fixed;top:0;left:0;right:0;
-  padding:calc(env(safe-area-inset-top,0px) + 10px) 16px 10px;
-  display:flex;align-items:center;gap:8px;
-  z-index:20;pointer-events:none;
-  background:linear-gradient(to bottom,rgba(2,10,19,0.7) 0%,transparent 100%);
-}
-.hud-pill{
-  display:flex;align-items:center;gap:5px;
-  background:rgba(7,20,38,0.7);
-  border:1px solid rgba(0,212,255,0.18);
-  border-radius:20px;padding:5px 10px;
-  font-family:'IBM Plex Mono',monospace;
-  font-size:11px;color:#7BA8C9;
-  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
-}
+body{width:100%;height:100dvh;background:#020A13;overflow:hidden;position:fixed;overscroll-behavior:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;font-family:'IBM Plex Sans',system-ui,sans-serif;color:#E0F4FF;touch-action:none;}
+canvas{display:block;position:fixed;top:0;left:0;touch-action:none;-webkit-tap-highlight-color:transparent;}
+#vignette{position:fixed;inset:0;pointer-events:none;z-index:5;background:radial-gradient(circle at 50% 50%,transparent 40%,rgba(2,10,19,0.25) 62%,rgba(2,10,19,0.65) 80%,rgba(2,10,19,0.92) 100%);}
+
+/* HUD */
+#hud{position:fixed;top:0;left:0;right:0;padding:calc(env(safe-area-inset-top,0px) + 10px) 16px 10px;display:flex;align-items:center;gap:8px;z-index:20;pointer-events:none;background:linear-gradient(to bottom,rgba(2,10,19,0.7) 0%,transparent 100%);}
+.hud-pill{display:flex;align-items:center;gap:5px;background:rgba(7,20,38,0.7);border:1px solid rgba(0,212,255,0.18);border-radius:20px;padding:5px 10px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:#7BA8C9;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);}
 .hud-pill .val{color:#00D4FF;font-weight:500;}
-.hud-pill .icon{font-size:12px;}
+
+/* Objective tracker */
+#objectives{position:fixed;top:calc(env(safe-area-inset-top,0px) + 10px);right:12px;z-index:25;max-width:200px;}
+#obj-badge{width:36px;height:36px;border-radius:50%;background:rgba(7,20,38,0.85);border:1.5px solid rgba(0,212,255,0.3);display:flex;align-items:center;justify-content:center;font-size:14px;cursor:pointer;touch-action:manipulation;margin-left:auto;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);}
+#obj-panel{background:rgba(4,14,28,0.92);border:1px solid rgba(0,212,255,0.18);border-radius:10px;padding:10px 12px;margin-top:4px;display:none;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);}
+#obj-panel.open{display:block;}
+#obj-title{font-size:9px;text-transform:uppercase;letter-spacing:0.1em;color:#3B5B81;margin-bottom:8px;}
+.obj-item{display:flex;align-items:flex-start;gap:7px;margin-bottom:6px;font-size:11px;color:#7BA8C9;line-height:1.35;}
+.obj-check{width:14px;height:14px;border-radius:3px;border:1.5px solid rgba(0,212,255,0.3);flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;font-size:9px;}
+.obj-check.done{background:rgba(0,212,255,0.15);border-color:#00D4FF;color:#00D4FF;}
+.obj-item.done .obj-text{color:#3B5B81;text-decoration:line-through;}
+#obj-progress{height:3px;background:rgba(255,255,255,0.05);border-radius:2px;margin-top:8px;overflow:hidden;}
+#obj-bar{height:100%;background:linear-gradient(90deg,#00D4FF,#26FFF8);border-radius:2px;transition:width 0.5s ease;}
+#unlock-toast{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(4,14,28,0.95);border:1px solid rgba(0,212,255,0.4);border-radius:12px;padding:14px 20px;text-align:center;z-index:100;display:none;backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);min-width:200px;}
+#unlock-toast .ut-title{font-size:10px;text-transform:uppercase;letter-spacing:0.1em;color:#3B5B81;margin-bottom:6px;}
+#unlock-toast .ut-items{font-size:13px;color:#A5F8E5;font-weight:500;}
+
 /* Biome toast */
-#biome-toast{
-  position:fixed;top:calc(env(safe-area-inset-top,0px) + 56px);
-  left:50%;transform:translateX(-50%);
-  background:rgba(7,20,38,0.85);
-  border:1px solid rgba(0,212,255,0.2);
-  border-radius:20px;padding:8px 18px;
-  font-size:12px;color:#A5F8E5;
-  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
-  z-index:30;transition:opacity 0.5s;opacity:0;pointer-events:none;
-  text-align:center;white-space:pre;line-height:1.5;
-}
-/* Speed controls - bottom left */
-#speed-controls{
-  position:fixed;
-  bottom:calc(env(safe-area-inset-bottom,0px) + 16px);
-  left:16px;
-  display:flex;gap:6px;z-index:20;
-}
-.speed-btn{
-  width:42px;height:42px;border-radius:50%;
-  background:rgba(7,20,38,0.8);
-  border:1px solid rgba(0,212,255,0.2);
-  color:#4C8DC2;font-family:'IBM Plex Mono',monospace;
-  font-size:11px;font-weight:500;
-  display:flex;align-items:center;justify-content:center;
-  cursor:pointer;-webkit-tap-highlight-color:transparent;
-  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
-  transition:all 0.15s;
-  touch-action:manipulation;
-}
-.speed-btn.active{
-  background:rgba(0,212,255,0.15);
-  border-color:rgba(0,212,255,0.5);
-  color:#00D4FF;
-  box-shadow:0 0 12px rgba(0,212,255,0.2);
-}
-/* Create cell button - bottom right */
-#create-btn{
-  position:fixed;
-  bottom:calc(env(safe-area-inset-bottom,0px) + 16px);
-  right:16px;
-  width:58px;height:58px;border-radius:50%;
-  background:rgba(0,212,255,0.12);
-  border:1.5px solid rgba(0,212,255,0.45);
-  color:#00D4FF;font-size:28px;line-height:1;
-  display:flex;align-items:center;justify-content:center;
-  cursor:pointer;-webkit-tap-highlight-color:transparent;
-  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
-  z-index:20;transition:all 0.2s;
-  box-shadow:0 0 20px rgba(0,212,255,0.15);
-  touch-action:manipulation;
-}
-#create-btn:active{
-  background:rgba(0,212,255,0.25);
-  box-shadow:0 0 30px rgba(0,212,255,0.3);
-  transform:scale(0.95);
-}
-/* Inspector overlay */
-#inspector{
-  position:fixed;inset:0;z-index:50;
-  display:none;align-items:center;justify-content:center;
-  background:rgba(2,10,19,0.6);
-  backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);
-}
+#biome-toast{position:fixed;top:calc(env(safe-area-inset-top,0px) + 56px);left:50%;transform:translateX(-50%);background:rgba(7,20,38,0.85);border:1px solid rgba(0,212,255,0.2);border-radius:20px;padding:8px 18px;font-size:12px;color:#A5F8E5;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);z-index:30;transition:opacity 0.5s;opacity:0;pointer-events:none;text-align:center;white-space:pre;line-height:1.5;}
+
+/* Speed controls */
+#speed-controls{position:fixed;bottom:calc(env(safe-area-inset-bottom,0px) + 16px);left:16px;display:flex;gap:6px;z-index:20;}
+.speed-btn{width:42px;height:42px;border-radius:50%;background:rgba(7,20,38,0.8);border:1px solid rgba(0,212,255,0.2);color:#4C8DC2;font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:500;display:flex;align-items:center;justify-content:center;cursor:pointer;-webkit-tap-highlight-color:transparent;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);transition:all 0.15s;touch-action:manipulation;}
+.speed-btn.active{background:rgba(0,212,255,0.15);border-color:rgba(0,212,255,0.5);color:#00D4FF;box-shadow:0 0 12px rgba(0,212,255,0.2);}
+
+/* Create button */
+#create-btn{position:fixed;bottom:calc(env(safe-area-inset-bottom,0px) + 16px);right:16px;width:58px;height:58px;border-radius:50%;background:rgba(0,212,255,0.12);border:1.5px solid rgba(0,212,255,0.45);color:#00D4FF;font-size:28px;line-height:1;display:flex;align-items:center;justify-content:center;cursor:pointer;-webkit-tap-highlight-color:transparent;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);z-index:20;transition:all 0.2s;box-shadow:0 0 20px rgba(0,212,255,0.15);touch-action:manipulation;}
+#create-btn:active{background:rgba(0,212,255,0.25);box-shadow:0 0 30px rgba(0,212,255,0.3);transform:scale(0.95);}
+
+/* Inspector */
+#inspector{position:fixed;inset:0;z-index:50;display:none;align-items:center;justify-content:center;background:rgba(2,10,19,0.6);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);}
 #inspector.open{display:flex;}
-#inspector-panel{
-  width:min(340px,92vw);
-  background:rgba(7,20,38,0.92);
-  border:1px solid rgba(0,212,255,0.2);
-  border-radius:16px;
-  padding:20px;
-  backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
-  box-shadow:0 8px 40px rgba(0,0,0,0.6),inset 0 1px 0 rgba(0,212,255,0.07);
-  max-height:80vh;overflow-y:auto;
-}
-.inspector-header{
-  display:flex;justify-content:space-between;align-items:flex-start;
-  margin-bottom:14px;
-}
-.inspector-stage{font-size:18px;font-weight:500;color:#A5F8E5;letter-spacing:0.02em;}
-.inspector-gen{font-family:'IBM Plex Mono',monospace;font-size:11px;color:#3B5B81;margin-top:3px;}
-.inspector-close{
-  width:32px;height:32px;border-radius:50%;
-  background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);
-  color:#3B5B81;font-size:16px;cursor:pointer;
-  display:flex;align-items:center;justify-content:center;
-  touch-action:manipulation;
-}
-.inspector-cell-preview{
-  width:80px;height:80px;border-radius:50%;
-  margin:0 auto 16px;
-  display:flex;align-items:center;justify-content:center;
-  font-size:32px;
-}
+#inspector-panel{width:min(340px,92vw);background:rgba(7,20,38,0.92);border:1px solid rgba(0,212,255,0.2);border-radius:16px;padding:20px;backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);box-shadow:0 8px 40px rgba(0,0,0,0.6);max-height:80vh;overflow-y:auto;}
+.insp-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;}
+.insp-stage{font-size:18px;font-weight:500;color:#A5F8E5;}
+.insp-gen{font-family:'IBM Plex Mono',monospace;font-size:11px;color:#3B5B81;margin-top:3px;}
+.insp-close{width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:#3B5B81;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;touch-action:manipulation;}
 .stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;}
-.stat-item{
-  background:rgba(255,255,255,0.03);
-  border:1px solid rgba(255,255,255,0.06);
-  border-radius:8px;padding:10px 12px;
-}
+.stat-item{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:8px;padding:10px 12px;}
 .stat-label{font-size:10px;color:#3B5B81;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:3px;}
 .stat-value{font-family:'IBM Plex Mono',monospace;font-size:14px;color:#00D4FF;font-weight:500;}
-.organelle-list{margin-top:12px;}
 .organelle-list h4{font-size:10px;color:#3B5B81;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px;}
-.organelle-chip{
-  display:inline-flex;align-items:center;gap:5px;
-  background:rgba(0,212,255,0.07);
-  border:1px solid rgba(0,212,255,0.15);
-  border-radius:12px;padding:4px 10px;
-  font-size:11px;color:#7BA8C9;margin:0 4px 4px 0;
-}
-.organelle-chip .chip-dot{
-  width:7px;height:7px;border-radius:50%;
-}
+.organelle-chip{display:inline-flex;align-items:center;gap:5px;background:rgba(0,212,255,0.07);border:1px solid rgba(0,212,255,0.15);border-radius:12px;padding:4px 10px;font-size:11px;color:#7BA8C9;margin:0 4px 4px 0;}
+.chip-dot{width:7px;height:7px;border-radius:50%;}
 .gen-bar-wrap{margin-top:14px;}
 .gen-bar-label{font-size:10px;color:#3B5B81;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:5px;display:flex;justify-content:space-between;}
 .gen-bar-track{height:5px;background:rgba(255,255,255,0.06);border-radius:3px;overflow:hidden;}
-.gen-bar-fill{height:100%;background:linear-gradient(90deg,#00D4FF,#26FFF8);border-radius:3px;transition:width 0.4s;}
+.gen-bar-fill{height:100%;background:linear-gradient(90deg,#00D4FF,#26FFF8);border-radius:3px;}
 
-/* Editor overlay */
-#editor{
-  position:fixed;inset:0;z-index:60;
-  display:none;flex-direction:column;
-  background:rgba(2,10,19,0.97);
-}
+/* Editor */
+#editor{position:fixed;inset:0;z-index:60;display:none;flex-direction:column;background:rgba(2,10,19,0.97);}
 #editor.open{display:flex;}
-.editor-header{
-  padding:calc(env(safe-area-inset-top,0px) + 12px) 20px 12px;
-  display:flex;align-items:center;justify-content:space-between;
-  border-bottom:1px solid rgba(0,212,255,0.1);
-  flex-shrink:0;
-}
+.editor-header{padding:calc(env(safe-area-inset-top,0px) + 12px) 20px 12px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(0,212,255,0.1);flex-shrink:0;}
 .editor-title{font-size:13px;font-weight:500;color:#A5F8E5;letter-spacing:0.1em;text-transform:uppercase;}
-.editor-cancel{
-  padding:8px 16px;border-radius:20px;
-  background:rgba(231,76,60,0.1);border:1px solid rgba(231,76,60,0.3);
-  color:#E74C3C;font-size:12px;cursor:pointer;touch-action:manipulation;
-  font-family:'IBM Plex Sans',sans-serif;
-}
-/* Editor hex grid area */
-#editor-grid-area{
-  flex:1;display:flex;align-items:center;justify-content:center;
-  min-height:0;
-  position:relative;
-}
-#editor-canvas-wrap{
-  width:min(320px,80vw);height:min(320px,80vw);
-  position:relative;
-}
+.editor-cancel{padding:8px 16px;border-radius:20px;background:rgba(231,76,60,0.1);border:1px solid rgba(231,76,60,0.3);color:#E74C3C;font-size:12px;cursor:pointer;touch-action:manipulation;font-family:'IBM Plex Sans',sans-serif;}
+#editor-grid-area{flex:1;display:flex;align-items:center;justify-content:center;min-height:0;position:relative;}
+#editor-canvas-wrap{width:min(300px,78vw);height:min(300px,78vw);position:relative;}
 #editor-canvas{width:100%;height:100%;}
-/* Stats bar */
-#editor-stats{
-  display:grid;grid-template-columns:repeat(3,1fr);gap:8px;
-  padding:0 16px 10px;flex-shrink:0;
-}
+/* complexity bar */
+#complexity-bar{display:flex;align-items:center;gap:8px;padding:6px 16px 0;flex-shrink:0;}
+.cbar-label{font-size:10px;color:#3B5B81;font-family:'IBM Plex Mono',monospace;}
+.cbar-track{flex:1;height:5px;background:rgba(255,255,255,0.05);border-radius:3px;overflow:hidden;}
+.cbar-fill{height:100%;border-radius:3px;transition:width 0.3s,background 0.3s;}
+#editor-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:8px 16px;flex-shrink:0;}
 .e-stat{text-align:center;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:8px;padding:8px 4px;}
 .e-stat-val{font-family:'IBM Plex Mono',monospace;font-size:14px;color:#00D4FF;font-weight:500;}
 .e-stat-label{font-size:9px;color:#3B5B81;text-transform:uppercase;letter-spacing:0.07em;margin-top:2px;}
-/* Organelle palette */
-#palette-label{
-  padding:0 16px 6px;font-size:10px;color:#3B5B81;
-  text-transform:uppercase;letter-spacing:0.08em;flex-shrink:0;
-}
-#palette{
-  display:grid;grid-template-columns:repeat(3,1fr);gap:8px;
-  padding:0 16px;overflow-y:auto;flex-shrink:0;
-  max-height:38vh;
-}
-.org-card{
-  background:rgba(7,20,38,0.8);
-  border:1px solid rgba(0,212,255,0.1);
-  border-radius:10px;padding:10px;
-  cursor:pointer;touch-action:manipulation;
-  transition:all 0.15s;position:relative;
-  display:flex;flex-direction:column;gap:4px;
-}
-.org-card.selected{
-  background:rgba(0,212,255,0.1);
-  border-color:rgba(0,212,255,0.45);
-  box-shadow:0 0 14px rgba(0,212,255,0.12);
-}
-.org-card:active{transform:scale(0.97);}
-.org-dot{
-  width:28px;height:28px;border-radius:50%;
-  margin-bottom:2px;
-  display:flex;align-items:center;justify-content:center;
-}
+#palette-label{padding:0 16px 6px;font-size:10px;color:#3B5B81;text-transform:uppercase;letter-spacing:0.08em;flex-shrink:0;}
+#palette{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:0 16px;overflow-y:auto;flex-shrink:0;max-height:34vh;}
+.org-card{background:rgba(7,20,38,0.8);border:1px solid rgba(0,212,255,0.1);border-radius:10px;padding:10px;cursor:pointer;touch-action:manipulation;transition:all 0.15s;display:flex;flex-direction:column;gap:3px;}
+.org-card.selected{background:rgba(0,212,255,0.1);border-color:rgba(0,212,255,0.45);box-shadow:0 0 14px rgba(0,212,255,0.12);}
+.org-card.locked{opacity:0.35;cursor:default;}
+.org-card:active:not(.locked){transform:scale(0.97);}
+.org-dot{width:26px;height:26px;border-radius:50%;margin-bottom:2px;}
 .org-name{font-size:11px;font-weight:500;color:#E0F4FF;line-height:1.2;}
-.org-desc{font-size:9px;color:#3B5B81;line-height:1.35;font-style:italic;}
-.org-cost{
-  font-family:'IBM Plex Mono',monospace;font-size:9px;
-  color:#00D4FF;margin-top:2px;
-}
-/* Release button */
-#editor-footer{
-  padding:12px 16px calc(env(safe-area-inset-bottom,0px) + 12px);
-  flex-shrink:0;
-}
-#release-btn{
-  width:100%;padding:16px;border-radius:12px;
-  background:rgba(0,212,255,0.12);
-  border:1.5px solid rgba(0,212,255,0.35);
-  color:#00D4FF;font-size:14px;font-weight:500;
-  font-family:'IBM Plex Sans',sans-serif;
-  cursor:pointer;touch-action:manipulation;
-  letter-spacing:0.05em;
-  box-shadow:0 0 20px rgba(0,212,255,0.08);
-  transition:all 0.2s;
-}
-#release-btn:active{
-  background:rgba(0,212,255,0.22);
-  box-shadow:0 0 30px rgba(0,212,255,0.2);
-}
+.org-desc{font-size:9px;color:#3B5B81;line-height:1.3;font-style:italic;}
+.org-cost{font-family:'IBM Plex Mono',monospace;font-size:9px;color:#00D4FF;margin-top:1px;}
+.org-locked-txt{font-size:9px;color:#E74C3C;font-style:italic;}
+#editor-footer{padding:10px 16px calc(env(safe-area-inset-bottom,0px) + 10px);flex-shrink:0;}
+#release-btn{width:100%;padding:15px;border-radius:12px;background:rgba(0,212,255,0.12);border:1.5px solid rgba(0,212,255,0.35);color:#00D4FF;font-size:14px;font-weight:500;font-family:'IBM Plex Sans',sans-serif;cursor:pointer;touch-action:manipulation;letter-spacing:0.05em;box-shadow:0 0 20px rgba(0,212,255,0.08);transition:all 0.2s;}
+#release-btn:active{background:rgba(0,212,255,0.22);box-shadow:0 0 30px rgba(0,212,255,0.2);}
 </style>
 </head>
 <body>
-
 <div id="vignette"></div>
 
 <!-- HUD -->
 <div id="hud">
-  <div class="hud-pill"><span class="icon">◉</span><span id="h-cells" class="val">0</span><span>cells</span></div>
-  <div class="hud-pill"><span class="icon">⌬</span><span id="h-gen" class="val">0</span><span>gen</span></div>
-  <div class="hud-pill"><span class="icon">✦</span><span id="h-nuts" class="val">0</span><span>nutrients</span></div>
+  <div class="hud-pill"><span>◉</span><span id="h-cells" class="val">0</span><span>cells</span></div>
+  <div class="hud-pill"><span>⌬</span><span id="h-gen" class="val">0</span><span>gen</span></div>
+  <div class="hud-pill"><span>✦</span><span id="h-nuts" class="val">0</span><span>nutrients</span></div>
+</div>
+
+<!-- Objective tracker -->
+<div id="objectives">
+  <div id="obj-badge">🧬</div>
+  <div id="obj-panel">
+    <div id="obj-title">Cell Stage Objectives</div>
+    <div id="obj-list"></div>
+    <div id="obj-progress"><div id="obj-bar" style="width:0%"></div></div>
+  </div>
+</div>
+
+<!-- Unlock toast -->
+<div id="unlock-toast">
+  <div class="ut-title">🔬 New Organelles Discovered</div>
+  <div class="ut-items" id="ut-items"></div>
 </div>
 
 <div id="biome-toast"></div>
@@ -295,26 +144,19 @@ canvas{
 <!-- Inspector -->
 <div id="inspector">
   <div id="inspector-panel">
-    <div class="inspector-header">
-      <div>
-        <div class="inspector-stage" id="insp-stage">Prokaryote</div>
-        <div class="inspector-gen" id="insp-gen">Generation 0</div>
-      </div>
-      <div class="inspector-close" id="insp-close">✕</div>
+    <div class="insp-header">
+      <div><div class="insp-stage" id="insp-stage">Prokaryote</div><div class="insp-gen" id="insp-gen">Generation 0</div></div>
+      <div class="insp-close" id="insp-close">✕</div>
     </div>
-    <div class="inspector-cell-preview" id="insp-preview"></div>
     <div class="stat-grid">
       <div class="stat-item"><div class="stat-label">Speed</div><div class="stat-value" id="insp-speed">—</div></div>
-      <div class="stat-item"><div class="stat-label">Energy</div><div class="stat-value" id="insp-energy">—</div></div>
-      <div class="stat-item"><div class="stat-label">Sense range</div><div class="stat-value" id="insp-sense">—</div></div>
+      <div class="stat-item"><div class="stat-label">Energy/s</div><div class="stat-value" id="insp-energy">—</div></div>
+      <div class="stat-item"><div class="stat-label">Sense</div><div class="stat-value" id="insp-sense">—</div></div>
       <div class="stat-item"><div class="stat-label">Defense</div><div class="stat-value" id="insp-defense">—</div></div>
-      <div class="stat-item"><div class="stat-label">Mutation rate</div><div class="stat-value" id="insp-mut">—</div></div>
+      <div class="stat-item"><div class="stat-label">Mutation</div><div class="stat-value" id="insp-mut">—</div></div>
       <div class="stat-item"><div class="stat-label">Vitality</div><div class="stat-value" id="insp-vitality">—</div></div>
     </div>
-    <div class="organelle-list">
-      <h4>Active Organelles</h4>
-      <div id="insp-organelles"></div>
-    </div>
+    <div class="organelle-list"><h4>Organelles</h4><div id="insp-organelles"></div></div>
     <div class="gen-bar-wrap">
       <div class="gen-bar-label"><span>Lineage depth</span><span id="insp-gen-num">Gen 0</span></div>
       <div class="gen-bar-track"><div class="gen-bar-fill" id="insp-gen-bar" style="width:0%"></div></div>
@@ -322,181 +164,157 @@ canvas{
   </div>
 </div>
 
-<!-- Cell Editor -->
+<!-- Editor -->
 <div id="editor">
   <div class="editor-header">
     <div class="editor-title">Cell Designer</div>
     <div class="editor-cancel" id="editor-cancel-btn">Cancel</div>
   </div>
   <div id="editor-grid-area">
-    <div id="editor-canvas-wrap">
-      <canvas id="editor-canvas"></canvas>
-    </div>
+    <div id="editor-canvas-wrap"><canvas id="editor-canvas"></canvas></div>
+  </div>
+  <div id="complexity-bar">
+    <div class="cbar-label">Complexity</div>
+    <div class="cbar-track"><div class="cbar-fill" id="cbar-fill" style="width:0%"></div></div>
+    <div class="cbar-label" id="cbar-count">0/3</div>
   </div>
   <div id="editor-stats">
     <div class="e-stat"><div class="e-stat-val" id="es-speed">0</div><div class="e-stat-label">Speed</div></div>
     <div class="e-stat"><div class="e-stat-val" id="es-energy">+0</div><div class="e-stat-label">Energy/s</div></div>
     <div class="e-stat"><div class="e-stat-val" id="es-defense">0</div><div class="e-stat-label">Defense</div></div>
   </div>
-  <div id="palette-label">Select organelle — tap hex to place</div>
+  <div id="palette-label">Select organelle — tap hex to place / remove</div>
   <div id="palette"></div>
-  <div id="editor-footer">
-    <div id="release-btn">🌊  Release into the ocean</div>
-  </div>
+  <div id="editor-footer"><div id="release-btn">🌊  Release into the ocean</div></div>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/phaser/3.60.0/phaser.min.js"></script>
 <script>
-// ─── DESIGN TOKENS ────────────────────────────────────────────────────────────
-const C = {
-  bgAbyss:   0x020A13, bgDeep:    0x071426,
-  bgMid:     0x0C2340, bgShallow: 0x132E4F,
-  cyan:      0x00D4FF, teal:      0x26FFF8,
-  green:     0x76E0B0, blue:      0x4C8DC2,
-  purple:    0x958CF9, indigo:    0x494F8B,
-  textPri:   0xE0F4FF, textSec:   0x7BA8C9,
-  textMuted: 0x3B5B81, textHead:  0xA5F8E5,
-  danger:    0xE74C3C, warn:      0xF39C12, ok: 0x2ECC71,
-};
-
-// ─── WORLD CONSTANTS ──────────────────────────────────────────────────────────
-const WORLD_RADIUS = 2600, SOFT_EDGE = 380;
-const MAX_CELLS = 120, MAX_NUTRIENTS = 240;
-const DPR = Math.min(window.devicePixelRatio || 1, 2);
-const SW = window.innerWidth, SH = window.innerHeight;
+// ─── CONSTANTS ────────────────────────────────────────────────────────────────
+const WORLD_RADIUS=2600,SOFT_EDGE=380,MAX_CELLS=120,MAX_NUTRIENTS=240;
+const SW=window.innerWidth,SH=window.innerHeight;
 
 // ─── BIOMES ───────────────────────────────────────────────────────────────────
-const BIOMES = [
-  { name:'Hydrothermal Vents', emoji:'🔥', desc:'High mutation · Intense heat',
-    inner:0,   outer:600,  bg:0x1a0305, accent:0xcc2200, mutMult:2.0, drainMult:2.0, nutMult:0.8, lightMult:0.0 },
-  { name:'The Abyss',          emoji:'🌑', desc:'No light · Crushing pressure',
-    inner:600, outer:1200, bg:0x030610, accent:0x1133aa, mutMult:1.5, drainMult:1.8, nutMult:0.2, lightMult:0.0 },
-  { name:'Twilight Zone',      emoji:'🌊', desc:'Fading light · Marine snow',
-    inner:1200,outer:1900, bg:0x071525, accent:0x2255aa, mutMult:1.2, drainMult:1.3, nutMult:0.6, lightMult:0.25 },
-  { name:'Sunlit Shallows',    emoji:'☀️', desc:'Rich nutrients · UV exposure',
-    inner:1900,outer:2600, bg:0x083040, accent:0x44aacc, mutMult:1.0, drainMult:1.0, nutMult:1.0, lightMult:1.0 },
+const BIOMES=[
+  {name:'Hydrothermal Vents',emoji:'🔥',desc:'High mutation · Intense heat',inner:0,outer:600,bg:0x1a0305,accent:0xcc2200,mutMult:2.0,drainMult:2.0,nutMult:0.8,lightMult:0.0},
+  {name:'The Abyss',emoji:'🌑',desc:'No light · Crushing pressure',inner:600,outer:1200,bg:0x030610,accent:0x1133aa,mutMult:1.5,drainMult:1.8,nutMult:0.2,lightMult:0.0},
+  {name:'Twilight Zone',emoji:'🌊',desc:'Fading light · Marine snow',inner:1200,outer:1900,bg:0x071525,accent:0x2255aa,mutMult:1.2,drainMult:1.3,nutMult:0.6,lightMult:0.25},
+  {name:'Sunlit Shallows',emoji:'☀️',desc:'Rich nutrients · UV exposure',inner:1900,outer:2600,bg:0x083040,accent:0x44aacc,mutMult:1.0,drainMult:1.0,nutMult:1.0,lightMult:1.0},
 ];
-function getBiome(x,y){ const d=Math.sqrt(x*x+y*y); for(const b of BIOMES) if(d>=b.inner&&d<=b.outer) return b; return BIOMES[3]; }
+function getBiome(x,y){const d=Math.sqrt(x*x+y*y);for(const b of BIOMES)if(d>=b.inner&&d<=b.outer)return b;return BIOMES[3];}
 
-// ─── ORGANELLE DEFINITIONS ────────────────────────────────────────────────────
-const ORG = {
-  CYTOPLASM:{
-    name:'Cytoplasm', short:'CYT', color:'#aaddff', phColor:0xaaddff,
-    desc:'The living substrate. Passive energy harvest through chemical gradients.',
-    effect:'+Energy/s', speed:0,energy:0.3,eat:0,sense:0,defense:0.5,mp:0,max:99,needsNucleus:false
-  },
-  NUCLEUS:{
-    name:'Nucleus', short:'NUC', color:'#ffbb44', phColor:0xffbb44,
-    desc:'Command centre. Unlocks advanced organelles and true evolutionary potential.',
-    effect:'Unlocks advanced', speed:0,energy:-0.4,eat:0,sense:25,defense:0,mp:20,max:1,needsNucleus:false
-  },
-  FLAGELLUM:{
-    name:'Flagellum', short:'FLA', color:'#44ff99', phColor:0x44ff99,
-    desc:'Rhythmic contractions propel the cell through viscous media with surprising precision.',
-    effect:'+Speed +42', speed:42,energy:-0.7,eat:0,sense:0,defense:0,mp:10,max:4,needsNucleus:false
-  },
-  CILIA:{
-    name:'Cilia', short:'CIL', color:'#88ffcc', phColor:0x88ffcc,
-    desc:'Thousands of hair-like projections beat in coordinated waves. Efficient, quiet propulsion.',
-    effect:'+Speed +18', speed:18,energy:-0.3,eat:0,sense:0,defense:0,mp:6,max:6,needsNucleus:false
-  },
-  MITOCHONDRIA:{
-    name:'Mitochondria', short:'MIT', color:'#ff6644', phColor:0xff6644,
-    desc:'Powerhouse of the cell. Oxidative phosphorylation converts nutrients to raw ATP.',
-    effect:'+Energy/s +2.2', speed:0,energy:2.2,eat:0.5,sense:0,defense:0,mp:15,max:4,needsNucleus:true
-  },
-  CHLOROPLAST:{
-    name:'Chloroplast', short:'CHL', color:'#55dd22', phColor:0x55dd22,
-    desc:'Ancient endosymbiont. Photons absorbed near the surface power sugar synthesis.',
-    effect:'Light→Energy', speed:0,energy:1.8,eat:0,sense:0,defense:0,mp:15,max:4,needsNucleus:true
-  },
-  VACUOLE:{
-    name:'Vacuole', short:'VAC', color:'#bbddff', phColor:0xbbddff,
-    desc:'Fluid-filled reservoir. Stores nutrients, regulates buoyancy, buffers toxic compounds.',
-    effect:'+Max energy', speed:0,energy:0,eat:0.3,sense:0,defense:1.0,mp:8,max:3,needsNucleus:false
-  },
-  MOUTH:{
-    name:'Cytostome', short:'MTH', color:'#ff4444', phColor:0xff4444,
-    desc:"It doesn't digest so much as disassemble. Engulfs weaker cells and reclaims their stored energy.",
-    effect:'Predation', speed:0,energy:-0.3,eat:2.0,sense:0,defense:0,mp:12,max:2,needsNucleus:false
-  },
-  SPIKE:{
-    name:'Acanthocyte', short:'SPK', color:'#ff8833', phColor:0xff8833,
-    desc:'Hardened protein spurs. Passive contact damage to any cell that collides with you.',
-    effect:'Contact damage', speed:0,energy:-0.2,eat:0,sense:0,defense:2.5,mp:10,max:4,needsNucleus:false
-  },
-  CHEMORECEPTOR:{
-    name:'Chemoreceptor', short:'CHM', color:'#dd88ff', phColor:0xdd88ff,
-    desc:'Detects nutrient gradients and chemical signals at extreme range. The cell knows before it sees.',
-    effect:'+Sense +70', speed:0,energy:-0.3,eat:0,sense:70,defense:0,mp:10,max:2,needsNucleus:false
-  },
+// ─── PROGRESSION SYSTEM ───────────────────────────────────────────────────────
+// Tiers of organelles that unlock via gameplay milestones
+const UNLOCK_TIERS = {
+  0: ['CYTOPLASM','NUCLEUS'],                                    // Always available
+  1: ['FLAGELLUM','CILIA','VACUOLE','CELL_WALL'],                // After first division
+  2: ['MOUTH','SPIKE','CHEMORECEPTOR'],                          // After 10 cells alive
+  3: ['MITOCHONDRIA','CHLOROPLAST'],                             // After generation 5
+  4: ['BINDING_AGENT'],                                          // After generation 10
 };
-const ORG_KEYS = Object.keys(ORG);
-const PALETTE_KEYS = ['FLAGELLUM','CILIA','MOUTH','VACUOLE','CHEMORECEPTOR','SPIKE','NUCLEUS','MITOCHONDRIA','CHLOROPLAST'];
+let unlockedTiers = new Set([0]);
 
-function computeStats(organelles){
-  let speed=0,energy=0,eat=1,sense=55,defense=0,hasMouth=false,hasChloro=false,hasNucleus=false,hasFlag=false,vacCount=0;
-  for(const k of organelles){
-    if(!ORG[k]) continue;
-    const o=ORG[k];
-    speed+=o.speed; energy+=o.energy; eat+=o.eat; sense+=o.sense; defense+=o.defense;
-    if(k==='MOUTH') hasMouth=true; if(k==='CHLOROPLAST') hasChloro=true;
-    if(k==='NUCLEUS') hasNucleus=true; if(k==='FLAGELLUM') hasFlag=true;
-    if(k==='VACUOLE') vacCount++;
+function isUnlocked(orgKey){
+  for(const [tier,keys] of Object.entries(UNLOCK_TIERS)){
+    if(keys.includes(orgKey)) return unlockedTiers.has(parseInt(tier));
   }
-  return{speed,energy:energy-0.18,eat,sense,defense,hasMouth,hasChloro,hasNucleus,hasFlag,
-         maxEnergy:80+vacCount*30+(hasNucleus?20:0),organelleCount:organelles.length};
+  return true;
 }
 
-function hexToPixel(q,r,size){return{x:size*(Math.sqrt(3)*q+Math.sqrt(3)/2*r),y:size*(3/2*r)};}
-function pixelToHex(x,y,size){const q=(Math.sqrt(3)/3*x-1/3*y)/size,r=(2/3*y)/size;return hexRound(q,r);}
+function checkUnlocks(stats){
+  const prev = new Set(unlockedTiers);
+  if(stats.totalDivisions > 0)          unlockedTiers.add(1);
+  if(stats.peakCells >= 10)             unlockedTiers.add(2);
+  if(stats.maxGen >= 5)                 unlockedTiers.add(3);
+  if(stats.maxGen >= 10)                unlockedTiers.add(4);
+  // Show unlock toast for new tiers
+  const newTiers = [...unlockedTiers].filter(t=>!prev.has(t));
+  for(const t of newTiers){
+    const names = UNLOCK_TIERS[t].map(k=>ORG[k]?.name||k).join(', ');
+    showUnlockToast(names);
+  }
+}
+
+// Complexity caps
+function getComplexityCap(){
+  if(!unlockedTiers.has(1)) return 3;   // Before first division: simple
+  if(!unlockedTiers.has(3)) return 6;   // Before gen 5: moderate
+  return 10;                             // Full complexity
+}
+
+// ─── ORGANELLE DEFINITIONS ────────────────────────────────────────────────────
+const ORG={
+  CYTOPLASM:{name:'Cytoplasm',short:'CYT',color:'#aaddff',phColor:0xaaddff,desc:'Living substrate. Passive energy from chemical gradients.',effect:'+Energy',speed:0,energy:0.3,eat:0,sense:0,defense:0.5,mp:0,max:99,needsNucleus:false},
+  NUCLEUS:{name:'Nucleus',short:'NUC',color:'#ffbb44',phColor:0xffbb44,desc:'Command centre. Unlocks advanced organelles and true evolution.',effect:'Unlocks Tier 2',speed:0,energy:-0.4,eat:0,sense:25,defense:0,mp:5,max:1,needsNucleus:false},
+  CELL_WALL:{name:'Cell Wall',short:'WAL',color:'#c8a45a',phColor:0xc8a45a,desc:'Rigid polysaccharide lattice. Exceptional protection at the cost of motility.',effect:'+Defense +4',speed:-8,energy:-0.1,eat:0,sense:0,defense:4.0,mp:8,max:1,needsNucleus:false},
+  FLAGELLUM:{name:'Flagellum',short:'FLA',color:'#44ff99',phColor:0x44ff99,desc:'Rhythmic flagellar motor propels the cell through viscous media.',effect:'+Speed +42',speed:42,energy:-0.7,eat:0,sense:0,defense:0,mp:10,max:4,needsNucleus:false},
+  CILIA:{name:'Cilia',short:'CIL',color:'#88ffcc',phColor:0x88ffcc,desc:'Thousands of hair-like projections beat in coordinated waves.',effect:'+Speed +18',speed:18,energy:-0.3,eat:0,sense:0,defense:0,mp:6,max:6,needsNucleus:false},
+  MITOCHONDRIA:{name:'Mitochondria',short:'MIT',color:'#ff6644',phColor:0xff6644,desc:'Powerhouse. Oxidative phosphorylation converts nutrients to raw ATP.',effect:'+Energy +2.2',speed:0,energy:2.2,eat:0.5,sense:0,defense:0,mp:15,max:4,needsNucleus:true},
+  CHLOROPLAST:{name:'Chloroplast',short:'CHL',color:'#55dd22',phColor:0x55dd22,desc:'Ancient endosymbiont. Photons near the surface power sugar synthesis.',effect:'Light→Energy',speed:0,energy:1.8,eat:0,sense:0,defense:0,mp:15,max:4,needsNucleus:true},
+  VACUOLE:{name:'Vacuole',short:'VAC',color:'#bbddff',phColor:0xbbddff,desc:'Fluid reservoir. Stores nutrients, buffers toxins, increases maximum energy.',effect:'+Max energy',speed:0,energy:0,eat:0.3,sense:0,defense:1.0,mp:8,max:3,needsNucleus:false},
+  MOUTH:{name:'Cytostome',short:'MTH',color:'#ff4444',phColor:0xff4444,desc:"Engulfs weaker cells. Doesn't digest so much as disassemble.",effect:'Predation',speed:0,energy:-0.3,eat:2.0,sense:0,defense:0,mp:12,max:2,needsNucleus:false},
+  SPIKE:{name:'Acanthocyte',short:'SPK',color:'#ff8833',phColor:0xff8833,desc:'Hardened protein spurs. Passive contact damage to any colliding cell.',effect:'Contact dmg',speed:0,energy:-0.2,eat:0,sense:0,defense:2.5,mp:10,max:4,needsNucleus:false},
+  CHEMORECEPTOR:{name:'Chemoreceptor',short:'CHM',color:'#dd88ff',phColor:0xdd88ff,desc:'Detects nutrient gradients at extreme range. The cell knows before it sees.',effect:'+Sense +70',speed:0,energy:-0.3,eat:0,sense:70,defense:0,mp:10,max:2,needsNucleus:false},
+  BINDING_AGENT:{name:'Binding Agent',short:'BND',color:'#ffee55',phColor:0xffee55,desc:'Adhesion proteins. Daughter cells remain attached — the first step toward multicellular life.',effect:'Multicellular!',speed:0,energy:-0.4,eat:0,sense:0,defense:0,mp:20,max:2,needsNucleus:true},
+};
+const ORG_KEYS=Object.keys(ORG);
+const PALETTE_KEYS=['NUCLEUS','CELL_WALL','FLAGELLUM','CILIA','VACUOLE','MOUTH','SPIKE','CHEMORECEPTOR','MITOCHONDRIA','CHLOROPLAST','BINDING_AGENT'];
+
+function computeStats(organelles){
+  let speed=0,energy=0,eat=1,sense=55,defense=0,hasMouth=false,hasChloro=false,hasNucleus=false,hasFlag=false,hasWall=false,hasBind=false,vacCount=0;
+  for(const k of organelles){
+    if(!ORG[k])continue;const o=ORG[k];
+    speed+=o.speed;energy+=o.energy;eat+=o.eat;sense+=o.sense;defense+=o.defense;
+    if(k==='MOUTH')hasMouth=true;if(k==='CHLOROPLAST')hasChloro=true;
+    if(k==='NUCLEUS')hasNucleus=true;if(k==='FLAGELLUM'||k==='CILIA')hasFlag=true;
+    if(k==='CELL_WALL')hasWall=true;if(k==='BINDING_AGENT')hasBind=true;
+    if(k==='VACUOLE')vacCount++;
+  }
+  return{speed:Math.max(0,speed),energy:energy-0.18,eat,sense,defense,hasMouth,hasChloro,hasNucleus,hasFlag,hasWall,hasBind,
+    maxEnergy:80+vacCount*30+(hasNucleus?20:0),organelleCount:organelles.length};
+}
+
+function hexToPixel(q,r,s){return{x:s*(Math.sqrt(3)*q+Math.sqrt(3)/2*r),y:s*(3/2*r)};}
+function pixelToHex(x,y,s){const q=(Math.sqrt(3)/3*x-1/3*y)/s,r=(2/3*y)/s;return hexRound(q,r);}
 function hexRound(q,r){const s=-q-r;let rq=Math.round(q),rr=Math.round(r),rs=Math.round(s);const dq=Math.abs(rq-q),dr=Math.abs(rr-r),ds=Math.abs(rs-s);if(dq>dr&&dq>ds)rq=-rr-rs;else if(dr>ds)rr=-rq-rs;return{q:rq,r:rr};}
-function hexesInRadius(radius){const result=[];for(let q=-radius;q<=radius;q++){const r1=Math.max(-radius,-q-radius),r2=Math.min(radius,-q+radius);for(let r=r1;r<=r2;r++)result.push({q,r});}return result;}
+function hexesInRadius(radius){const r=[];for(let q=-radius;q<=radius;q++){const r1=Math.max(-radius,-q-radius),r2=Math.min(radius,-q+radius);for(let rr=r1;rr<=r2;rr++)r.push({q,r:rr});}return r;}
 function gaussianRandom(){let u=0,v=0;while(u===0)u=Math.random();while(v===0)v=Math.random();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v);}
 
 function mutateGenome(genome){
-  const rate=genome.mutationRate, orgs=[...genome.organelles];
-  if(Math.random()<rate*0.22&&orgs.length<7){
+  const rate=genome.mutationRate,orgs=[...genome.organelles];
+  if(Math.random()<rate*0.22&&orgs.length<8){
     const hasNuc=orgs.includes('NUCLEUS');
-    const cands=ORG_KEYS.filter(k=>!ORG[k].needsNucleus||hasNuc);
-    const type=cands[Math.floor(Math.random()*cands.length)];
-    if(orgs.filter(o=>o===type).length<ORG[type].max) orgs.push(type);
+    // Only mutate into unlocked organelles
+    const cands=ORG_KEYS.filter(k=>isUnlocked(k)&&(!ORG[k].needsNucleus||hasNuc));
+    if(cands.length){const type=cands[Math.floor(Math.random()*cands.length)];
+      if(orgs.filter(o=>o===type).length<ORG[type].max)orgs.push(type);}
   }
-  if(orgs.length>2&&Math.random()<rate*0.18) orgs.splice(1+Math.floor(Math.random()*(orgs.length-1)),1);
-  let newRate=genome.mutationRate;
-  if(Math.random()<0.05){newRate*=Math.exp(0.1*gaussianRandom());newRate=Math.max(0.005,Math.min(0.3,newRate));}
-  return{organelles:orgs,colorHue:((genome.colorHue+(Math.random()<rate?gaussianRandom()*12:0))+360)%360,
-         mutationRate:newRate,divisionThreshold:Math.max(0.5,Math.min(0.95,genome.divisionThreshold+(Math.random()<rate?gaussianRandom()*0.04:0)))};
+  if(orgs.length>2&&Math.random()<rate*0.18)orgs.splice(1+Math.floor(Math.random()*(orgs.length-1)),1);
+  let nr=genome.mutationRate;if(Math.random()<0.05){nr*=Math.exp(0.1*gaussianRandom());nr=Math.max(0.005,Math.min(0.3,nr));}
+  return{organelles:orgs,colorHue:((genome.colorHue+(Math.random()<rate?gaussianRandom()*12:0))+360)%360,mutationRate:nr,divisionThreshold:Math.max(0.5,Math.min(0.95,genome.divisionThreshold+(Math.random()<rate?gaussianRandom()*0.04:0)))};
 }
 
 // ─── SPATIAL HASH ─────────────────────────────────────────────────────────────
 class SpatialHash{
-  constructor(cs,ws){this.invSize=1/cs;this.halfWorld=ws/2;this.cols=Math.ceil(ws/cs)+2;this.cells=new Map();}
-  key(x,y){return(((y+this.halfWorld)*this.invSize)|0)*this.cols+((((x+this.halfWorld)*this.invSize)|0));}
+  constructor(cs,ws){this.inv=1/cs;this.half=ws/2;this.cols=Math.ceil(ws/cs)+2;this.cells=new Map();}
+  k(x,y){return(((y+this.half)*this.inv)|0)*this.cols+((((x+this.half)*this.inv)|0));}
   clear(){this.cells.clear();}
-  insert(item){const k=this.key(item.x,item.y),c=this.cells.get(k);if(c)c.push(item);else this.cells.set(k,[item]);}
+  insert(it){const k=this.k(it.x,it.y),c=this.cells.get(k);if(c)c.push(it);else this.cells.set(k,[it]);}
   rebuild(items){this.clear();for(const i of items)this.insert(i);}
-  query(cx,cy,radius){const result=[],rSq=radius*radius,span=Math.ceil(radius*this.invSize)+1;
-    const cC=((cx+this.halfWorld)*this.invSize)|0,cR=((cy+this.halfWorld)*this.invSize)|0;
-    for(let dc=-span;dc<=span;dc++)for(let dr=-span;dr<=span;dr++){
-      const cell=this.cells.get((cR+dr)*this.cols+(cC+dc));if(!cell)continue;
-      for(const item of cell){const dx=item.x-cx,dy=item.y-cy;if(dx*dx+dy*dy<=rSq)result.push(item);}
-    }return result;}
+  query(cx,cy,r){const res=[],rSq=r*r,sp=Math.ceil(r*this.inv)+1,cC=((cx+this.half)*this.inv)|0,cR=((cy+this.half)*this.inv)|0;
+    for(let dc=-sp;dc<=sp;dc++)for(let dr=-sp;dr<=sp;dr++){const c=this.cells.get((cR+dr)*this.cols+(cC+dc));if(!c)continue;for(const it of c){const dx=it.x-cx,dy=it.y-cy;if(dx*dx+dy*dy<=rSq)res.push(it);}}return res;}
 }
 
 // ─── CELL ─────────────────────────────────────────────────────────────────────
 class Cell{
-  constructor(genome,x,y,generation=0){
-    this.genome=genome; this.x=x; this.y=y; this.vx=0; this.vy=0;
-    this.generation=generation; this.age=0;
-    this.dead=false; this.dying=false; this.deathAlpha=1;
-    this.damagePulse=0;
-    this.moveAngle=Math.random()*Math.PI*2;
-    this.timeOffset=Math.random()*10000;
-    this.targetNutrient=null; this.targetPrey=null;
-    this.lastDivideTime=0; this.lastSpikeTime=0;
+  constructor(genome,x,y,gen=0){
+    this.genome=genome;this.x=x;this.y=y;this.vx=0;this.vy=0;
+    this.gen=gen;this.age=0;this.dead=false;this.dying=false;this.deathAlpha=1;
+    this.damagePulse=0;this.moveAngle=Math.random()*Math.PI*2;
+    this.timeOffset=Math.random()*10000;this.targetNutrient=null;this.targetPrey=null;
+    this.lastDivide=0;this.lastSpike=0;
     this.stats=computeStats(genome.organelles);
-    this.radius=11+this.stats.organelleCount*1.4;
+    this.radius=10+this.stats.organelleCount*1.3;
     this.energy=this.stats.maxEnergy*(0.45+Math.random()*0.2);
   }
   power(){return this.stats.speed*0.4+this.stats.defense*12+this.stats.eat*8+this.radius*1.5+(this.stats.hasMouth?25:0)+(this.energy/this.stats.maxEnergy)*15;}
@@ -504,9 +322,10 @@ class Cell{
     const mp=this.power();
     for(const oc of cells){if(oc.power()>mp*1.4){this.moveAngle=Math.atan2(this.y-oc.y,this.x-oc.x);this.targetPrey=null;this.targetNutrient=null;return;}}
     const hungry=this.energy<this.stats.maxEnergy*0.65;
-    if(this.stats.hasMouth&&hungry&&!this.stats.hasChloro){
+    if(this.stats.hasMouth&&hungry){
       if(this.targetPrey&&this.targetPrey.dead)this.targetPrey=null;
-      if(!this.targetPrey){let nd=this.stats.sense*0.9,best=null;for(const oc of cells){if(oc.dead||oc.power()>=mp*0.85)continue;const d=Math.hypot(oc.x-this.x,oc.y-this.y);if(d<nd){nd=d;best=oc;}}this.targetPrey=best;}
+      if(!this.targetPrey){let nd=this.stats.sense*0.9,best=null;
+        for(const oc of cells){if(oc.dead||oc.power()>=mp*0.85)continue;const d=Math.hypot(oc.x-this.x,oc.y-this.y);if(d<nd){nd=d;best=oc;}}this.targetPrey=best;}
       if(this.targetPrey){this.targetNutrient=null;this.moveAngle=Math.atan2(this.targetPrey.y-this.y,this.targetPrey.x-this.x);return;}
     }
     this.targetPrey=null;
@@ -518,109 +337,231 @@ class Cell{
     if(!this.stats.hasMouth||prey.dead)return;
     if(Math.hypot(prey.x-this.x,prey.y-this.y)>this.radius+prey.radius+6)return;
     if(prey.power()>=this.power()*0.85)return;
-    const drain=22*dt; prey.takeDamage(drain);
-    this.energy=Math.min(this.stats.maxEnergy,this.energy+drain*0.12*this.stats.eat);
+    const drain=20*dt;prey.takeDamage(drain);
+    this.energy=Math.min(this.stats.maxEnergy,this.energy+drain*0.15*this.stats.eat);
   }
   spikeContact(other,time){
-    if(time-this.lastSpikeTime<800)return;
+    if(time-this.lastSpike<800)return;
     if(Math.hypot(other.x-this.x,other.y-this.y)>this.radius+other.radius+4)return;
     const sc=this.genome.organelles.filter(o=>o==='SPIKE').length;if(!sc)return;
-    other.takeDamage(8*sc);this.lastSpikeTime=time;
+    other.takeDamage(8*sc);this.lastSpike=time;
   }
-  takeDamage(amount){if(this.dead)return;this.energy-=amount/(1+this.stats.defense*0.08);this.damagePulse=1;if(this.energy<=0)this.startDying();}
+  takeDamage(amt){if(this.dead)return;this.energy-=amt/(1+this.stats.defense*0.08);this.damagePulse=1;if(this.energy<=0)this.startDying();}
   startDying(){if(this.dying||this.dead)return;this.dying=true;this.deathAlpha=1;}
   update(dt,time){
     if(this.dead)return;
     if(this.dying){this.deathAlpha-=dt*1.8;if(this.deathAlpha<=0){this.dead=true;this.dying=false;}return;}
-    this.age++;
-    const biome=getBiome(this.x,this.y);
-    const lightBonus=this.stats.hasChloro?this.stats.energy*biome.lightMult*0.5:0;
-    this.energy+=this.stats.energy*dt*7+lightBonus*dt*7;
+    this.age++;const biome=getBiome(this.x,this.y);
+    const light=this.stats.hasChloro?this.stats.energy*biome.lightMult*0.5:0;
+    this.energy+=this.stats.energy*dt*7+light*dt*7;
     this.energy-=1.2*biome.drainMult*dt;
     this.energy=Math.max(0,Math.min(this.stats.maxEnergy,this.energy));
     if(this.energy<=0){this.startDying();return;}
     if(this.damagePulse>0)this.damagePulse=Math.max(0,this.damagePulse-dt*3.5);
     if(this.stats.speed>0){
       if(!this.targetPrey&&!this.targetNutrient)this.moveAngle+=Math.sin((time/1000+this.timeOffset)*0.4)*dt*0.7;
-      this.vx=Math.cos(this.moveAngle)*this.stats.speed*dt;
-      this.vy=Math.sin(this.moveAngle)*this.stats.speed*dt;
-      this.x+=this.vx;this.y+=this.vy;
+      this.x+=Math.cos(this.moveAngle)*this.stats.speed*dt;
+      this.y+=Math.sin(this.moveAngle)*this.stats.speed*dt;
     }else{const w=time/1000+this.timeOffset;this.x+=Math.sin(w*1.1)*0.25;this.y+=Math.cos(w*0.8)*0.25;}
   }
-  canDivide(time){return!this.dead&&!this.dying&&this.age>150&&this.energy>=this.stats.maxEnergy*this.genome.divisionThreshold&&time-this.lastDivideTime>6000;}
+  canDivide(time){return!this.dead&&!this.dying&&this.age>150&&this.energy>=this.stats.maxEnergy*this.genome.divisionThreshold&&time-this.lastDivide>6000;}
   divide(time){
-    this.lastDivideTime=time;
-    const cost=this.stats.maxEnergy*0.44;this.energy-=cost;
+    this.lastDivide=time;const cost=this.stats.maxEnergy*0.44;this.energy-=cost;
     const biome=getBiome(this.x,this.y);
-    const childGenome=Math.random()<this.genome.mutationRate*6*biome.mutMult?mutateGenome(this.genome):{...this.genome,organelles:[...this.genome.organelles]};
+    const cg=Math.random()<this.genome.mutationRate*6*biome.mutMult?mutateGenome(this.genome):{...this.genome,organelles:[...this.genome.organelles]};
     const ang=this.moveAngle+Math.PI+(Math.random()-0.5)*0.6;
-    const child=new Cell(childGenome,this.x+Math.cos(ang)*this.radius*2.6,this.y+Math.sin(ang)*this.radius*2.6,this.generation+1);
+    const child=new Cell(cg,this.x+Math.cos(ang)*this.radius*2.5,this.y+Math.sin(ang)*this.radius*2.5,this.gen+1);
     child.energy=cost*0.78;return child;
   }
+
+  // ─── ICONIC ORGANELLE RENDERING ─────────────────────────────────────────────
   render(g,time){
     const alpha=this.dying?this.deathAlpha:1;if(alpha<=0)return;
     const r=this.radius*(this.dying?1+(1-this.deathAlpha)*0.3:1);
     const hue=this.genome.colorHue/360;
     const er=Math.max(0,this.energy/this.stats.maxEnergy);
     const dp=this.damagePulse;
-    const gH=dp>0?0:hue, sat=dp>0?0:(0.45+er*0.2), val=dp>0?0.85:(0.28+er*0.28);
+    const gH=dp>0?0:hue,sat=dp>0?0:(0.45+er*0.2),val=dp>0?0.85:(0.28+er*0.28);
     const glowC=Phaser.Display.Color.HSVToRGB(gH,sat,0.9).color;
     const bodyC=Phaser.Display.Color.HSVToRGB(gH,sat,val).color;
-    const innerC=Phaser.Display.Color.HSVToRGB(gH,0.18,0.7+er*0.15).color;
+    const innerC=Phaser.Display.Color.HSVToRGB(gH,0.15,0.72+er*0.12).color;
+    const t=time/1000;
 
-    // Outer glow (bioluminescent)
+    // Cell wall (outer rigid ring - BEFORE body)
+    if(this.stats.hasWall){
+      g.lineStyle(r*0.18,0xc8a45a,0.7*alpha);
+      g.strokeCircle(this.x,this.y,r+r*0.09);
+    }
+
+    // Outer bioluminescent glow
     g.fillStyle(glowC,(0.06+er*0.06)*(1+dp*0.8)*alpha);
-    g.fillCircle(this.x,this.y,r+10);
-    // Second glow ring
-    g.fillStyle(glowC,(0.09+er*0.05)*alpha);
-    g.fillCircle(this.x,this.y,r+5);
-    // Body
+    g.fillCircle(this.x,this.y,r+9);
+    g.fillStyle(glowC,(0.1+er*0.05)*alpha);
+    g.fillCircle(this.x,this.y,r+4);
+
+    // Cell body
     g.fillStyle(bodyC,0.9*alpha);
     g.fillCircle(this.x,this.y,r);
-    // Inner highlight
+    // Interior highlight (cytoplasm glow)
     g.fillStyle(innerC,0.5*alpha);
-    g.fillCircle(this.x,this.y,r*0.68);
-    // Membrane ring
+    g.fillCircle(this.x,this.y,r*0.7);
+    // Membrane
     g.lineStyle(1.5,glowC,(0.7+er*0.2)*alpha);
     g.strokeCircle(this.x,this.y,r);
 
-    const t=time/1000;
-    const orgsU=[...new Set(this.genome.organelles)].filter(k=>k!=='CYTOPLASM');
-    const orgR=3.5+this.stats.organelleCount*0.2;
-    const hexes=hexesInRadius(2).filter(h=>!(h.q===0&&h.r===0)).slice(0,orgsU.length*2);
-    orgsU.forEach((k,idx)=>{
-      if(idx>=hexes.length||!ORG[k])return;
-      const px=hexToPixel(hexes[idx].q,hexes[idx].r,7);
-      if(Math.hypot(px.x,px.y)>r*0.85)return;
-      g.fillStyle(ORG[k].phColor,0.9*alpha);
-      g.fillCircle(this.x+px.x,this.y+px.y,orgR);
-      g.fillStyle(0xffffff,0.22*alpha);
-      g.fillCircle(this.x+px.x-orgR*0.3,this.y+px.y-orgR*0.3,orgR*0.35);
-    });
+    // ─── ICONIC ORGANELLE SHAPES ────────────────────────────────────────────
+    // Each organelle drawn as a distinct recognisable shape
 
-    if(this.stats.hasNucleus){
-      const pulse=1+Math.sin(t*1.1+this.timeOffset*0.001)*0.2;
-      g.fillStyle(ORG.NUCLEUS.phColor,0.12*pulse*alpha);
-      g.fillCircle(this.x,this.y,r*0.52*pulse);
+    const orgs=this.genome.organelles;
+
+    // NUCLEUS — large dark blue circle with inner ring
+    if(orgs.includes('NUCLEUS')){
+      const pulse=1+Math.sin(t*1.1+this.timeOffset*0.001)*0.15;
+      const nr=r*0.28*pulse;
+      g.fillStyle(0x1a2a8a,0.85*alpha);
+      g.fillCircle(this.x,this.y,nr);
+      g.lineStyle(1.5,0x4466ff,0.6*alpha);
+      g.strokeCircle(this.x,this.y,nr);
+      g.fillStyle(0x6688ff,0.25*pulse*alpha);
+      g.fillCircle(this.x,this.y,nr*0.5);
     }
-    if(this.stats.hasFlag){
-      const wT=t*3.5,ang=this.moveAngle,len=r*1.6;
-      g.lineStyle(1.5,ORG.FLAGELLUM.phColor,0.7*alpha);
-      g.beginPath();g.moveTo(this.x,this.y);
-      for(let s=1;s<=10;s++){const f=s/10,wave=Math.sin(f*Math.PI*2.5+wT)*4*f;g.lineTo(this.x+Math.cos(ang)*f*len-Math.sin(ang)*wave,this.y+Math.sin(ang)*f*len+Math.cos(ang)*wave);}
-      g.strokePath();
+
+    // MITOCHONDRIA — red bean shapes (off-centre, number = count)
+    const mitCount=orgs.filter(o=>o==='MITOCHONDRIA').length;
+    for(let i=0;i<mitCount;i++){
+      const ang=(i/Math.max(1,mitCount))*Math.PI*2+t*0.3;
+      const mx=this.x+Math.cos(ang)*r*0.45,my=this.y+Math.sin(ang)*r*0.45;
+      const bSize=r*0.22;
+      g.fillStyle(0xcc3322,0.9*alpha);
+      // Elongated bean shape
+      g.fillEllipse(mx,my,bSize*2.2,bSize);
+      // Inner cristae line
+      g.lineStyle(1,0xff6644,0.5*alpha);
+      g.beginPath();g.moveTo(mx-bSize*0.7,my);g.lineTo(mx+bSize*0.7,my);g.strokePath();
+      // Glow
+      g.fillStyle(0xff4422,0.15*alpha);
+      g.fillEllipse(mx,my,bSize*3,bSize*1.5);
     }
-    const sc=this.genome.organelles.filter(o=>o==='SPIKE').length;
-    if(sc>0){const pts=sc*3;for(let i=0;i<pts;i++){const a=(i/pts)*Math.PI*2;g.fillStyle(ORG.SPIKE.phColor,0.88*alpha);g.fillTriangle(this.x+Math.cos(a-0.2)*(r-1),this.y+Math.sin(a-0.2)*(r-1),this.x+Math.cos(a+0.2)*(r-1),this.y+Math.sin(a+0.2)*(r-1),this.x+Math.cos(a)*(r+11),this.y+Math.sin(a)*(r+11));}}
+
+    // CHLOROPLAST — green lens shapes with horizontal bars
+    const chlCount=orgs.filter(o=>o==='CHLOROPLAST').length;
+    for(let i=0;i<chlCount;i++){
+      const ang=(i/Math.max(1,chlCount))*Math.PI*2+0.5+Math.sin(t*0.4)*0.1;
+      const cx=this.x+Math.cos(ang)*r*0.42,cy=this.y+Math.sin(ang)*r*0.42;
+      const cs=r*0.2;
+      g.fillStyle(0x229944,0.9*alpha);
+      g.fillEllipse(cx,cy,cs*2.4,cs);
+      // Thylakoid bars
+      g.lineStyle(1,0x55ff44,0.5*alpha);
+      for(let b=-1;b<=1;b++){g.beginPath();g.moveTo(cx-cs*0.7,cy+b*cs*0.22);g.lineTo(cx+cs*0.7,cy+b*cs*0.22);g.strokePath();}
+      g.fillStyle(0x44ff22,0.12*alpha);
+      g.fillEllipse(cx,cy,cs*3.2,cs*1.6);
+    }
+
+    // VACUOLE — large translucent pale blue sphere
+    const vacCount=orgs.filter(o=>o==='VACUOLE').length;
+    for(let i=0;i<vacCount;i++){
+      const ang=(i/Math.max(1,vacCount))*Math.PI*2+1.2;
+      const vx=this.x+Math.cos(ang)*r*0.35,vy=this.y+Math.sin(ang)*r*0.35;
+      const vs=r*(0.28+Math.sin(t*0.6+i)*0.03);
+      g.fillStyle(0x88aacc,0.18*alpha);
+      g.fillCircle(vx,vy,vs);
+      g.lineStyle(1,0xaaddff,0.35*alpha);
+      g.strokeCircle(vx,vy,vs);
+      g.fillStyle(0xffffff,0.12*alpha);
+      g.fillCircle(vx-vs*0.3,vy-vs*0.3,vs*0.3);
+    }
+
+    // MOUTH (CYTOSTOME) — dark crescent on leading edge
     if(this.stats.hasMouth){
-      const ma=this.moveAngle;g.fillStyle(0x110000,0.75*alpha);g.beginPath();
-      for(let i=-4;i<=4;i++){const a=ma+(i/4)*0.55;if(i===-4)g.moveTo(this.x+Math.cos(a)*r*0.78,this.y+Math.sin(a)*r*0.78);else g.lineTo(this.x+Math.cos(a)*r*0.78,this.y+Math.sin(a)*r*0.78);}
+      const ma=this.moveAngle;
+      g.fillStyle(0x220000,0.78*alpha);
+      g.beginPath();
+      for(let i=-5;i<=5;i++){const a=ma+(i/5)*0.6;if(i===-5)g.moveTo(this.x+Math.cos(a)*r*0.8,this.y+Math.sin(a)*r*0.8);else g.lineTo(this.x+Math.cos(a)*r*0.8,this.y+Math.sin(a)*r*0.8);}
       g.fillPath();
-      g.fillStyle(0xff2211,0.7*alpha);
-      for(let i=-2;i<=2;i++){const a=ma+(i/4)*0.45;g.fillCircle(this.x+Math.cos(a)*r*0.82,this.y+Math.sin(a)*r*0.82,2);}
+      // Teeth dots
+      g.fillStyle(0xff2211,0.75*alpha);
+      for(let i=-2;i<=2;i++){const a=ma+(i/4)*0.48;g.fillCircle(this.x+Math.cos(a)*r*0.84,this.y+Math.sin(a)*r*0.84,1.8);}
     }
+
+    // SPIKE — sharp triangular protrusions around perimeter
+    const spikeCount=orgs.filter(o=>o==='SPIKE').length;
+    if(spikeCount>0){
+      const pts=spikeCount*3;
+      for(let i=0;i<pts;i++){
+        const a=(i/pts)*Math.PI*2;
+        g.fillStyle(0xff8833,0.88*alpha);
+        g.fillTriangle(
+          this.x+Math.cos(a-0.22)*(r-1),this.y+Math.sin(a-0.22)*(r-1),
+          this.x+Math.cos(a+0.22)*(r-1),this.y+Math.sin(a+0.22)*(r-1),
+          this.x+Math.cos(a)*(r+12),this.y+Math.sin(a)*(r+12)
+        );
+      }
+    }
+
+    // CHEMORECEPTOR — small antenna bumps
+    const chmCount=orgs.filter(o=>o==='CHEMORECEPTOR').length;
+    if(chmCount>0){
+      for(let i=0;i<chmCount*2;i++){
+        const ang=(i/chmCount/2)*Math.PI*2;
+        const ax=this.x+Math.cos(ang)*(r+4),ay=this.y+Math.sin(ang)*(r+4);
+        g.fillStyle(0xdd88ff,0.8*alpha);
+        g.fillCircle(ax,ay,2.5);
+        g.lineStyle(1,0xdd88ff,0.5*alpha);
+        g.beginPath();g.moveTo(this.x+Math.cos(ang)*r,this.y+Math.sin(ang)*r);g.lineTo(ax,ay);g.strokePath();
+      }
+    }
+
+    // BINDING AGENT — golden junction points
+    if(orgs.includes('BINDING_AGENT')){
+      for(let i=0;i<6;i++){
+        const ang=(i/6)*Math.PI*2+t*0.5;
+        const bx=this.x+Math.cos(ang)*r,by=this.y+Math.sin(ang)*r;
+        g.fillStyle(0xffee55,(0.5+Math.sin(t*2+i)*0.3)*alpha);
+        g.fillCircle(bx,by,2.5);
+      }
+    }
+
+    // FLAGELLUM — animated whip from edge
+    const flagCount=orgs.filter(o=>o==='FLAGELLUM').length;
+    const ciliaCount=orgs.filter(o=>o==='CILIA').length;
+    if(flagCount>0){
+      for(let f=0;f<flagCount;f++){
+        const baseAng=this.moveAngle+Math.PI+(f-flagCount/2)*0.4;
+        const wT=t*3.5+f*1.2;
+        const len=r*1.6;
+        g.lineStyle(2,0x44ff99,0.7*alpha);
+        g.beginPath();
+        g.moveTo(this.x+Math.cos(baseAng)*r*0.95,this.y+Math.sin(baseAng)*r*0.95);
+        for(let s=1;s<=10;s++){
+          const frac=s/10,wave=Math.sin(frac*Math.PI*2.5+wT)*5*frac;
+          const fx=this.x+Math.cos(baseAng)*r*0.95+Math.cos(baseAng)*frac*len;
+          const fy=this.y+Math.sin(baseAng)*r*0.95+Math.sin(baseAng)*frac*len;
+          g.lineTo(fx-Math.sin(baseAng)*wave,fy+Math.cos(baseAng)*wave);
+        }
+        g.strokePath();
+      }
+    }
+
+    // CILIA — coordinated short hairs around edge
+    if(ciliaCount>0){
+      const hairCount=ciliaCount*8;
+      const ct=t*4;
+      g.lineStyle(1.2,0x88ffcc,0.55*alpha);
+      for(let i=0;i<hairCount;i++){
+        const ba=(i/hairCount)*Math.PI*2;
+        const wave=Math.sin(ba*4+ct)*0.4;
+        const ta=ba+wave;
+        g.beginPath();
+        g.moveTo(this.x+Math.cos(ba)*(r-1),this.y+Math.sin(ba)*(r-1));
+        g.lineTo(this.x+Math.cos(ta)*(r+5),this.y+Math.sin(ta)*(r+5));
+        g.strokePath();
+      }
+    }
+
+    // ENERGY ARC
     if(er>0.04){
-      const arcC=er>0.5?C.green:er>0.25?C.warn:C.danger;
+      const arcC=er>0.5?0x55ff88:er>0.25?0xffdd44:0xff4444;
       const arcR=r+4,steps=Math.max(3,Math.floor(er*32));
       g.lineStyle(2,arcC,0.7*alpha);g.beginPath();
       for(let i=0;i<=steps;i++){const a=-Math.PI/2+(i/steps)*(er*Math.PI*2);if(i===0)g.moveTo(this.x+Math.cos(a)*arcR,this.y+Math.sin(a)*arcR);else g.lineTo(this.x+Math.cos(a)*arcR,this.y+Math.sin(a)*arcR);}
@@ -631,15 +572,7 @@ class Cell{
 
 // ─── NUTRIENT ─────────────────────────────────────────────────────────────────
 class Nutrient{
-  constructor(x,y){
-    this.x=x;this.y=y;this.available=true;this.dead=false;
-    this.phase=Math.random()*Math.PI*2;this.dx=0.3+Math.random()*0.9;this.dy=0.3+Math.random()*0.9;
-    this.size=1.6+Math.random()*2.2;
-    const types=['organic','organic','organic','mineral','light'];
-    const tp=types[Math.floor(Math.random()*types.length)];
-    this.color=tp==='organic'?C.green:tp==='mineral'?C.cyan:0xffee44;
-    this.energy=10+Math.random()*15;
-  }
+  constructor(x,y){this.x=x;this.y=y;this.available=true;this.dead=false;this.phase=Math.random()*Math.PI*2;this.dx=0.3+Math.random()*0.9;this.dy=0.3+Math.random()*0.9;this.size=1.6+Math.random()*2.2;const tp=['organic','organic','organic','mineral','light'][Math.floor(Math.random()*5)];this.color=tp==='organic'?0x76E0B0:tp==='mineral'?0x00D4FF:0xffee44;this.energy=10+Math.random()*15;}
   consume(){this.available=false;this.dead=true;return this.energy;}
   update(dt,time){if(!this.available)return;const t=time/1000;this.x+=Math.sin(t*this.dx+this.phase)*0.28;this.y+=Math.cos(t*this.dy+this.phase*1.3)*0.28;}
 }
@@ -649,50 +582,22 @@ class BootScene extends Phaser.Scene{
   constructor(){super('Boot');}
   create(){
     const W=this.scale.width,H=this.scale.height;
-    // Draw atmospheric background
     const g=this.add.graphics();
-    // Deep radial gradient simulation
-    for(let r=W*1.5;r>0;r-=8){
-      const t=1-(r/(W*1.5));
-      const R=Math.floor(2+t*10),G=Math.floor(10+t*8),B=Math.floor(19+t*22);
-      g.fillStyle(Phaser.Display.Color.GetColor(R,G,B),1);
-      g.fillCircle(W/2,H/2,r);
-    }
-    // Animated hex particles
-    const hexGfx=this.add.graphics();
+    for(let r=W*1.5;r>0;r-=8){const t=1-(r/(W*1.5));g.fillStyle(Phaser.Display.Color.GetColor(Math.floor(2+t*10),Math.floor(10+t*8),Math.floor(19+t*22)),1);g.fillCircle(W/2,H/2,r);}
+    const hg=this.add.graphics();
     const hexes=Array.from({length:22},()=>({x:Math.random()*W,y:Math.random()*H,r:6+Math.random()*18,a:Math.random()*Math.PI*2,spd:0.006+Math.random()*0.01}));
-    // Title
-    this.add.text(W/2,H*0.30,'ENDO',{fontFamily:"'IBM Plex Sans',monospace",fontSize:'64px',fontStyle:'300',color:'#1a3a6a',stroke:'#000a1a',strokeThickness:4}).setOrigin(0.5);
-    this.add.text(W/2,H*0.30+68,'evolution simulation',{fontFamily:"'IBM Plex Mono',monospace",fontSize:'13px',color:'#2a5577',letterSpacing:4}).setOrigin(0.5);
-    // Hint dots (biome indicators)
-    const biomeColors=[0xcc2200,0x1133aa,0x2255aa,0x44aacc];
-    biomeColors.forEach((c,i)=>{
-      const bx=W/2+(i-1.5)*28,by=H*0.42;
-      const dg=this.add.graphics();
-      dg.fillStyle(c,0.7);dg.fillCircle(bx,by,5);
-      dg.fillStyle(c,0.15);dg.fillCircle(bx,by,10);
+    this.add.text(W/2,H*0.28,'ENDO',{fontFamily:"'IBM Plex Sans',monospace",fontSize:'64px',fontStyle:'300',color:'#1a3a6a',stroke:'#000a1a',strokeThickness:4}).setOrigin(0.5);
+    this.add.text(W/2,H*0.28+68,'evolution simulation',{fontFamily:"'IBM Plex Mono',monospace",fontSize:'13px',color:'#2a5577',letterSpacing:4}).setOrigin(0.5);
+    // Biome dots
+    [{c:0xcc2200,l:'vents'},{c:0x1133aa,l:'abyss'},{c:0x2255aa,l:'twilight'},{c:0x44aacc,l:'shallows'}].forEach((b,i)=>{
+      const bx=W/2+(i-1.5)*32,by=H*0.40;const dg=this.add.graphics();dg.fillStyle(b.c,0.7);dg.fillCircle(bx,by,5);dg.fillStyle(b.c,0.15);dg.fillCircle(bx,by,10);
     });
-    this.add.text(W/2,H*0.42+18,'vents · abyss · twilight · shallows',{fontFamily:"'IBM Plex Mono',monospace",fontSize:'9px',color:'#1a3a55',letterSpacing:2}).setOrigin(0.5);
-    const tapTxt=this.add.text(W/2,H*0.74,'tap to begin',{fontFamily:"'IBM Plex Mono',monospace",fontSize:'13px',color:'#1a4a66',letterSpacing:3}).setOrigin(0.5).setAlpha(0);
+    this.add.text(W/2,H*0.40+18,'vents · abyss · twilight · shallows',{fontFamily:"'IBM Plex Mono',monospace",fontSize:'9px',color:'#1a3a55',letterSpacing:2}).setOrigin(0.5);
+    const tapTxt=this.add.text(W/2,H*0.72,'tap to begin',{fontFamily:"'IBM Plex Mono',monospace",fontSize:'13px',color:'#1a4a66',letterSpacing:3}).setOrigin(0.5).setAlpha(0);
     this.tweens.add({targets:tapTxt,alpha:0.85,duration:1000,yoyo:true,repeat:-1});
-    // Auto-start after 2s - don't require tap on mobile
-    this.time.delayedCall(2000,()=>{
-      this.cameras.main.fadeOut(500,0,0,0);
-      this.time.delayedCall(500,()=>this.scene.start('World'));
-    });
-    let ready=true;
-    this.events.on('update',(_s,time)=>{
-      hexGfx.clear();
-      for(const h of hexes){
-        h.a+=h.spd;h.y-=0.18;if(h.y<-25)h.y=H+25;
-        const al=0.04+Math.sin(h.a*2)*0.03;
-        hexGfx.lineStyle(1,0x0d3366,al);
-        hexGfx.beginPath();
-        for(let i=0;i<6;i++){const ang=(i/6)*Math.PI*2+Math.PI/6+time*0.00015;if(i===0)hexGfx.moveTo(h.x+Math.cos(ang)*h.r,h.y+Math.sin(ang)*h.r);else hexGfx.lineTo(h.x+Math.cos(ang)*h.r,h.y+Math.sin(ang)*h.r);}
-        hexGfx.closePath();hexGfx.strokePath();
-      }
-    });
-    this.input.once('pointerdown',()=>{if(!ready)return;this.cameras.main.fadeOut(300,0,0,0);this.time.delayedCall(300,()=>this.scene.start('World'));});
+    this.time.delayedCall(2000,()=>{this.cameras.main.fadeOut(500,0,0,0);this.time.delayedCall(500,()=>this.scene.start('World'));});
+    this.input.once('pointerdown',()=>{this.cameras.main.fadeOut(300,0,0,0);this.time.delayedCall(300,()=>this.scene.start('World'));});
+    this.events.on('update',(_s,time)=>{hg.clear();for(const h of hexes){h.a+=h.spd;h.y-=0.18;if(h.y<-25)h.y=H+25;const al=0.04+Math.sin(h.a*2)*0.03;hg.lineStyle(1,0x0d3366,al);hg.beginPath();for(let i=0;i<6;i++){const ang=(i/6)*Math.PI*2+Math.PI/6+time*0.00015;if(i===0)hg.moveTo(h.x+Math.cos(ang)*h.r,h.y+Math.sin(ang)*h.r);else hg.lineTo(h.x+Math.cos(ang)*h.r,h.y+Math.sin(ang)*h.r);}hg.closePath();hg.strokePath();}});
   }
 }
 
@@ -700,52 +605,40 @@ class BootScene extends Phaser.Scene{
 class WorldScene extends Phaser.Scene{
   constructor(){super('World');}
   create(){
-    this.cells=[];this.nutrients=[];this.pendingCells=[];
-    this.tick=0;this.stagger=0;this.nutrientAcc=0;this.maxGen=0;this.simSpeed=1;
-    this.currentBiomeName='Sunlit Shallows';
+    this.cells=[];this.nutrients=[];this.pending=[];this.tick=0;this.stagger=0;this.nutAcc=0;this.maxGen=0;this.simSpeed=1;this.biomeName='Sunlit Shallows';
+    this.totalDivisions=0;this.peakCells=0;
     this.cellHash=new SpatialHash(200,WORLD_RADIUS*2+200);
-    this.nutrientHash=new SpatialHash(100,WORLD_RADIUS*2+200);
+    this.nutHash=new SpatialHash(100,WORLD_RADIUS*2+200);
     this.bgLayer=this.add.graphics().setDepth(0);
-    this.particleLayer=this.add.graphics().setDepth(1);
-    this.nutrientLayer=this.add.graphics().setDepth(2);
+    this.partLayer=this.add.graphics().setDepth(1);
+    this.nutLayer=this.add.graphics().setDepth(2);
     this.cellLayer=this.add.graphics().setDepth(3);
-    this.drawBackground();
+    this.drawBg();
     this.spawnNutrients(Math.floor(MAX_NUTRIENTS*0.65));
     this.cameras.main.setBackgroundColor(0x020A13);
     this.cameras.main.centerOn(0,0);
     this.cameras.main.setZoom(1.5);
-    this.setupCamera();
-    this.setupParticles();
-    // Spawn starter prokaryotes so there's life from day one
-    this.time.delayedCall(200, () => {
-      for(let i=0;i<5;i++){
-        const ang=Math.random()*Math.PI*2, dist=400+Math.random()*600;
-        const genome={organelles:['CYTOPLASM'],colorHue:Math.random()*360,mutationRate:0.06+Math.random()*0.06,divisionThreshold:0.72};
-        this.spawnCell(genome, Math.cos(ang)*dist, Math.sin(ang)*dist);
+    this.setupCam();this.setupParticles();
+    // Starter cells
+    this.time.delayedCall(300,()=>{
+      for(let i=0;i<4;i++){
+        const ang=Math.random()*Math.PI*2,dist=500+Math.random()*700;
+        this.spawnCell({organelles:['CYTOPLASM'],colorHue:Math.random()*360,mutationRate:0.05+Math.random()*0.05,divisionThreshold:0.72},Math.cos(ang)*dist,Math.sin(ang)*dist);
       }
     });
   }
-  drawBackground(){
+  drawBg(){
     const g=this.bgLayer;g.clear();
-    // Biome rings with smooth colour interpolation
     const steps=100;
     for(let i=steps;i>=0;i--){
-      const r=(i/steps)*WORLD_RADIUS;
-      const biome=getBiome(r,0);
-      const nxt=getBiome(Math.max(0,r-40),0);
+      const r=(i/steps)*WORLD_RADIUS,biome=getBiome(r,0),nxt=getBiome(Math.max(0,r-40),0);
       const t=Math.max(0,(r-biome.inner)/(biome.outer-biome.inner||1));
-      const c1=Phaser.Display.Color.IntegerToColor(biome.bg);
-      const c2=Phaser.Display.Color.IntegerToColor(nxt.bg);
+      const c1=Phaser.Display.Color.IntegerToColor(biome.bg),c2=Phaser.Display.Color.IntegerToColor(nxt.bg);
       const col=Phaser.Display.Color.Interpolate.ColorWithColor(c1,c2,100,Math.floor(t*100));
       g.fillStyle(Phaser.Display.Color.GetColor(col.r,col.g,col.b),1);
       g.fillCircle(0,0,r+WORLD_RADIUS/steps+2);
     }
-    // Biome boundary glows
-    for(const b of BIOMES){
-      g.lineStyle(3,b.accent,0.08);g.strokeCircle(0,0,b.outer);
-      g.lineStyle(1.5,b.accent,0.05);g.strokeCircle(0,0,b.outer-8);
-    }
-    // Hex grid overlay
+    for(const b of BIOMES){g.lineStyle(3,b.accent,0.08);g.strokeCircle(0,0,b.outer);}
     const hs=58,cols=Math.ceil(WORLD_RADIUS*2/(hs*1.5))+2,rows=Math.ceil(WORLD_RADIUS*2/(hs*0.866))+2;
     g.lineStyle(0.6,0x0e2540,0.18);
     for(let row=-rows;row<rows;row++)for(let col=-cols;col<cols;col++){
@@ -753,190 +646,147 @@ class WorldScene extends Phaser.Scene{
       if(x*x+y*y>(WORLD_RADIUS+80)*(WORLD_RADIUS+80))continue;
       for(let i=0;i<6;i++){const a1=(i/6)*Math.PI*2+Math.PI/6,a2=((i+1)/6)*Math.PI*2+Math.PI/6;g.beginPath();g.moveTo(x+Math.cos(a1)*hs*0.5,y+Math.sin(a1)*hs*0.5);g.lineTo(x+Math.cos(a2)*hs*0.5,y+Math.sin(a2)*hs*0.5);g.strokePath();}
     }
-    // Caustic light patches in shallows
-    for(let i=0;i<50;i++){
-      const ang=Math.random()*Math.PI*2,dist=1700+Math.random()*800;
-      const px=Math.cos(ang)*dist,py=Math.sin(ang)*dist,cr=25+Math.random()*100;
-      g.fillStyle(0x0f3355,0.04+Math.random()*0.05);
-      g.fillEllipse(px,py,cr,cr*(0.25+Math.random()*0.45));
-    }
-    // Outer darkness fade
-    for(let r=WORLD_RADIUS+5;r<WORLD_RADIUS+350;r+=7){
-      g.lineStyle(10,0x010508,Math.min(1,(r-WORLD_RADIUS)/180));
-      g.strokeCircle(0,0,r);
-    }
+    for(let i=0;i<50;i++){const ang=Math.random()*Math.PI*2,dist=1700+Math.random()*800,px=Math.cos(ang)*dist,py=Math.sin(ang)*dist,cr=25+Math.random()*100;g.fillStyle(0x0f3355,0.04+Math.random()*0.05);g.fillEllipse(px,py,cr,cr*(0.25+Math.random()*0.45));}
+    for(let r=WORLD_RADIUS+5;r<WORLD_RADIUS+350;r+=7){g.lineStyle(10,0x010508,Math.min(1,(r-WORLD_RADIUS)/180));g.strokeCircle(0,0,r);}
   }
   setupParticles(){
-    // Floating debris/marine snow particles
-    this._particles=[];
-    for(let i=0;i<60;i++){
-      this._particles.push({
-        x:(Math.random()-0.5)*WORLD_RADIUS*2,
-        y:(Math.random()-0.5)*WORLD_RADIUS*2,
-        size:0.5+Math.random()*1.5,
-        speed:0.08+Math.random()*0.25,
-        ang:Math.random()*Math.PI*2,
-        alpha:0.05+Math.random()*0.15,
-        color:[C.cyan,C.teal,C.green,0xffffff,C.blue][Math.floor(Math.random()*5)],
-        drift:Math.random()*Math.PI*2,
-      });
-    }
+    this._parts=[];
+    for(let i=0;i<60;i++)this._parts.push({x:(Math.random()-0.5)*WORLD_RADIUS*2,y:(Math.random()-0.5)*WORLD_RADIUS*2,size:0.4+Math.random()*1.4,spd:0.08+Math.random()*0.25,ang:Math.random()*Math.PI*2,alpha:0.04+Math.random()*0.12,color:[0x00D4FF,0x26FFF8,0x76E0B0,0xffffff,0x4C8DC2][Math.floor(Math.random()*5)],drift:Math.random()*Math.PI*2});
   }
-  setupCamera(){
+  setupCam(){
     const cam=this.cameras.main;
-    let isDragging=false,dsx=0,dsy=0,csx=0,csy=0,pinching=false,psd=0,psz=1,tpx=0,tpy=0;
-    this.input.on('pointerdown',p=>{if(p.id===1){isDragging=true;dsx=p.x;dsy=p.y;csx=cam.scrollX;csy=cam.scrollY;tpx=p.x;tpy=p.y;}});
+    let drag=false,dsx=0,dsy=0,csx=0,csy=0,pinch=false,psd=0,psz=1,tpx=0,tpy=0;
+    this.input.on('pointerdown',p=>{if(p.id===1){drag=true;dsx=p.x;dsy=p.y;csx=cam.scrollX;csy=cam.scrollY;tpx=p.x;tpy=p.y;}});
     this.input.on('pointermove',p=>{
       const p1=this.input.pointer1,p2=this.input.pointer2;
-      if(p1.isDown&&p2.isDown){isDragging=false;const d=Phaser.Math.Distance.Between(p1.x,p1.y,p2.x,p2.y);if(!pinching){pinching=true;psd=d;psz=cam.zoom;}else cam.setZoom(Phaser.Math.Clamp(psz*(d/psd),0.3,5));const mx=(p1.x+p2.x)/2,my=(p1.y+p2.y)/2,pmx=(p1.prevPosition.x+p2.prevPosition.x)/2,pmy=(p1.prevPosition.y+p2.prevPosition.y)/2;cam.scrollX-=(mx-pmx)/cam.zoom;cam.scrollY-=(my-pmy)/cam.zoom;return;}
-      pinching=false;
-      if(isDragging&&p.id===1){cam.scrollX=csx-(p.x-dsx)/cam.zoom;cam.scrollY=csy-(p.y-dsy)/cam.zoom;this.clampCamera();}
+      if(p1.isDown&&p2.isDown){drag=false;const d=Phaser.Math.Distance.Between(p1.x,p1.y,p2.x,p2.y);if(!pinch){pinch=true;psd=d;psz=cam.zoom;}else cam.setZoom(Phaser.Math.Clamp(psz*(d/psd),0.3,5));const mx=(p1.x+p2.x)/2,my=(p1.y+p2.y)/2,pmx=(p1.prevPosition.x+p2.prevPosition.x)/2,pmy=(p1.prevPosition.y+p2.prevPosition.y)/2;cam.scrollX-=(mx-pmx)/cam.zoom;cam.scrollY-=(my-pmy)/cam.zoom;return;}
+      pinch=false;if(drag&&p.id===1){cam.scrollX=csx-(p.x-dsx)/cam.zoom;cam.scrollY=csy-(p.y-dsy)/cam.zoom;this.clampCam();}
     });
-    this.input.on('pointerup',p=>{if(p.id!==1)return;pinching=false;if(Math.abs(p.x-tpx)<8&&Math.abs(p.y-tpy)<8)this.tapWorld(p.x,p.y);isDragging=false;});
-    this.input.on('wheel',(_p,_dx,_dy,dz)=>{cam.setZoom(Phaser.Math.Clamp(cam.zoom-dz*0.001,0.3,5));this.clampCamera();});
+    this.input.on('pointerup',p=>{if(p.id!==1)return;pinch=false;if(Math.abs(p.x-tpx)<8&&Math.abs(p.y-tpy)<8)this.tapWorld(p.x,p.y);drag=false;});
+    this.input.on('wheel',(_p,_x,_y,dz)=>{cam.setZoom(Phaser.Math.Clamp(cam.zoom-dz*0.001,0.3,5));this.clampCam();});
   }
-  clampCamera(){
-    const cam=this.cameras.main,vr=Math.hypot(cam.width,cam.height)/(2*cam.zoom),maxD=Math.max(0,WORLD_RADIUS-vr);
-    const cx=cam.scrollX+cam.width/(2*cam.zoom),cy=cam.scrollY+cam.height/(2*cam.zoom),d=Math.hypot(cx,cy);
-    if(d>maxD){const s=maxD/d;cam.scrollX=cx*s-cam.width/(2*cam.zoom);cam.scrollY=cy*s-cam.height/(2*cam.zoom);}
-  }
-  tapWorld(sx,sy){
-    const cam=this.cameras.main,wx=cam.scrollX+sx/cam.zoom,wy=cam.scrollY+sy/cam.zoom;
-    let nearest=null,nearestD=40;
-    for(const c of this.cells){if(c.dead)continue;const d=Math.hypot(c.x-wx,c.y-wy);if(d<nearestD){nearestD=d;nearest=c;}}
-    if(nearest) openInspector(nearest);
-  }
-  spawnCell(genome,x,y){
-    const cam=this.cameras.main;
-    const wx=x??(cam.scrollX+cam.width/(2*cam.zoom)+(Math.random()-0.5)*60);
-    const wy=y??(cam.scrollY+cam.height/(2*cam.zoom)+(Math.random()-0.5)*60);
-    const cell=new Cell(genome,wx,wy);
-    this.cells.push(cell);if(cell.generation>this.maxGen)this.maxGen=cell.generation;
-  }
-  spawnNutrients(count){
-    for(let i=0;i<count&&this.nutrients.length<MAX_NUTRIENTS;i++){
-      const ang=Math.random()*Math.PI*2,dist=Math.random()*WORLD_RADIUS*0.95;
-      const x=Math.cos(ang)*dist,y=Math.sin(ang)*dist;
-      const biome=getBiome(x,y);
-      if(Math.random()>biome.nutMult*0.8)continue;
-      this.nutrients.push(new Nutrient(x,y));
-    }
-  }
+  clampCam(){const cam=this.cameras.main,vr=Math.hypot(cam.width,cam.height)/(2*cam.zoom),md=Math.max(0,WORLD_RADIUS-vr),cx=cam.scrollX+cam.width/(2*cam.zoom),cy=cam.scrollY+cam.height/(2*cam.zoom),d=Math.hypot(cx,cy);if(d>md){const s=md/d;cam.scrollX=cx*s-cam.width/(2*cam.zoom);cam.scrollY=cy*s-cam.height/(2*cam.zoom);}}
+  tapWorld(sx,sy){const cam=this.cameras.main,wx=cam.scrollX+sx/cam.zoom,wy=cam.scrollY+sy/cam.zoom;let nearest=null,nd=40;for(const c of this.cells){if(c.dead)continue;const d=Math.hypot(c.x-wx,c.y-wy);if(d<nd){nd=d;nearest=c;}}if(nearest)openInspector(nearest);}
+  spawnCell(genome,x,y){const cam=this.cameras.main,wx=x??(cam.scrollX+cam.width/(2*cam.zoom)+(Math.random()-0.5)*60),wy=y??(cam.scrollY+cam.height/(2*cam.zoom)+(Math.random()-0.5)*60);const cell=new Cell(genome,wx,wy);this.cells.push(cell);if(cell.gen>this.maxGen)this.maxGen=cell.gen;}
+  spawnNutrients(count){for(let i=0;i<count&&this.nutrients.length<MAX_NUTRIENTS;i++){const ang=Math.random()*Math.PI*2,dist=Math.random()*WORLD_RADIUS*0.95,x=Math.cos(ang)*dist,y=Math.sin(ang)*dist;if(Math.random()>getBiome(x,y).nutMult*0.8)continue;this.nutrients.push(new Nutrient(x,y));}}
   update(time,delta){
     if(this.simSpeed===0)return;
     const dt=delta/1000*this.simSpeed;this.tick++;
-    for(const c of this.pendingCells){this.cells.push(c);if(c.generation>this.maxGen)this.maxGen=c.generation;}
-    this.pendingCells=[];
-    this.nutrientAcc+=dt*0.55;
-    while(this.nutrientAcc>=1&&this.nutrients.length<MAX_NUTRIENTS){this.nutrientAcc--;this.spawnNutrients(1);}
+    for(const c of this.pending){this.cells.push(c);if(c.gen>this.maxGen)this.maxGen=c.gen;}this.pending=[];
+    this.nutAcc+=dt*0.55;while(this.nutAcc>=1&&this.nutrients.length<MAX_NUTRIENTS){this.nutAcc--;this.spawnNutrients(1);}
     if(this.nutrients.filter(n=>n.available).length<25)this.spawnNutrients(12);
     for(let i=this.nutrients.length-1;i>=0;i--)if(this.nutrients[i].dead)this.nutrients.splice(i,1);
     for(let i=this.cells.length-1;i>=0;i--)if(this.cells[i].dead&&!this.cells[i].dying)this.cells.splice(i,1);
     this.cellHash.rebuild(this.cells.filter(c=>!c.dead));
-    this.nutrientHash.rebuild(this.nutrients.filter(n=>n.available));
-    const aiGroup=this.stagger++%4;
+    this.nutHash.rebuild(this.nutrients.filter(n=>n.available));
+    const ag=this.stagger++%4;
     for(let i=0;i<this.cells.length;i++){
       const c=this.cells[i];if(c.dead)continue;
       c.update(dt,time);
       const dist=Math.hypot(c.x,c.y);
-      if(dist>WORLD_RADIUS-SOFT_EDGE){
-        if(dist>WORLD_RADIUS){const s=WORLD_RADIUS/dist;c.x*=s;c.y*=s;c.vx*=-0.3;c.vy*=-0.3;}
-        else{const tf=((dist-(WORLD_RADIUS-SOFT_EDGE))/SOFT_EDGE)**2,force=tf*120;c.vx-=(c.x/dist)*force*dt;c.vy-=(c.y/dist)*force*dt;}
-      }
-      if(i%4===aiGroup){
-        c.seekTarget(this.nutrientHash.query(c.x,c.y,c.stats.sense),this.cellHash.query(c.x,c.y,c.stats.sense).filter(oc=>oc!==c));
+      if(dist>WORLD_RADIUS-SOFT_EDGE){if(dist>WORLD_RADIUS){const s=WORLD_RADIUS/dist;c.x*=s;c.y*=s;c.vx*=-0.3;c.vy*=-0.3;}else{const tf=((dist-(WORLD_RADIUS-SOFT_EDGE))/SOFT_EDGE)**2;c.vx-=(c.x/dist)*tf*120*dt;c.vy-=(c.y/dist)*tf*120*dt;}}
+      if(i%4===ag){
+        c.seekTarget(this.nutHash.query(c.x,c.y,c.stats.sense),this.cellHash.query(c.x,c.y,c.stats.sense).filter(oc=>oc!==c));
         if(c.stats.hasMouth){const prey=this.cellHash.query(c.x,c.y,c.radius+30);for(const p of prey)if(p!==c&&!p.dead)c.tryEat(p,dt);}
-        if(c.stats.defense>2){const contacts=this.cellHash.query(c.x,c.y,c.radius+16);for(const oc of contacts)if(oc!==c&&!oc.dead)c.spikeContact(oc,time);}
+        if(c.stats.defense>2){const co=this.cellHash.query(c.x,c.y,c.radius+16);for(const oc of co)if(oc!==c&&!oc.dead)c.spikeContact(oc,time);}
       }
       if(c.targetNutrient?.available){const dn=Math.hypot(c.targetNutrient.x-c.x,c.targetNutrient.y-c.y);if(dn<20+c.radius){c.energy=Math.min(c.stats.maxEnergy,c.energy+c.targetNutrient.consume()*c.stats.eat);c.targetNutrient=null;}}
-      if(this.cells.length<MAX_CELLS&&this.tick%8===0&&c.canDivide(time)){const child=c.divide(time);if(child)this.pendingCells.push(child);}
+      if(this.cells.length<MAX_CELLS&&this.tick%8===0&&c.canDivide(time)){const ch=c.divide(time);if(ch){this.pending.push(ch);this.totalDivisions++;}}
     }
+    const alive=this.cells.filter(c=>!c.dead).length;
+    if(alive>this.peakCells)this.peakCells=alive;
     for(const n of this.nutrients)n.update(dt,time);
     this.renderFrame(time,dt);
-    // Biome detection
-    const cam=this.cameras.main,camX=cam.scrollX+cam.width/(2*cam.zoom),camY=cam.scrollY+cam.height/(2*cam.zoom);
-    const b=getBiome(camX,camY);
-    if(b.name!==this.currentBiomeName){this.currentBiomeName=b.name;showBiomeToast(b);}
-    // HUD update
+    const cam=this.cameras.main,cx=cam.scrollX+cam.width/(2*cam.zoom),cy=cam.scrollY+cam.height/(2*cam.zoom);
+    const b=getBiome(cx,cy);if(b.name!==this.biomeName){this.biomeName=b.name;showBiomeToast(b);}
     if(this.tick%15===0){
-      document.getElementById('h-cells').textContent=this.cells.filter(c=>!c.dead).length;
+      document.getElementById('h-cells').textContent=alive;
       document.getElementById('h-gen').textContent=this.maxGen;
       document.getElementById('h-nuts').textContent=this.nutrients.filter(n=>n.available).length;
+      checkUnlocks({totalDivisions:this.totalDivisions,peakCells:this.peakCells,maxGen:this.maxGen});
+      updateObjectives({totalDivisions:this.totalDivisions,peakCells:this.peakCells,maxGen:this.maxGen,alive});
     }
   }
   renderFrame(time,dt){
-    // Floating particles
-    const pg=this.particleLayer;pg.clear();
-    for(const p of this._particles){
-      p.drift+=dt*0.2;p.x+=Math.cos(p.drift)*p.speed;p.y+=Math.sin(p.drift)*p.speed;
-      // Slowly drift upward
-      p.y-=p.speed*0.3;
-      const dist=Math.hypot(p.x,p.y);
-      if(dist>WORLD_RADIUS*0.98){const s=(WORLD_RADIUS*0.5)/dist;p.x*=s;p.y*=s;}
-      const a=p.alpha*(0.7+Math.sin(time/3000+p.drift)*0.3);
-      pg.fillStyle(p.color,a);pg.fillCircle(p.x,p.y,p.size);
-    }
-    // Nutrients
-    const ng=this.nutrientLayer;ng.clear();
-    for(const n of this.nutrients){
-      if(!n.available)continue;
-      const pulse=1+Math.sin(time/1000*2+n.phase)*0.35;
-      ng.fillStyle(n.color,0.08);ng.fillCircle(n.x,n.y,n.size*pulse*2.5);
-      ng.fillStyle(n.color,0.85);ng.fillCircle(n.x,n.y,n.size*pulse);
-      ng.fillStyle(0xffffff,0.35);ng.fillCircle(n.x-n.size*0.25,n.y-n.size*0.25,n.size*0.4);
-    }
-    // Cells
+    const pg=this.partLayer;pg.clear();
+    for(const p of this._parts){p.drift+=dt*0.2;p.x+=Math.cos(p.drift)*p.spd;p.y-=p.spd*0.3;const d=Math.hypot(p.x,p.y);if(d>WORLD_RADIUS*0.98){const s=(WORLD_RADIUS*0.5)/d;p.x*=s;p.y*=s;}pg.fillStyle(p.color,p.alpha*(0.7+Math.sin(time/3000+p.drift)*0.3));pg.fillCircle(p.x,p.y,p.size);}
+    const ng=this.nutLayer;ng.clear();
+    for(const n of this.nutrients){if(!n.available)continue;const pulse=1+Math.sin(time/1000*2+n.phase)*0.35;ng.fillStyle(n.color,0.08);ng.fillCircle(n.x,n.y,n.size*pulse*2.5);ng.fillStyle(n.color,0.85);ng.fillCircle(n.x,n.y,n.size*pulse);ng.fillStyle(0xffffff,0.35);ng.fillCircle(n.x-n.size*0.25,n.y-n.size*0.25,n.size*0.4);}
     const cg=this.cellLayer;cg.clear();
     for(const c of this.cells){if(c.dead&&!c.dying)continue;c.render(cg,time);}
   }
 }
 
 // ─── PHASER GAME ──────────────────────────────────────────────────────────────
-const game = new Phaser.Game({
-  type:Phaser.AUTO,
-  backgroundColor:0x020A13,
-  antialias:false,roundPixels:true,
-  powerPreference:'high-performance',
-  autoMobilePipeline:true,
-  disableContextMenu:true,
-  scale:{
-    mode:Phaser.Scale.FIT,
-    autoCenter:Phaser.Scale.CENTER_BOTH,
-    width:SW, height:SH,
-  },
+const game=new Phaser.Game({
+  type:Phaser.AUTO,backgroundColor:0x020A13,antialias:false,roundPixels:true,
+  powerPreference:'high-performance',autoMobilePipeline:true,disableContextMenu:true,
+  scale:{mode:Phaser.Scale.FIT,autoCenter:Phaser.Scale.CENTER_BOTH,width:SW,height:SH},
   input:{activePointers:3,touch:{capture:true}},
-  scene:[BootScene,WorldScene],
-  fps:{target:60,forceSetTimeOut:false},
-  banner:false,
+  scene:[BootScene,WorldScene],fps:{target:60,forceSetTimeOut:false},banner:false,
+});
+function getWS(){return game.scene.getScene('World');}
+
+// ─── OBJECTIVES ───────────────────────────────────────────────────────────────
+const OBJECTIVES=[
+  {id:'release',text:'Release your first cell',check:s=>s.alive>0||s.totalDivisions>0},
+  {id:'divide',text:'Watch a cell divide',check:s=>s.totalDivisions>0},
+  {id:'10cells',text:'Have 10 cells alive at once',check:s=>s.peakCells>=10},
+  {id:'predator',text:'Create a cell with a Cytostome',check:()=>unlockedTiers.has(2)},
+  {id:'gen5',text:'Reach generation 5',check:s=>s.maxGen>=5},
+  {id:'gen10',text:'Reach generation 10 (unlocks multicellular)',check:s=>s.maxGen>=10},
+];
+let objDone=new Set();
+let objVisible=false;
+
+document.getElementById('obj-badge').addEventListener('click',()=>{
+  objVisible=!objVisible;
+  document.getElementById('obj-panel').classList.toggle('open',objVisible);
 });
 
-function getWorldScene(){return game.scene.getScene('World');}
+function updateObjectives(stats){
+  const list=document.getElementById('obj-list');list.innerHTML='';
+  let done=0;
+  for(const obj of OBJECTIVES){
+    const isDone=obj.check(stats);
+    if(isDone&&!objDone.has(obj.id)){objDone.add(obj.id);}
+    if(isDone)done++;
+    const item=document.createElement('div');item.className='obj-item'+(isDone?' done':'');
+    item.innerHTML=`<div class="obj-check${isDone?' done':''}>${isDone?'✓':''}</div><div class="obj-text">${obj.text}</div>`;
+    list.appendChild(item);
+  }
+  const pct=Math.round((done/OBJECTIVES.length)*100);
+  document.getElementById('obj-bar').style.width=pct+'%';
+  document.getElementById('obj-badge').textContent=done===OBJECTIVES.length?'🎉':(done>0?`${done}/${OBJECTIVES.length}`:'🧬');
+  if(done===OBJECTIVES.length&&!objDone.has('__stage_complete__')){
+    objDone.add('__stage_complete__');
+    showUnlockToast('Cell stage complete! Multicellular life awaits...');
+  }
+}
+
+// ─── UNLOCK TOAST ─────────────────────────────────────────────────────────────
+let unlockTimer=null;
+function showUnlockToast(names){
+  const el=document.getElementById('unlock-toast');
+  document.getElementById('ut-items').textContent=names;
+  el.style.display='block';
+  if(unlockTimer)clearTimeout(unlockTimer);
+  unlockTimer=setTimeout(()=>{el.style.display='none';},3200);
+}
 
 // ─── BIOME TOAST ──────────────────────────────────────────────────────────────
-let biomeToastTimer=null;
-function showBiomeToast(biome){
-  const el=document.getElementById('biome-toast');
-  el.textContent=biome.emoji+'  '+biome.name+'\n'+biome.desc;
-  el.style.opacity='1';
-  if(biomeToastTimer)clearTimeout(biomeToastTimer);
-  biomeToastTimer=setTimeout(()=>{el.style.opacity='0';},3000);
+let biomeTimer=null;
+function showBiomeToast(b){
+  const el=document.getElementById('biome-toast');el.textContent=b.emoji+'  '+b.name+'\n'+b.desc;el.style.opacity='1';
+  if(biomeTimer)clearTimeout(biomeTimer);biomeTimer=setTimeout(()=>{el.style.opacity='0';},3000);
 }
 
 // ─── INSPECTOR ────────────────────────────────────────────────────────────────
 function openInspector(cell){
   const s=cell.stats;
-  const stage=s.hasNucleus?'Eukaryote':'Prokaryote';
-  const stageColor=s.hasNucleus?'#A5F8E5':'#7BA8C9';
-  document.getElementById('insp-stage').textContent=stage;
-  document.getElementById('insp-stage').style.color=stageColor;
-  document.getElementById('insp-gen').textContent='Generation '+cell.generation+'  ·  Lineage';
-  // Preview
-  const hue=Math.round(cell.genome.colorHue);
-  const prev=document.getElementById('insp-preview');
-  prev.style.background=`radial-gradient(circle at 35% 35%, hsl(${hue},60%,55%), hsl(${hue},50%,22%))`;
-  prev.style.boxShadow=`0 0 20px hsla(${hue},70%,50%,0.3), inset 0 0 20px rgba(0,0,0,0.3)`;
-  prev.textContent='';
-  // Stats
+  document.getElementById('insp-stage').textContent=s.hasNucleus?'Eukaryote':'Prokaryote';
+  document.getElementById('insp-stage').style.color=s.hasNucleus?'#A5F8E5':'#7BA8C9';
+  document.getElementById('insp-gen').textContent='Generation '+cell.gen;
   const er=Math.max(0,cell.energy/s.maxEnergy);
   document.getElementById('insp-speed').textContent=s.speed.toFixed(0);
   document.getElementById('insp-energy').textContent=(s.energy>=0?'+':'')+s.energy.toFixed(1)+'/s';
@@ -944,176 +794,197 @@ function openInspector(cell){
   document.getElementById('insp-defense').textContent=s.defense.toFixed(1);
   document.getElementById('insp-mut').textContent=(cell.genome.mutationRate*100).toFixed(1)+'%';
   document.getElementById('insp-vitality').textContent=Math.round(er*100)+'%';
-  // Organelles
-  const uniq=[...new Set(cell.genome.organelles)];
-  const orgEl=document.getElementById('insp-organelles');
-  orgEl.innerHTML='';
-  for(const k of uniq){
-    if(!ORG[k])continue;
-    const chip=document.createElement('div');chip.className='organelle-chip';
-    chip.innerHTML=`<div class="chip-dot" style="background:${ORG[k].color}"></div>${ORG[k].name}`;
-    orgEl.appendChild(chip);
-  }
-  // Gen bar
-  const genFrac=Math.min(1,cell.generation/30);
-  document.getElementById('insp-gen-bar').style.width=(genFrac*100)+'%';
-  document.getElementById('insp-gen-num').textContent='Gen '+cell.generation;
+  const orgEl=document.getElementById('insp-organelles');orgEl.innerHTML='';
+  for(const k of [...new Set(cell.genome.organelles)]){if(!ORG[k])continue;const chip=document.createElement('div');chip.className='organelle-chip';chip.innerHTML=`<div class="chip-dot" style="background:${ORG[k].color}"></div>${ORG[k].name}`;orgEl.appendChild(chip);}
+  const gf=Math.min(1,cell.gen/30);document.getElementById('insp-gen-bar').style.width=(gf*100)+'%';
+  document.getElementById('insp-gen-num').textContent='Gen '+cell.gen;
   document.getElementById('inspector').classList.add('open');
 }
 document.getElementById('insp-close').addEventListener('click',()=>document.getElementById('inspector').classList.remove('open'));
 document.getElementById('inspector').addEventListener('click',e=>{if(e.target===document.getElementById('inspector'))document.getElementById('inspector').classList.remove('open');});
 
 // ─── SPEED CONTROLS ───────────────────────────────────────────────────────────
-document.querySelectorAll('.speed-btn').forEach(btn=>{
-  btn.addEventListener('click',()=>{
-    const speed=parseInt(btn.dataset.speed);
-    const ws=getWorldScene();if(ws)ws.simSpeed=speed;
-    document.querySelectorAll('.speed-btn').forEach(b=>b.classList.toggle('active',parseInt(b.dataset.speed)===speed));
-  });
-});
+document.querySelectorAll('.speed-btn').forEach(btn=>{btn.addEventListener('click',()=>{const s=parseInt(btn.dataset.speed);const ws=getWS();if(ws)ws.simSpeed=s;document.querySelectorAll('.speed-btn').forEach(b=>b.classList.toggle('active',parseInt(b.dataset.speed)===s));});});
 
 // ─── EDITOR ───────────────────────────────────────────────────────────────────
-let editorGenome={organelles:['CYTOPLASM'],colorHue:150+Math.random()*80,mutationRate:0.08,divisionThreshold:0.75};
-let selectedOrg='FLAGELLUM';
-let editorCanvas, editorCtx;
+let editorGenome={organelles:['CYTOPLASM'],colorHue:160+Math.random()*60,mutationRate:0.08,divisionThreshold:0.75};
+let selectedOrg='NUCLEUS';
+let edCanvas,edCtx;
 
 function openEditor(){
-  editorGenome={organelles:['CYTOPLASM'],colorHue:150+Math.random()*80,mutationRate:0.08,divisionThreshold:0.75};
-  selectedOrg='FLAGELLUM';
+  editorGenome={organelles:['CYTOPLASM'],colorHue:160+Math.random()*60,mutationRate:0.08,divisionThreshold:0.75};
+  selectedOrg=isUnlocked('NUCLEUS')?'NUCLEUS':'CYTOPLASM';
   document.getElementById('editor').classList.add('open');
-  // Wait for display:flex to take effect before measuring canvas size
-  requestAnimationFrame(()=>requestAnimationFrame(()=>{
-    setupEditorCanvas();
-    buildPalette();
-    updateEditorStats();
-    drawEditorHex();
-  }));
-  const ws=getWorldScene();if(ws)ws.simSpeed=0;
+  const ws=getWS();if(ws)ws.simSpeed=0;
+  document.querySelectorAll('.speed-btn').forEach(b=>b.classList.toggle('active',parseInt(b.dataset.speed)===0));
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{setupEdCanvas();buildPalette();updateEdStats();drawEdHex();}));
 }
 function closeEditor(){
   document.getElementById('editor').classList.remove('open');
-  const ws=getWorldScene();if(ws)ws.simSpeed=1;
+  const ws=getWS();if(ws)ws.simSpeed=1;
   document.querySelectorAll('.speed-btn').forEach(b=>b.classList.toggle('active',parseInt(b.dataset.speed)===1));
 }
-
 document.getElementById('create-btn').addEventListener('click',openEditor);
 document.getElementById('editor-cancel-btn').addEventListener('click',closeEditor);
 document.getElementById('release-btn').addEventListener('click',()=>{
   const clean=editorGenome.organelles.filter(o=>o&&ORG[o]);
   if(!clean.includes('CYTOPLASM'))clean.unshift('CYTOPLASM');
-  const genome={...editorGenome,organelles:clean};
-  const ws=getWorldScene();
-  if(ws){
-    ws.simSpeed=1;
-    ws.spawnCell(genome);
-    document.querySelectorAll('.speed-btn').forEach(b=>b.classList.toggle('active',parseInt(b.dataset.speed)===1));
-  }
+  const ws=getWS();
+  if(ws){ws.simSpeed=1;ws.spawnCell({...editorGenome,organelles:clean});}
   document.querySelectorAll('.speed-btn').forEach(b=>b.classList.toggle('active',parseInt(b.dataset.speed)===1));
   closeEditor();
 });
 
-function setupEditorCanvas(){
+function setupEdCanvas(){
   const wrap=document.getElementById('editor-canvas-wrap');
-  editorCanvas=document.getElementById('editor-canvas');
-  const size=wrap.clientWidth*DPR;
-  editorCanvas.width=size;editorCanvas.height=size;
-  editorCanvas.style.width=wrap.clientWidth+'px';editorCanvas.style.height=wrap.clientWidth+'px';
-  editorCtx=editorCanvas.getContext('2d');
-  editorCanvas.removeEventListener('click',handleEditorTap);
-  editorCanvas.addEventListener('click',handleEditorTap);
+  edCanvas=document.getElementById('editor-canvas');
+  const size=wrap.clientWidth;
+  edCanvas.width=size;edCanvas.height=size;
+  edCtx=edCanvas.getContext('2d');
+  edCanvas.removeEventListener('click',handleEdTap);
+  edCanvas.addEventListener('click',handleEdTap);
 }
 
-function drawEditorHex(){
-  if(!editorCtx)return;
-  const sz=editorCanvas.width,cx=sz/2,cy=sz/2;
-  const hexSize=sz/8.5;
-  editorCtx.clearRect(0,0,sz,sz);
-  // Cell body background
+function drawEdHex(){
+  if(!edCtx)return;
+  const sz=edCanvas.width,cx=sz/2,cy=sz/2,hexSize=sz/8.5;
+  edCtx.clearRect(0,0,sz,sz);
+  // Body
   const hue=editorGenome.colorHue;
   const r=sz*0.38;
-  const grad=editorCtx.createRadialGradient(cx,cy,0,cx,cy,r);
-  grad.addColorStop(0,`hsla(${hue},45%,18%,0.5)`);
-  grad.addColorStop(1,`hsla(${hue},40%,8%,0.3)`);
-  editorCtx.beginPath();editorCtx.arc(cx,cy,r,0,Math.PI*2);
-  editorCtx.fillStyle=grad;editorCtx.fill();
-  editorCtx.strokeStyle=`hsla(${hue},60%,50%,0.3)`;editorCtx.lineWidth=1.5;editorCtx.stroke();
+  const grad=edCtx.createRadialGradient(cx,cy,0,cx,cy,r);
+  grad.addColorStop(0,`hsla(${hue},40%,18%,0.55)`);
+  grad.addColorStop(1,`hsla(${hue},35%,8%,0.35)`);
+  edCtx.beginPath();edCtx.arc(cx,cy,r,0,Math.PI*2);edCtx.fillStyle=grad;edCtx.fill();
+  edCtx.strokeStyle=`hsla(${hue},55%,50%,0.32)`;edCtx.lineWidth=2;edCtx.stroke();
 
-  // Draw hex grid
+  // Hex slots
   const hexList=hexesInRadius(2);
   for(const h of hexList){
-    const px=hexToPixel(h.q,h.r,hexSize*DPR);
-    const x=cx+px.x/DPR,y=cy+px.y/DPR;
+    const px=hexToPixel(h.q,h.r,hexSize);
+    const x=cx+px.x,y=cy+px.y;
     const isC=h.q===0&&h.r===0;
     const idx=hexList.findIndex(hh=>hh.q===h.q&&hh.r===h.r);
     const org=editorGenome.organelles[idx];
-    const orgKey=org&&ORG[org]?org:null;
+    const ok=org&&ORG[org]?org:null;
 
-    editorCtx.beginPath();
-    for(let i=0;i<6;i++){
-      const a=Math.PI/6+(i/6)*Math.PI*2;
-      if(i===0)editorCtx.moveTo(x+Math.cos(a)*hexSize*0.47,y+Math.sin(a)*hexSize*0.47);
-      else editorCtx.lineTo(x+Math.cos(a)*hexSize*0.47,y+Math.sin(a)*hexSize*0.47);
-    }
-    editorCtx.closePath();
-    if(orgKey){
-      editorCtx.fillStyle=ORG[orgKey].color+'cc';
-      editorCtx.fill();
-      editorCtx.strokeStyle='rgba(255,255,255,0.35)';editorCtx.lineWidth=1;editorCtx.stroke();
-      // Small label
-      editorCtx.fillStyle='rgba(255,255,255,0.7)';
-      editorCtx.font=`bold ${hexSize*0.28}px 'IBM Plex Mono',monospace`;
-      editorCtx.textAlign='center';editorCtx.textBaseline='middle';
-      editorCtx.fillText(ORG[orgKey].short,x,y);
+    edCtx.beginPath();
+    for(let i=0;i<6;i++){const a=Math.PI/6+(i/6)*Math.PI*2;if(i===0)edCtx.moveTo(x+Math.cos(a)*hexSize*0.46,y+Math.sin(a)*hexSize*0.46);else edCtx.lineTo(x+Math.cos(a)*hexSize*0.46,y+Math.sin(a)*hexSize*0.46);}
+    edCtx.closePath();
+
+    if(ok){
+      // Parse hex color to rgba
+      const hc=ORG[ok].color;
+      edCtx.fillStyle=hc+'cc';edCtx.fill();
+      edCtx.strokeStyle='rgba(255,255,255,0.3)';edCtx.lineWidth=1;edCtx.stroke();
+      // Draw iconic shape inside hex
+      drawOrgIcon(edCtx,ok,x,y,hexSize*0.32);
     }else if(isC){
-      editorCtx.fillStyle='rgba(26,58,106,0.6)';editorCtx.fill();
-      editorCtx.strokeStyle='rgba(0,212,255,0.4)';editorCtx.lineWidth=1;editorCtx.stroke();
-      editorCtx.fillStyle='rgba(0,212,255,0.5)';
-      editorCtx.font=`${hexSize*0.25}px 'IBM Plex Mono',monospace`;
-      editorCtx.textAlign='center';editorCtx.textBaseline='middle';
-      editorCtx.fillText('CYT',x,y);
+      edCtx.fillStyle='rgba(26,58,106,0.55)';edCtx.fill();
+      edCtx.strokeStyle='rgba(0,212,255,0.35)';edCtx.lineWidth=1;edCtx.stroke();
+      // Show CYT text
+      edCtx.fillStyle='rgba(0,212,255,0.5)';edCtx.font=`${hexSize*0.22}px 'IBM Plex Mono',monospace`;edCtx.textAlign='center';edCtx.textBaseline='middle';
+      edCtx.fillText('CYT',x,y);
     }else{
-      editorCtx.fillStyle='rgba(7,20,38,0.7)';editorCtx.fill();
-      editorCtx.strokeStyle='rgba(0,212,255,0.1)';editorCtx.lineWidth=0.8;editorCtx.stroke();
+      edCtx.fillStyle='rgba(7,20,38,0.65)';edCtx.fill();
+      edCtx.strokeStyle='rgba(0,212,255,0.09)';edCtx.lineWidth=0.8;edCtx.stroke();
     }
   }
 }
 
-function handleEditorTap(e){
-  const rect=editorCanvas.getBoundingClientRect();
-  const rawX=(e.clientX-rect.left)*(editorCanvas.width/rect.width);
-  const rawY=(e.clientY-rect.top)*(editorCanvas.height/rect.height);
-  const cx=editorCanvas.width/2,cy=editorCanvas.height/2;
-  const hexSize=editorCanvas.width/8.5;
-  const hex=pixelToHex((rawX-cx)/hexSize,(rawY-cy)/hexSize,1);
-  const maxD=Math.max(Math.abs(hex.q),Math.abs(hex.r),Math.abs(-hex.q-hex.r));
-  if(maxD>2)return;
+function drawOrgIcon(ctx,key,x,y,r){
+  ctx.save();
+  switch(key){
+    case 'NUCLEUS':
+      ctx.fillStyle='#1a2a8a';ctx.beginPath();ctx.arc(x,y,r*0.75,0,Math.PI*2);ctx.fill();
+      ctx.strokeStyle='#4466ff';ctx.lineWidth=1.5;ctx.stroke();
+      ctx.fillStyle='rgba(100,136,255,0.3)';ctx.beginPath();ctx.arc(x,y,r*0.35,0,Math.PI*2);ctx.fill();
+      break;
+    case 'MITOCHONDRIA':
+      ctx.fillStyle='#cc3322';ctx.beginPath();ctx.ellipse(x,y,r,r*0.5,0,0,Math.PI*2);ctx.fill();
+      ctx.strokeStyle='#ff6644';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(x-r*0.6,y);ctx.lineTo(x+r*0.6,y);ctx.stroke();
+      break;
+    case 'CHLOROPLAST':
+      ctx.fillStyle='#229944';ctx.beginPath();ctx.ellipse(x,y,r,r*0.5,0,0,Math.PI*2);ctx.fill();
+      ctx.strokeStyle='#55ff44';ctx.lineWidth=0.8;
+      for(let b=-1;b<=1;b++){ctx.beginPath();ctx.moveTo(x-r*0.7,y+b*r*0.22);ctx.lineTo(x+r*0.7,y+b*r*0.22);ctx.stroke();}
+      break;
+    case 'VACUOLE':
+      ctx.strokeStyle='#aaddff';ctx.lineWidth=1.5;ctx.globalAlpha=0.6;
+      ctx.beginPath();ctx.arc(x,y,r*0.75,0,Math.PI*2);ctx.stroke();
+      ctx.globalAlpha=0.12;ctx.fillStyle='#88aacc';ctx.fill();ctx.globalAlpha=1;
+      break;
+    case 'FLAGELLUM':
+      ctx.strokeStyle='#44ff99';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(x,y);
+      for(let s=1;s<=6;s++){const f=s/6;ctx.lineTo(x+f*r*1.4,y+Math.sin(f*Math.PI*2)*r*0.35);}ctx.stroke();
+      break;
+    case 'CILIA':
+      ctx.strokeStyle='#88ffcc';ctx.lineWidth=1;
+      for(let i=0;i<6;i++){const a=(i/6)*Math.PI*2;ctx.beginPath();ctx.moveTo(x+Math.cos(a)*r*0.5,y+Math.sin(a)*r*0.5);ctx.lineTo(x+Math.cos(a)*r,y+Math.sin(a)*r);ctx.stroke();}
+      break;
+    case 'MOUTH':
+      ctx.fillStyle='#220000';ctx.beginPath();ctx.arc(x,y+r*0.15,r*0.6,0.2,Math.PI-0.2);ctx.closePath();ctx.fill();
+      ctx.fillStyle='#ff2211';
+      for(let i=0;i<3;i++){ctx.beginPath();ctx.arc(x+(i-1)*r*0.35,y+r*0.1,2,0,Math.PI*2);ctx.fill();}
+      break;
+    case 'SPIKE':
+      ctx.fillStyle='#ff8833';
+      for(let i=0;i<3;i++){const a=(i/3)*Math.PI*2;ctx.beginPath();ctx.moveTo(x+Math.cos(a-0.3)*r*0.5,y+Math.sin(a-0.3)*r*0.5);ctx.lineTo(x+Math.cos(a+0.3)*r*0.5,y+Math.sin(a+0.3)*r*0.5);ctx.lineTo(x+Math.cos(a)*r,y+Math.sin(a)*r);ctx.closePath();ctx.fill();}
+      break;
+    case 'CHEMORECEPTOR':
+      ctx.fillStyle='#dd88ff';
+      for(let i=0;i<4;i++){const a=(i/4)*Math.PI*2;ctx.beginPath();ctx.arc(x+Math.cos(a)*r*0.7,y+Math.sin(a)*r*0.7,2.5,0,Math.PI*2);ctx.fill();}
+      break;
+    case 'CELL_WALL':
+      ctx.strokeStyle='#c8a45a';ctx.lineWidth=3;ctx.globalAlpha=0.8;
+      ctx.beginPath();ctx.arc(x,y,r*0.85,0,Math.PI*2);ctx.stroke();ctx.globalAlpha=1;
+      break;
+    case 'BINDING_AGENT':
+      ctx.fillStyle='#ffee55';
+      for(let i=0;i<5;i++){const a=(i/5)*Math.PI*2;ctx.beginPath();ctx.arc(x+Math.cos(a)*r*0.7,y+Math.sin(a)*r*0.7,2.5,0,Math.PI*2);ctx.fill();}
+      break;
+    default:
+      ctx.fillStyle='#888';ctx.beginPath();ctx.arc(x,y,r*0.5,0,Math.PI*2);ctx.fill();
+  }
+  ctx.restore();
+}
+
+function handleEdTap(e){
+  const rect=edCanvas.getBoundingClientRect();
+  const rx=(e.clientX-rect.left)*(edCanvas.width/rect.width);
+  const ry=(e.clientY-rect.top)*(edCanvas.height/rect.height);
+  const cx=edCanvas.width/2,cy=edCanvas.height/2,hs=edCanvas.width/8.5;
+  const hex=pixelToHex((rx-cx)/hs,(ry-cy)/hs,1);
+  if(Math.max(Math.abs(hex.q),Math.abs(hex.r),Math.abs(-hex.q-hex.r))>2)return;
   if(hex.q===0&&hex.r===0)return;
   const hexList=hexesInRadius(2);
-  const idx=hexList.findIndex(h=>h.q===hex.q&&h.r===hex.r);
-  if(idx<0)return;
+  const idx=hexList.findIndex(h=>h.q===hex.q&&h.r===hex.r);if(idx<0)return;
   if(editorGenome.organelles[idx]&&editorGenome.organelles[idx]!==undefined){
     editorGenome.organelles[idx]=undefined;
   }else{
     const def=ORG[selectedOrg];if(!def)return;
-    if(def.needsNucleus&&!editorGenome.organelles.includes('NUCLEUS')){showEditorWarning('Nucleus required first');return;}
-    if(editorGenome.organelles.filter(o=>o===selectedOrg).length>=def.max){showEditorWarning(`Max ${def.max} per cell`);return;}
+    if(!isUnlocked(selectedOrg)){showEdWarn('Not yet discovered');return;}
+    if(def.needsNucleus&&!editorGenome.organelles.includes('NUCLEUS')){showEdWarn('Nucleus required first');return;}
+    const cap=getComplexityCap();
+    const used=editorGenome.organelles.filter(o=>o&&o!=='CYTOPLASM').length;
+    if(used>=cap){showEdWarn(`Complexity limit: ${cap} organelles`);return;}
+    if(editorGenome.organelles.filter(o=>o===selectedOrg).length>=def.max){showEdWarn(`Max ${def.max} per cell`);return;}
     while(editorGenome.organelles.length<=idx)editorGenome.organelles.push(undefined);
     editorGenome.organelles[idx]=selectedOrg;
   }
   const cleaned=editorGenome.organelles.filter(o=>o&&o!==undefined);
   if(!cleaned.includes('CYTOPLASM'))cleaned.unshift('CYTOPLASM');
   editorGenome.organelles=cleaned;
-  drawEditorHex();updateEditorStats();
+  drawEdHex();updateEdStats();updateComplexityBar();
 }
 
-function showEditorWarning(msg){
+function showEdWarn(msg){
   const w=document.createElement('div');
   w.style.cssText='position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(231,76,60,0.9);color:white;padding:10px 20px;border-radius:20px;font-size:13px;z-index:200;pointer-events:none;';
-  w.textContent=msg;document.body.appendChild(w);
-  setTimeout(()=>w.remove(),1800);
+  w.textContent=msg;document.body.appendChild(w);setTimeout(()=>w.remove(),1800);
 }
 
-function updateEditorStats(){
+function updateEdStats(){
   const clean=editorGenome.organelles.filter(o=>o&&ORG[o]);
   const s=computeStats(clean);
   document.getElementById('es-speed').textContent=s.speed.toFixed(0);
@@ -1121,17 +992,25 @@ function updateEditorStats(){
   document.getElementById('es-defense').textContent=s.defense.toFixed(1);
 }
 
+function updateComplexityBar(){
+  const cap=getComplexityCap();
+  const used=editorGenome.organelles.filter(o=>o&&o!=='CYTOPLASM').length;
+  const pct=Math.min(100,(used/cap)*100);
+  const fill=document.getElementById('cbar-fill');
+  fill.style.width=pct+'%';
+  fill.style.background=pct>85?'#E74C3C':pct>60?'#F39C12':'#00D4FF';
+  document.getElementById('cbar-count').textContent=`${used}/${cap}`;
+}
+
 function buildPalette(){
   const palette=document.getElementById('palette');palette.innerHTML='';
   for(const key of PALETTE_KEYS){
     const def=ORG[key];
-    const card=document.createElement('div');card.className='org-card'+(key===selectedOrg?' selected':'');
-    card.innerHTML=`<div class="org-dot" style="background:radial-gradient(circle at 35% 35%,${def.color}cc,${def.color}55)"></div><div class="org-name">${def.name}</div><div class="org-desc">${def.desc}</div><div class="org-cost">⧬ ${def.mp} DNA</div>`;
-    card.addEventListener('click',()=>{
-      selectedOrg=key;
-      document.querySelectorAll('.org-card').forEach(c=>c.classList.remove('selected'));
-      card.classList.add('selected');
-    });
+    const locked=!isUnlocked(key);
+    const card=document.createElement('div');
+    card.className='org-card'+(key===selectedOrg&&!locked?' selected':'')+(locked?' locked':'');
+    card.innerHTML=`<div class="org-dot" style="background:radial-gradient(circle at 35% 35%,${def.color}cc,${def.color}44)"></div><div class="org-name">${def.name}</div><div class="${locked?'org-locked-txt':'org-desc'}">${locked?'Not yet discovered':def.desc}</div><div class="org-cost">${locked?'':'⧬ '+def.mp+' MP'}</div>`;
+    if(!locked){card.addEventListener('click',()=>{selectedOrg=key;document.querySelectorAll('.org-card').forEach(c=>{c.classList.remove('selected');if(c===card)c.classList.add('selected');});});}
     palette.appendChild(card);
   }
 }
