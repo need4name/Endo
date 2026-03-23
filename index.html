@@ -69,25 +69,25 @@ canvas{display:block;position:fixed;top:0;left:0;touch-action:none;-webkit-tap-h
 .gen-bar-fill{height:100%;background:linear-gradient(90deg,#00D4FF,#26FFF8);border-radius:3px;}
 
 /* Editor */
-#editor{position:fixed;inset:0;z-index:60;display:none;flex-direction:column;background:rgba(2,10,19,0.97);}
+#editor{position:fixed;inset:0;z-index:60;display:none;flex-direction:column;background:rgba(2,10,19,0.97);overflow:hidden;}
 #editor.open{display:flex;}
 .editor-header{padding:calc(env(safe-area-inset-top,0px) + 12px) 20px 12px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(0,212,255,0.1);flex-shrink:0;}
 .editor-title{font-size:13px;font-weight:500;color:#A5F8E5;letter-spacing:0.1em;text-transform:uppercase;}
 .editor-cancel{padding:8px 16px;border-radius:20px;background:rgba(231,76,60,0.1);border:1px solid rgba(231,76,60,0.3);color:#E74C3C;font-size:12px;cursor:pointer;touch-action:manipulation;font-family:'IBM Plex Sans',sans-serif;}
-#editor-grid-area{flex:1;display:flex;align-items:center;justify-content:center;min-height:0;position:relative;}
-#editor-canvas-wrap{width:min(300px,78vw);height:min(300px,78vw);position:relative;}
-#editor-canvas{width:100%;height:100%;}
+#editor-grid-area{flex:0 0 auto;display:flex;align-items:center;justify-content:center;padding:8px 0;}
+#editor-canvas-wrap{width:min(220px,55vw);height:min(220px,55vw);position:relative;}
+#editor-canvas{width:100%;height:100%;position:relative;z-index:1;}
 /* complexity bar */
-#complexity-bar{display:flex;align-items:center;gap:8px;padding:6px 16px 0;flex-shrink:0;}
+#complexity-bar{display:flex;align-items:center;gap:8px;padding:4px 16px 0;flex-shrink:0;}
 .cbar-label{font-size:10px;color:#3B5B81;font-family:'IBM Plex Mono',monospace;}
 .cbar-track{flex:1;height:5px;background:rgba(255,255,255,0.05);border-radius:3px;overflow:hidden;}
 .cbar-fill{height:100%;border-radius:3px;transition:width 0.3s,background 0.3s;}
-#editor-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:8px 16px;flex-shrink:0;}
-.e-stat{text-align:center;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:8px;padding:8px 4px;}
+#editor-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding:6px 16px;flex-shrink:0;}
+.e-stat{text-align:center;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:8px;padding:6px 4px;}
 .e-stat-val{font-family:'IBM Plex Mono',monospace;font-size:14px;color:#00D4FF;font-weight:500;}
 .e-stat-label{font-size:9px;color:#3B5B81;text-transform:uppercase;letter-spacing:0.07em;margin-top:2px;}
-#palette-label{padding:0 16px 6px;font-size:10px;color:#3B5B81;text-transform:uppercase;letter-spacing:0.08em;flex-shrink:0;}
-#palette{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:0 16px;overflow-y:auto;flex-shrink:0;max-height:34vh;}
+#palette-label{padding:4px 16px 6px;font-size:10px;color:#3B5B81;text-transform:uppercase;letter-spacing:0.08em;flex-shrink:0;border-top:1px solid rgba(0,212,255,0.08);}
+#palette{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:0 16px;overflow-y:auto;flex-shrink:0;max-height:28vh;}
 .org-card{background:rgba(7,20,38,0.8);border:1px solid rgba(0,212,255,0.1);border-radius:10px;padding:10px;cursor:pointer;touch-action:manipulation;transition:all 0.15s;display:flex;flex-direction:column;gap:3px;}
 .org-card.selected{background:rgba(0,212,255,0.1);border-color:rgba(0,212,255,0.45);box-shadow:0 0 14px rgba(0,212,255,0.12);}
 .org-card.locked{opacity:0.35;cursor:default;}
@@ -97,7 +97,7 @@ canvas{display:block;position:fixed;top:0;left:0;touch-action:none;-webkit-tap-h
 .org-desc{font-size:9px;color:#3B5B81;line-height:1.3;font-style:italic;}
 .org-cost{font-family:'IBM Plex Mono',monospace;font-size:9px;color:#00D4FF;margin-top:1px;}
 .org-locked-txt{font-size:9px;color:#E74C3C;font-style:italic;}
-#editor-footer{padding:10px 16px calc(env(safe-area-inset-bottom,0px) + 10px);flex-shrink:0;}
+#editor-footer{padding:10px 16px calc(env(safe-area-inset-bottom,0px) + 10px);flex-shrink:0;position:relative;z-index:10;}
 #release-btn{width:100%;padding:15px;border-radius:12px;background:rgba(0,212,255,0.12);border:1.5px solid rgba(0,212,255,0.35);color:#00D4FF;font-size:14px;font-weight:500;font-family:'IBM Plex Sans',sans-serif;cursor:pointer;touch-action:manipulation;letter-spacing:0.05em;box-shadow:0 0 20px rgba(0,212,255,0.08);transition:all 0.2s;}
 #release-btn:active{background:rgba(0,212,255,0.22);box-shadow:0 0 30px rgba(0,212,255,0.2);}
 </style>
@@ -258,7 +258,7 @@ const ORG={
   BINDING_AGENT:{name:'Binding Agent',short:'BND',color:'#ffee55',phColor:0xffee55,desc:'Adhesion proteins. Daughter cells remain attached — the first step toward multicellular life.',effect:'Multicellular!',speed:0,energy:-0.4,eat:0,sense:0,defense:0,mp:20,max:2,needsNucleus:true},
 };
 const ORG_KEYS=Object.keys(ORG);
-const PALETTE_KEYS=['NUCLEUS','CELL_WALL','FLAGELLUM','CILIA','VACUOLE','MOUTH','SPIKE','CHEMORECEPTOR','MITOCHONDRIA','CHLOROPLAST','BINDING_AGENT'];
+const PALETTE_KEYS=['NUCLEUS','FLAGELLUM','CILIA','CELL_WALL','VACUOLE','MOUTH','SPIKE','CHEMORECEPTOR','MITOCHONDRIA','CHLOROPLAST','BINDING_AGENT'];
 
 function computeStats(organelles){
   let speed=0,energy=0,eat=1,sense=55,defense=0,hasMouth=false,hasChloro=false,hasNucleus=false,hasFlag=false,hasWall=false,hasBind=false,vacCount=0;
