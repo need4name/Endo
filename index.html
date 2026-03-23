@@ -21,7 +21,7 @@ canvas{display:block;position:fixed;top:0;left:0;touch-action:none;-webkit-tap-h
 .stage-dot.active{background:rgba(0,160,200,0.9);border-color:rgba(0,200,240,0.9);box-shadow:0 0 8px rgba(0,180,220,0.6);}
 .stage-dot.done{background:#00cc88;border-color:#00ffaa;box-shadow:0 0 8px rgba(0,200,140,0.6);}
 /* Guide panel */
-#guide{position:fixed;bottom:calc(env(safe-area-inset-bottom,0px) + 90px);left:12px;right:12px;z-index:25;transition:opacity 0.4s,transform 0.4s;pointer-events:none;opacity:0;transform:translateY(10px);}
+#guide{position:fixed;bottom:calc(env(safe-area-inset-bottom,0px) + 100px);left:12px;right:12px;z-index:25;transition:opacity 0.4s,transform 0.4s;pointer-events:none;opacity:0;transform:translateY(10px);}
 #guide.visible{opacity:1;transform:translateY(0);pointer-events:auto;}
 #guide-inner{background:rgba(255,255,255,0.92);border:2px solid rgba(0,160,200,0.4);border-radius:16px;padding:14px 16px;backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);box-shadow:0 4px 20px rgba(0,80,120,0.2);}
 #guide-step{font-size:9px;text-transform:uppercase;letter-spacing:0.12em;color:#0077aa;margin-bottom:4px;font-family:'IBM Plex Mono',monospace;}
@@ -671,13 +671,13 @@ class WorldScene extends Phaser.Scene{
     this.spawnNutrients(Math.floor(MAX_NUTRIENTS*0.65));
     this.cameras.main.setBackgroundColor(0x0ab5cc);
     this.cameras.main.centerOn(0,0);
-    this.cameras.main.setZoom(1.5);
+    this.cameras.main.setZoom(0.35);
     this.setupCam();this.setupParticles();
     // Starter cells
-    this.time.delayedCall(800,()=>showGuide(0));
+    showGuide(0);
     this.time.delayedCall(300,()=>{
       for(let i=0;i<4;i++){
-        const ang=Math.random()*Math.PI*2,dist=500+Math.random()*700;
+        const ang=Math.random()*Math.PI*2,dist=200+Math.random()*300;
         this.spawnCell({organelles:['CYTOPLASM'],colorHue:Math.random()*360,mutationRate:0.05+Math.random()*0.05,divisionThreshold:0.72},Math.cos(ang)*dist,Math.sin(ang)*dist);
       }
     });
@@ -711,13 +711,14 @@ class WorldScene extends Phaser.Scene{
   setupCam(){
     const cam=this.cameras.main;
     let drag=false,dsx=0,dsy=0,csx=0,csy=0,pinch=false,psd=0,psz=1,tpx=0,tpy=0;
-    this.input.on('pointerdown',p=>{if(p.id===1){drag=true;dsx=p.x;dsy=p.y;csx=cam.scrollX;csy=cam.scrollY;tpx=p.x;tpy=p.y;}});
+    const isPrimary=p=>p===this.input.pointer1||p.id<=1;
+    this.input.on('pointerdown',p=>{if(isPrimary(p)){drag=true;dsx=p.x;dsy=p.y;csx=cam.scrollX;csy=cam.scrollY;tpx=p.x;tpy=p.y;}});
     this.input.on('pointermove',p=>{
       const p1=this.input.pointer1,p2=this.input.pointer2;
       if(p1.isDown&&p2.isDown){drag=false;const d=Phaser.Math.Distance.Between(p1.x,p1.y,p2.x,p2.y);if(!pinch){pinch=true;psd=d;psz=cam.zoom;}else cam.setZoom(Phaser.Math.Clamp(psz*(d/psd),0.3,5));const mx=(p1.x+p2.x)/2,my=(p1.y+p2.y)/2,pmx=(p1.prevPosition.x+p2.prevPosition.x)/2,pmy=(p1.prevPosition.y+p2.prevPosition.y)/2;cam.scrollX-=(mx-pmx)/cam.zoom;cam.scrollY-=(my-pmy)/cam.zoom;return;}
-      pinch=false;if(drag&&p.id===1){cam.scrollX=csx-(p.x-dsx)/cam.zoom;cam.scrollY=csy-(p.y-dsy)/cam.zoom;this.clampCam();}
+      pinch=false;if(drag&&isPrimary(p)){cam.scrollX=csx-(p.x-dsx)/cam.zoom;cam.scrollY=csy-(p.y-dsy)/cam.zoom;this.clampCam();}
     });
-    this.input.on('pointerup',p=>{if(p.id!==1)return;pinch=false;if(Math.abs(p.x-tpx)<8&&Math.abs(p.y-tpy)<8)this.tapWorld(p.x,p.y);drag=false;});
+    this.input.on('pointerup',p=>{if(!isPrimary(p))return;pinch=false;if(Math.abs(p.x-tpx)<8&&Math.abs(p.y-tpy)<8)this.tapWorld(p.x,p.y);drag=false;});
     this.input.on('wheel',(_p,_x,_y,dz)=>{cam.setZoom(Phaser.Math.Clamp(cam.zoom-dz*0.001,0.3,5));this.clampCam();});
   }
   clampCam(){const cam=this.cameras.main,vr=Math.hypot(cam.width,cam.height)/(2*cam.zoom),md=Math.max(0,WORLD_RADIUS-vr),cx=cam.scrollX+cam.width/(2*cam.zoom),cy=cam.scrollY+cam.height/(2*cam.zoom),d=Math.hypot(cx,cy);if(d>md){const s=md/d;cam.scrollX=cx*s-cam.width/(2*cam.zoom);cam.scrollY=cy*s-cam.height/(2*cam.zoom);}}
