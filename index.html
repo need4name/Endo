@@ -675,8 +675,12 @@ class BootScene extends Phaser.Scene{
     this.add.text(W/2,H*0.42+18,'vents · abyss · twilight · shallows',{fontFamily:"'IBM Plex Mono',monospace",fontSize:'9px',color:'#1a3a55',letterSpacing:2}).setOrigin(0.5);
     const tapTxt=this.add.text(W/2,H*0.74,'tap to begin',{fontFamily:"'IBM Plex Mono',monospace",fontSize:'13px',color:'#1a4a66',letterSpacing:3}).setOrigin(0.5).setAlpha(0);
     this.tweens.add({targets:tapTxt,alpha:0.85,duration:1000,yoyo:true,repeat:-1});
-    let ready=false;
-    this.time.delayedCall(700,()=>{ready=true;});
+    // Auto-start after 2s - don't require tap on mobile
+    this.time.delayedCall(2000,()=>{
+      this.cameras.main.fadeOut(500,0,0,0);
+      this.time.delayedCall(500,()=>this.scene.start('World'));
+    });
+    let ready=true;
     this.events.on('update',(_s,time)=>{
       hexGfx.clear();
       for(const h of hexes){
@@ -688,7 +692,7 @@ class BootScene extends Phaser.Scene{
         hexGfx.closePath();hexGfx.strokePath();
       }
     });
-    this.input.once('pointerdown',()=>{if(!ready)return;this.cameras.main.fadeOut(500,0,0,0);this.time.delayedCall(500,()=>this.scene.start('World'));});
+    this.input.once('pointerdown',()=>{if(!ready)return;this.cameras.main.fadeOut(300,0,0,0);this.time.delayedCall(300,()=>this.scene.start('World'));});
   }
 }
 
@@ -712,6 +716,14 @@ class WorldScene extends Phaser.Scene{
     this.cameras.main.setZoom(1.5);
     this.setupCamera();
     this.setupParticles();
+    // Spawn starter prokaryotes so there's life from day one
+    this.time.delayedCall(200, () => {
+      for(let i=0;i<5;i++){
+        const ang=Math.random()*Math.PI*2, dist=400+Math.random()*600;
+        const genome={organelles:['CYTOPLASM'],colorHue:Math.random()*360,mutationRate:0.06+Math.random()*0.06,divisionThreshold:0.72};
+        this.spawnCell(genome, Math.cos(ang)*dist, Math.sin(ang)*dist);
+      }
+    });
   }
   drawBackground(){
     const g=this.bgLayer;g.clear();
@@ -881,24 +893,22 @@ class WorldScene extends Phaser.Scene{
 
 // ─── PHASER GAME ──────────────────────────────────────────────────────────────
 const game = new Phaser.Game({
-  type:Phaser.WEBGL,
-  width:Math.round(SW*DPR),height:Math.round(SH*DPR),
+  type:Phaser.AUTO,
   backgroundColor:0x020A13,
-  antialias:false,antialiasGL:false,roundPixels:true,
+  antialias:false,roundPixels:true,
   powerPreference:'high-performance',
   autoMobilePipeline:true,
   disableContextMenu:true,
-  scale:{mode:Phaser.Scale.NONE,width:Math.round(SW*DPR),height:Math.round(SH*DPR)},
+  scale:{
+    mode:Phaser.Scale.FIT,
+    autoCenter:Phaser.Scale.CENTER_BOTH,
+    width:SW, height:SH,
+  },
   input:{activePointers:3,touch:{capture:true}},
   scene:[BootScene,WorldScene],
   fps:{target:60,forceSetTimeOut:false},
   banner:false,
 });
-game.canvas.style.width=SW+'px';
-game.canvas.style.height=SH+'px';
-game.canvas.style.position='fixed';
-game.canvas.style.top='0';
-game.canvas.style.left='0';
 
 function getWorldScene(){return game.scene.getScene('World');}
 
@@ -971,10 +981,13 @@ function openEditor(){
   editorGenome={organelles:['CYTOPLASM'],colorHue:150+Math.random()*80,mutationRate:0.08,divisionThreshold:0.75};
   selectedOrg='FLAGELLUM';
   document.getElementById('editor').classList.add('open');
-  setupEditorCanvas();
-  buildPalette();
-  updateEditorStats();
-  drawEditorHex();
+  // Wait for display:flex to take effect before measuring canvas size
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{
+    setupEditorCanvas();
+    buildPalette();
+    updateEditorStats();
+    drawEditorHex();
+  }));
   const ws=getWorldScene();if(ws)ws.simSpeed=0;
 }
 function closeEditor(){
@@ -990,7 +1003,11 @@ document.getElementById('release-btn').addEventListener('click',()=>{
   if(!clean.includes('CYTOPLASM'))clean.unshift('CYTOPLASM');
   const genome={...editorGenome,organelles:clean};
   const ws=getWorldScene();
-  if(ws){ws.simSpeed=1;ws.spawnCell(genome);}
+  if(ws){
+    ws.simSpeed=1;
+    ws.spawnCell(genome);
+    document.querySelectorAll('.speed-btn').forEach(b=>b.classList.toggle('active',parseInt(b.dataset.speed)===1));
+  }
   document.querySelectorAll('.speed-btn').forEach(b=>b.classList.toggle('active',parseInt(b.dataset.speed)===1));
   closeEditor();
 });
@@ -1002,6 +1019,7 @@ function setupEditorCanvas(){
   editorCanvas.width=size;editorCanvas.height=size;
   editorCanvas.style.width=wrap.clientWidth+'px';editorCanvas.style.height=wrap.clientWidth+'px';
   editorCtx=editorCanvas.getContext('2d');
+  editorCanvas.removeEventListener('click',handleEditorTap);
   editorCanvas.addEventListener('click',handleEditorTap);
 }
 
