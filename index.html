@@ -10,26 +10,26 @@
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-html{height:100%;background:#020A13;}
-body{width:100%;height:100dvh;background:#020A13;overflow:hidden;position:fixed;overscroll-behavior:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;font-family:'IBM Plex Sans',system-ui,sans-serif;color:#E0F4FF;touch-action:none;}
+html{height:100%;background:#0ab5cc;}
+body{width:100%;height:100dvh;background:#0ab5cc;overflow:hidden;position:fixed;overscroll-behavior:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;font-family:'IBM Plex Sans',system-ui,sans-serif;color:#E0F4FF;touch-action:none;}
 canvas{display:block;position:fixed;top:0;left:0;touch-action:none;-webkit-tap-highlight-color:transparent;}
-#vignette{position:fixed;inset:0;pointer-events:none;z-index:5;background:radial-gradient(circle at 50% 50%,transparent 40%,rgba(2,10,19,0.25) 62%,rgba(2,10,19,0.65) 80%,rgba(2,10,19,0.92) 100%);}
+#vignette{position:fixed;inset:0;pointer-events:none;z-index:5;background:radial-gradient(circle at 50% 50%,transparent 55%,rgba(0,80,120,0.08) 72%,rgba(0,60,100,0.22) 88%,rgba(0,50,90,0.5) 100%);}
 
 /* Stage strip */
 #stage-strip{position:fixed;top:calc(env(safe-area-inset-top,0px) + 46px);left:0;right:0;display:flex;justify-content:center;gap:8px;z-index:20;pointer-events:none;}
-.stage-dot{width:9px;height:9px;border-radius:50%;border:1.5px solid rgba(0,212,255,0.2);background:rgba(0,212,255,0.04);transition:all 0.5s;}
-.stage-dot.active{background:rgba(0,212,255,0.35);border-color:rgba(0,212,255,0.65);box-shadow:0 0 8px rgba(0,212,255,0.35);}
-.stage-dot.done{background:#26FFF8;border-color:#26FFF8;box-shadow:0 0 6px rgba(38,255,248,0.5);}
+.stage-dot{width:9px;height:9px;border-radius:50%;border:2px solid rgba(0,100,140,0.3);background:rgba(255,255,255,0.4);transition:all 0.5s;}
+.stage-dot.active{background:rgba(0,160,200,0.9);border-color:rgba(0,200,240,0.9);box-shadow:0 0 8px rgba(0,180,220,0.6);}
+.stage-dot.done{background:#00cc88;border-color:#00ffaa;box-shadow:0 0 8px rgba(0,200,140,0.6);}
 /* Guide panel */
 #guide{position:fixed;bottom:calc(env(safe-area-inset-bottom,0px) + 90px);left:12px;right:12px;z-index:25;transition:opacity 0.4s,transform 0.4s;pointer-events:none;opacity:0;transform:translateY(10px);}
 #guide.visible{opacity:1;transform:translateY(0);pointer-events:auto;}
-#guide-inner{background:rgba(4,14,28,0.94);border:1px solid rgba(0,212,255,0.22);border-radius:14px;padding:14px 16px;backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);}
-#guide-step{font-size:9px;text-transform:uppercase;letter-spacing:0.12em;color:#3B5B81;margin-bottom:4px;font-family:'IBM Plex Mono',monospace;}
-#guide-title{font-size:15px;font-weight:500;color:#A5F8E5;margin-bottom:5px;}
-#guide-body{font-size:12px;color:#7BA8C9;line-height:1.55;margin-bottom:10px;}
+#guide-inner{background:rgba(255,255,255,0.92);border:2px solid rgba(0,160,200,0.4);border-radius:16px;padding:14px 16px;backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);box-shadow:0 4px 20px rgba(0,80,120,0.2);}
+#guide-step{font-size:9px;text-transform:uppercase;letter-spacing:0.12em;color:#0077aa;margin-bottom:4px;font-family:'IBM Plex Mono',monospace;}
+#guide-title{font-size:15px;font-weight:600;color:#004466;margin-bottom:5px;}
+#guide-body{font-size:12px;color:#336688;line-height:1.55;margin-bottom:10px;}
 #guide-footer{display:flex;align-items:center;justify-content:space-between;}
-#guide-action{display:inline-flex;align-items:center;gap:6px;background:rgba(0,212,255,0.12);border:1px solid rgba(0,212,255,0.35);border-radius:20px;padding:8px 16px;font-size:12px;color:#00D4FF;cursor:pointer;touch-action:manipulation;}
-#guide-dismiss{font-size:11px;color:#3B5B81;cursor:pointer;touch-action:manipulation;padding:4px 8px;}
+#guide-action{display:inline-flex;align-items:center;gap:6px;background:rgba(0,160,200,0.9);border:2px solid rgba(0,200,240,0.8);border-radius:20px;padding:8px 16px;font-size:12px;color:#ffffff;font-weight:600;cursor:pointer;touch-action:manipulation;box-shadow:0 2px 8px rgba(0,100,150,0.3);}
+#guide-dismiss{font-size:11px;color:#0077aa;cursor:pointer;touch-action:manipulation;padding:4px 8px;}
 /* Unlock flash */
 #unlock-flash{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(4,14,28,0.96);border:1px solid rgba(38,255,248,0.45);border-radius:16px;padding:22px 24px;text-align:center;z-index:200;display:none;backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);box-shadow:0 0 40px rgba(0,212,255,0.18);min-width:220px;}
 .uf-emoji{font-size:34px;margin-bottom:8px;}
@@ -38,8 +38,8 @@ canvas{display:block;position:fixed;top:0;left:0;touch-action:none;-webkit-tap-h
 .uf-desc{font-size:12px;color:#7BA8C9;margin-top:7px;line-height:1.4;}
 /* HUD */
 #hud{position:fixed;top:0;left:0;right:0;padding:calc(env(safe-area-inset-top,0px) + 10px) 16px 10px;display:flex;align-items:center;gap:8px;z-index:20;pointer-events:none;background:linear-gradient(to bottom,rgba(2,10,19,0.7) 0%,transparent 100%);}
-.hud-pill{display:flex;align-items:center;gap:5px;background:rgba(7,20,38,0.7);border:1px solid rgba(0,212,255,0.18);border-radius:20px;padding:5px 10px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:#7BA8C9;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);}
-.hud-pill .val{color:#00D4FF;font-weight:500;}
+.hud-pill{display:flex;align-items:center;gap:5px;background:rgba(255,255,255,0.55);border:1.5px solid rgba(255,255,255,0.8);border-radius:20px;padding:5px 10px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:#004466;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);}
+.hud-pill .val{color:#006688;font-weight:700;}
 
 /* Objective tracker */
 #objectives{position:fixed;top:calc(env(safe-area-inset-top,0px) + 10px);right:12px;z-index:25;max-width:200px;}
@@ -62,11 +62,11 @@ canvas{display:block;position:fixed;top:0;left:0;touch-action:none;-webkit-tap-h
 
 /* Speed controls */
 #speed-controls{position:fixed;bottom:calc(env(safe-area-inset-bottom,0px) + 16px);left:16px;display:flex;gap:6px;z-index:20;}
-.speed-btn{width:42px;height:42px;border-radius:50%;background:rgba(7,20,38,0.8);border:1px solid rgba(0,212,255,0.2);color:#4C8DC2;font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:500;display:flex;align-items:center;justify-content:center;cursor:pointer;-webkit-tap-highlight-color:transparent;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);transition:all 0.15s;touch-action:manipulation;}
-.speed-btn.active{background:rgba(0,212,255,0.15);border-color:rgba(0,212,255,0.5);color:#00D4FF;box-shadow:0 0 12px rgba(0,212,255,0.2);}
+.speed-btn{width:42px;height:42px;border-radius:50%;background:rgba(255,255,255,0.6);border:2px solid rgba(255,255,255,0.9);color:#005577;font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:500;display:flex;align-items:center;justify-content:center;cursor:pointer;-webkit-tap-highlight-color:transparent;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);transition:all 0.15s;touch-action:manipulation;}
+.speed-btn.active{background:rgba(0,180,220,0.85);border-color:#00aadd;color:#ffffff;box-shadow:0 3px 10px rgba(0,100,150,0.35);}
 
 /* Create button */
-#create-btn{position:fixed;bottom:calc(env(safe-area-inset-bottom,0px) + 16px);right:16px;width:58px;height:58px;border-radius:50%;background:rgba(0,212,255,0.12);border:1.5px solid rgba(0,212,255,0.45);color:#00D4FF;font-size:28px;line-height:1;display:flex;align-items:center;justify-content:center;cursor:pointer;-webkit-tap-highlight-color:transparent;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);z-index:20;transition:all 0.2s;box-shadow:0 0 20px rgba(0,212,255,0.15);touch-action:manipulation;}
+#create-btn{position:fixed;bottom:calc(env(safe-area-inset-bottom,0px) + 16px);right:16px;width:58px;height:58px;border-radius:50%;background:rgba(0,180,220,0.9);border:2.5px solid rgba(255,255,255,0.9);color:#ffffff;font-size:28px;line-height:1;display:flex;align-items:center;justify-content:center;cursor:pointer;-webkit-tap-highlight-color:transparent;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);z-index:20;transition:all 0.2s;box-shadow:0 0 20px rgba(0,212,255,0.15);touch-action:manipulation;}
 #create-btn:active{background:rgba(0,212,255,0.25);box-shadow:0 0 30px rgba(0,212,255,0.3);transform:scale(0.95);}
 
 /* Inspector */
@@ -237,40 +237,40 @@ const SW=window.innerWidth,SH=window.innerHeight;
 
 // ─── BIOMES ───────────────────────────────────────────────────────────────────
 const BIOMES=[
-  {name:'Hydrothermal Vents',emoji:'🔥',desc:'Chemical energy · High mutation',inner:0,outer:600,bg:0x1a0305,accent:0xcc2200,mutMult:2.0,drainMult:1.8,nutMult:1.0,lightMult:0.0,chemMult:2.5},
-  {name:'The Abyss',emoji:'🌑',desc:'No light · Crushing pressure',inner:600,outer:1200,bg:0x030610,accent:0x1133aa,mutMult:1.5,drainMult:1.6,nutMult:0.3,lightMult:0.0,chemMult:0.4},
-  {name:'Twilight Zone',emoji:'🌊',desc:'Fading light · Marine snow',inner:1200,outer:1900,bg:0x071525,accent:0x2255aa,mutMult:1.2,drainMult:1.1,nutMult:0.7,lightMult:0.3,chemMult:0.2},
-  {name:'Sunlit Shallows',emoji:'☀️',desc:'Full sunlight · Rich nutrients',inner:1900,outer:2600,bg:0x083040,accent:0x44aacc,mutMult:1.0,drainMult:0.8,nutMult:1.0,lightMult:1.0,chemMult:0.05},
+  {name:'Hydrothermal Vents',emoji:'🔥',desc:'Chemical energy · High mutation',inner:0,outer:600,bg:0xff6633,accent:0xff3300,mutMult:2.0,drainMult:1.8,nutMult:1.0,lightMult:0.0,chemMult:2.5},
+  {name:'The Abyss',emoji:'🌑',desc:'No light · Crushing pressure',inner:600,outer:1200,bg:0x1a2eaa,accent:0x4466ff,mutMult:1.5,drainMult:1.6,nutMult:0.3,lightMult:0.0,chemMult:0.4},
+  {name:'Twilight Zone',emoji:'🌊',desc:'Fading light · Marine snow',inner:1200,outer:1900,bg:0x0e7aaa,accent:0x22bbdd,mutMult:1.2,drainMult:1.1,nutMult:0.7,lightMult:0.3,chemMult:0.2},
+  {name:'Sunlit Shallows',emoji:'☀️',desc:'Full sunlight · Rich nutrients',inner:1900,outer:2600,bg:0x0ab5cc,accent:0x00eeff,mutMult:1.0,drainMult:0.8,nutMult:1.0,lightMult:1.0,chemMult:0.05},
 ];
 function getBiome(x,y){const d=Math.sqrt(x*x+y*y);for(const b of BIOMES)if(d>=b.inner&&d<=b.outer)return b;return BIOMES[3];}
 
 // ─── FIVE ARCHETYPE PROGRESSION ──────────────────────────────────────────────
 const ARCHETYPES = [
-  {id:'producer', step:0, emoji:'🌿', name:'The Producer',
+  {id:'producer', step:0, emoji:'🌿', name:'The Bottom of the Food Chain',
    desc:'A cell that feeds on sunlight near the surface, or on chemical energy from the vents. This is the foundation — without producers, nothing else can eat.',
    hint:'Add a Chloroplast to feed on sunlight. Near the vents, a Chemoreceptor harvests chemical energy instead.',
    startOrg:'CHLOROPLAST',
    unlocks:['CHLOROPLAST','CHEMORECEPTOR','CILIA'],
    check:(cells)=>cells.some(c=>c.genome.organelles.includes('CHLOROPLAST')||c.genome.organelles.includes('CHEMORECEPTOR'))},
-  {id:'predator', step:1, emoji:'🦷', name:'The Predator',
+  {id:'predator', step:1, emoji:'🦷', name:'The Next Link',
    desc:'Your producers are thriving. Now introduce a hunter. A cell with a Cytostome can engulf and disassemble weaker cells — this creates your first food chain.',
    hint:'Add a Cytostome. Your predator will actively hunt cells smaller and weaker than itself.',
    startOrg:'MOUTH',
    unlocks:['MOUTH','FLAGELLUM','SPIKE'],
    check:(cells)=>cells.some(c=>c.genome.organelles.includes('MOUTH'))},
-  {id:'armoured', step:2, emoji:'🛡️', name:'The Armoured Producer',
+  {id:'armoured', step:2, emoji:'🛡️', name:'Survival of the Fittest',
    desc:'Your producers are being eaten. Reinforce them. A Cell Wall provides passive protection. A Binding Agent allows daughter cells to stay together — the first step toward multicellular plant life.',
    hint:'Add a Cell Wall to your producer to protect against predators.',
    startOrg:'CELL_WALL',
    unlocks:['CELL_WALL','VACUOLE','BINDING_AGENT'],
    check:(cells)=>cells.some(c=>(c.genome.organelles.includes('CHLOROPLAST')||c.genome.organelles.includes('CHEMORECEPTOR'))&&(c.genome.organelles.includes('CELL_WALL')||c.genome.organelles.includes('BINDING_AGENT')))},
-  {id:'hunter', step:3, emoji:'⚡', name:'The Hunter',
+  {id:'hunter', step:3, emoji:'⚡', name:'The First Animal',
    desc:'Speed and aggression. A predator with both a Cytostome and Flagellum is a fast, efficient apex — and the ancestor of all animal-like multicellular life.',
    hint:'Build a cell with both a Cytostome and a Flagellum together.',
    startOrg:'MOUTH',
    unlocks:['MITOCHONDRIA'],
    check:(cells)=>cells.some(c=>c.genome.organelles.includes('MOUTH')&&c.genome.organelles.includes('FLAGELLUM'))},
-  {id:'decomposer', step:4, emoji:'🍄', name:'The Decomposer',
+  {id:'decomposer', step:4, emoji:'🍄', name:'The Cycle of Life',
    desc:'Life cannot progress without decay. A Vacuole-based cell absorbs nutrients from the dead — completing the food cycle and founding fungal life.',
    hint:'Add a Vacuole. Your decomposer thrives wherever cells have died.',
    startOrg:'VACUOLE',
@@ -435,7 +435,7 @@ class Cell{
     const hue=this.genome.colorHue/360;
     const er=Math.max(0,this.energy/this.stats.maxEnergy);
     const dp=this.damagePulse;
-    const gH=dp>0?0:hue,sat=dp>0?0:(0.45+er*0.2),val=dp>0?0.85:(0.28+er*0.28);
+    const gH=dp>0?0:hue,sat=dp>0?0:(0.7+er*0.15),val=dp>0?0.95:(0.72+er*0.22);
     const glowC=Phaser.Display.Color.HSVToRGB(gH,sat,0.9).color;
     const bodyC=Phaser.Display.Color.HSVToRGB(gH,sat,val).color;
     const innerC=Phaser.Display.Color.HSVToRGB(gH,0.15,0.72+er*0.12).color;
@@ -460,8 +460,8 @@ class Cell{
     g.fillStyle(innerC,0.5*alpha);
     g.fillCircle(this.x,this.y,r*0.7);
     // Membrane
-    g.lineStyle(1.5,glowC,(0.7+er*0.2)*alpha);
-    g.strokeCircle(this.x,this.y,r);
+    g.lineStyle(3.5,0x000000,0.45*alpha);g.strokeCircle(this.x,this.y,r);
+    g.lineStyle(2,glowC,0.95*alpha);g.strokeCircle(this.x,this.y,r-1.5);
 
     // ─── ICONIC ORGANELLE SHAPES ────────────────────────────────────────────
     // Each organelle drawn as a distinct recognisable shape
@@ -626,7 +626,7 @@ class Cell{
 
 // ─── NUTRIENT ─────────────────────────────────────────────────────────────────
 class Nutrient{
-  constructor(x,y){this.x=x;this.y=y;this.available=true;this.dead=false;this.phase=Math.random()*Math.PI*2;this.dx=0.3+Math.random()*0.9;this.dy=0.3+Math.random()*0.9;this.size=1.6+Math.random()*2.2;const tp=['organic','organic','organic','mineral','light'][Math.floor(Math.random()*5)];this.color=tp==='organic'?0x76E0B0:tp==='mineral'?0x00D4FF:0xffee44;this.energy=10+Math.random()*15;}
+  constructor(x,y){this.x=x;this.y=y;this.available=true;this.dead=false;this.phase=Math.random()*Math.PI*2;this.dx=0.3+Math.random()*0.9;this.dy=0.3+Math.random()*0.9;this.size=1.6+Math.random()*2.2;const tp=['organic','organic','organic','mineral','light'][Math.floor(Math.random()*5)];this.color=tp==='organic'?0x44dd55:tp==='mineral'?0xff44aa:0xffdd00;this.energy=10+Math.random()*15;}
   consume(){this.available=false;this.dead=true;return this.energy;}
   update(dt,time){if(!this.available)return;const t=time/1000;this.x+=Math.sin(t*this.dx+this.phase)*0.28;this.y+=Math.cos(t*this.dy+this.phase*1.3)*0.28;}
 }
@@ -637,17 +637,17 @@ class BootScene extends Phaser.Scene{
   create(){
     const W=this.scale.width,H=this.scale.height;
     const g=this.add.graphics();
-    for(let r=W*1.5;r>0;r-=8){const t=1-(r/(W*1.5));g.fillStyle(Phaser.Display.Color.GetColor(Math.floor(2+t*10),Math.floor(10+t*8),Math.floor(19+t*22)),1);g.fillCircle(W/2,H/2,r);}
+    for(let r=W*1.5;r>0;r-=8){const t=1-(r/(W*1.5));g.fillStyle(Phaser.Display.Color.GetColor(Math.floor(10+t*20),Math.floor(120+t*50),Math.floor(160+t*55)),1);g.fillCircle(W/2,H/2,r);}
     const hg=this.add.graphics();
     const hexes=Array.from({length:22},()=>({x:Math.random()*W,y:Math.random()*H,r:6+Math.random()*18,a:Math.random()*Math.PI*2,spd:0.006+Math.random()*0.01}));
-    this.add.text(W/2,H*0.28,'ENDO',{fontFamily:"'IBM Plex Sans',monospace",fontSize:'64px',fontStyle:'300',color:'#1a3a6a',stroke:'#000a1a',strokeThickness:4}).setOrigin(0.5);
-    this.add.text(W/2,H*0.28+68,'evolution simulation',{fontFamily:"'IBM Plex Mono',monospace",fontSize:'13px',color:'#2a5577',letterSpacing:4}).setOrigin(0.5);
+    this.add.text(W/2,H*0.28,'ENDO',{fontFamily:"'IBM Plex Sans',monospace",fontSize:'64px',fontStyle:'300',color:'#ffffff',stroke:'#0077aa',strokeThickness:6}).setOrigin(0.5);
+    this.add.text(W/2,H*0.28+68,'evolution simulation',{fontFamily:"'IBM Plex Mono',monospace",fontSize:'13px',color:'#aaeeff',letterSpacing:4}).setOrigin(0.5);
     // Biome dots
     [{c:0xcc2200,l:'vents'},{c:0x1133aa,l:'abyss'},{c:0x2255aa,l:'twilight'},{c:0x44aacc,l:'shallows'}].forEach((b,i)=>{
       const bx=W/2+(i-1.5)*32,by=H*0.40;const dg=this.add.graphics();dg.fillStyle(b.c,0.7);dg.fillCircle(bx,by,5);dg.fillStyle(b.c,0.15);dg.fillCircle(bx,by,10);
     });
-    this.add.text(W/2,H*0.40+18,'vents · abyss · twilight · shallows',{fontFamily:"'IBM Plex Mono',monospace",fontSize:'9px',color:'#1a3a55',letterSpacing:2}).setOrigin(0.5);
-    const tapTxt=this.add.text(W/2,H*0.72,'tap to begin',{fontFamily:"'IBM Plex Mono',monospace",fontSize:'13px',color:'#1a4a66',letterSpacing:3}).setOrigin(0.5).setAlpha(0);
+    this.add.text(W/2,H*0.40+18,'vents · abyss · twilight · shallows',{fontFamily:"'IBM Plex Mono',monospace",fontSize:'9px',color:'#88ddff',letterSpacing:2}).setOrigin(0.5);
+    const tapTxt=this.add.text(W/2,H*0.72,'tap to begin',{fontFamily:"'IBM Plex Mono',monospace",fontSize:'13px',color:'#ffffff',letterSpacing:3}).setOrigin(0.5).setAlpha(0);
     this.tweens.add({targets:tapTxt,alpha:0.85,duration:1000,yoyo:true,repeat:-1});
     this.time.delayedCall(2000,()=>{this.cameras.main.fadeOut(500,0,0,0);this.time.delayedCall(500,()=>this.scene.start('World'));});
     this.input.once('pointerdown',()=>{this.cameras.main.fadeOut(300,0,0,0);this.time.delayedCall(300,()=>this.scene.start('World'));});
@@ -669,7 +669,7 @@ class WorldScene extends Phaser.Scene{
     this.cellLayer=this.add.graphics().setDepth(3);
     this.drawBg();
     this.spawnNutrients(Math.floor(MAX_NUTRIENTS*0.65));
-    this.cameras.main.setBackgroundColor(0x020A13);
+    this.cameras.main.setBackgroundColor(0x0ab5cc);
     this.cameras.main.centerOn(0,0);
     this.cameras.main.setZoom(1.5);
     this.setupCam();this.setupParticles();
@@ -693,20 +693,20 @@ class WorldScene extends Phaser.Scene{
       g.fillStyle(Phaser.Display.Color.GetColor(col.r,col.g,col.b),1);
       g.fillCircle(0,0,r+WORLD_RADIUS/steps+2);
     }
-    for(const b of BIOMES){g.lineStyle(3,b.accent,0.08);g.strokeCircle(0,0,b.outer);}
+    for(const b of BIOMES){g.lineStyle(5,b.accent,0.35);g.strokeCircle(0,0,b.outer);}
     const hs=58,cols=Math.ceil(WORLD_RADIUS*2/(hs*1.5))+2,rows=Math.ceil(WORLD_RADIUS*2/(hs*0.866))+2;
-    g.lineStyle(0.6,0x0e2540,0.18);
+    g.lineStyle(1.0,0x007799,0.12);
     for(let row=-rows;row<rows;row++)for(let col=-cols;col<cols;col++){
       const x=col*hs*1.5+(row%2===0?0:hs*0.75)-WORLD_RADIUS,y=row*hs*0.866-WORLD_RADIUS;
       if(x*x+y*y>(WORLD_RADIUS+80)*(WORLD_RADIUS+80))continue;
       for(let i=0;i<6;i++){const a1=(i/6)*Math.PI*2+Math.PI/6,a2=((i+1)/6)*Math.PI*2+Math.PI/6;g.beginPath();g.moveTo(x+Math.cos(a1)*hs*0.5,y+Math.sin(a1)*hs*0.5);g.lineTo(x+Math.cos(a2)*hs*0.5,y+Math.sin(a2)*hs*0.5);g.strokePath();}
     }
-    for(let i=0;i<50;i++){const ang=Math.random()*Math.PI*2,dist=1700+Math.random()*800,px=Math.cos(ang)*dist,py=Math.sin(ang)*dist,cr=25+Math.random()*100;g.fillStyle(0x0f3355,0.04+Math.random()*0.05);g.fillEllipse(px,py,cr,cr*(0.25+Math.random()*0.45));}
-    for(let r=WORLD_RADIUS+5;r<WORLD_RADIUS+350;r+=7){g.lineStyle(10,0x010508,Math.min(1,(r-WORLD_RADIUS)/180));g.strokeCircle(0,0,r);}
+    // (light caustic blobs removed for bright aesthetic)
+    for(let r=WORLD_RADIUS+5;r<WORLD_RADIUS+350;r+=7){g.lineStyle(12,0x0077aa,Math.min(0.7,(r-WORLD_RADIUS)/180));g.strokeCircle(0,0,r);}
   }
   setupParticles(){
     this._parts=[];
-    for(let i=0;i<60;i++)this._parts.push({x:(Math.random()-0.5)*WORLD_RADIUS*2,y:(Math.random()-0.5)*WORLD_RADIUS*2,size:0.4+Math.random()*1.4,spd:0.08+Math.random()*0.25,ang:Math.random()*Math.PI*2,alpha:0.04+Math.random()*0.12,color:[0x00D4FF,0x26FFF8,0x76E0B0,0xffffff,0x4C8DC2][Math.floor(Math.random()*5)],drift:Math.random()*Math.PI*2});
+    for(let i=0;i<60;i++)this._parts.push({x:(Math.random()-0.5)*WORLD_RADIUS*2,y:(Math.random()-0.5)*WORLD_RADIUS*2,size:0.8+Math.random()*2.0,spd:0.08+Math.random()*0.25,ang:Math.random()*Math.PI*2,alpha:0.12+Math.random()*0.2,color:[0xffffff,0xffee99,0xccffff,0xffffff,0xaaffee][Math.floor(Math.random()*5)],drift:Math.random()*Math.PI*2});
   }
   setupCam(){
     const cam=this.cameras.main;
@@ -764,7 +764,7 @@ class WorldScene extends Phaser.Scene{
     const pg=this.partLayer;pg.clear();
     for(const p of this._parts){p.drift+=dt*0.2;p.x+=Math.cos(p.drift)*p.spd;p.y-=p.spd*0.3;const d=Math.hypot(p.x,p.y);if(d>WORLD_RADIUS*0.98){const s=(WORLD_RADIUS*0.5)/d;p.x*=s;p.y*=s;}pg.fillStyle(p.color,p.alpha*(0.7+Math.sin(time/3000+p.drift)*0.3));pg.fillCircle(p.x,p.y,p.size);}
     const ng=this.nutLayer;ng.clear();
-    for(const n of this.nutrients){if(!n.available)continue;const pulse=1+Math.sin(time/1000*2+n.phase)*0.35;ng.fillStyle(n.color,0.08);ng.fillCircle(n.x,n.y,n.size*pulse*2.5);ng.fillStyle(n.color,0.85);ng.fillCircle(n.x,n.y,n.size*pulse);ng.fillStyle(0xffffff,0.35);ng.fillCircle(n.x-n.size*0.25,n.y-n.size*0.25,n.size*0.4);}
+    for(const n of this.nutrients){if(!n.available)continue;const pulse=1+Math.sin(time/1000*2+n.phase)*0.35;ng.fillStyle(0x000000,0.12);ng.fillCircle(n.x+1,n.y+1,n.size*pulse*1.5);ng.fillStyle(n.color,0.95);ng.fillCircle(n.x,n.y,n.size*pulse*1.8);ng.fillStyle(0xffffff,0.55);ng.fillCircle(n.x-n.size*0.3,n.y-n.size*0.3,n.size*0.55);}
     const cg=this.cellLayer;cg.clear();
     for(const c of this.cells){if(c.dead&&!c.dying)continue;c.render(cg,time);}
   }
@@ -772,7 +772,7 @@ class WorldScene extends Phaser.Scene{
 
 // ─── PHASER GAME ──────────────────────────────────────────────────────────────
 const game=new Phaser.Game({
-  type:Phaser.AUTO,backgroundColor:0x020A13,antialias:false,roundPixels:true,
+  type:Phaser.AUTO,backgroundColor:0x0ab5cc,antialias:false,roundPixels:true,
   powerPreference:'high-performance',autoMobilePipeline:true,disableContextMenu:true,
   scale:{mode:Phaser.Scale.FIT,autoCenter:Phaser.Scale.CENTER_BOTH,width:SW,height:SH},
   input:{activePointers:3,touch:{capture:true}},
