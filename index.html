@@ -97,7 +97,7 @@ canvas{display:block;position:fixed;top:0;left:0;touch-action:none;-webkit-tap-h
 .org-desc{font-size:9px;color:#3B5B81;line-height:1.3;font-style:italic;}
 .org-cost{font-family:'IBM Plex Mono',monospace;font-size:9px;color:#00D4FF;margin-top:1px;}
 .org-locked-txt{font-size:9px;color:#E74C3C;font-style:italic;}
-#editor-footer{padding:10px 16px calc(env(safe-area-inset-bottom,0px) + 10px);flex-shrink:0;position:relative;z-index:10;}
+#editor-footer{padding:10px 16px calc(env(safe-area-inset-bottom,0px) + 90px);flex-shrink:0;position:relative;z-index:10;}
 #release-btn{width:100%;padding:15px;border-radius:12px;background:rgba(0,212,255,0.12);border:1.5px solid rgba(0,212,255,0.35);color:#00D4FF;font-size:14px;font-weight:500;font-family:'IBM Plex Sans',sans-serif;cursor:pointer;touch-action:manipulation;letter-spacing:0.05em;box-shadow:0 0 20px rgba(0,212,255,0.08);transition:all 0.2s;}
 #release-btn:active{background:rgba(0,212,255,0.22);box-shadow:0 0 30px rgba(0,212,255,0.2);}
 </style>
@@ -160,6 +160,9 @@ canvas{display:block;position:fixed;top:0;left:0;touch-action:none;-webkit-tap-h
     <div class="gen-bar-wrap">
       <div class="gen-bar-label"><span>Lineage depth</span><span id="insp-gen-num">Gen 0</span></div>
       <div class="gen-bar-track"><div class="gen-bar-fill" id="insp-gen-bar" style="width:0%"></div></div>
+    </div>
+    <div id="edit-cell-btn" style="margin-top:14px;width:100%;padding:12px;border-radius:10px;background:rgba(0,212,255,0.1);border:1.5px solid rgba(0,212,255,0.3);color:#00D4FF;font-size:13px;font-weight:500;text-align:center;cursor:pointer;touch-action:manipulation;font-family:'IBM Plex Sans',sans-serif;letter-spacing:0.04em;">
+      ✏️  Edit this cell's genome
     </div>
   </div>
 </div>
@@ -244,7 +247,7 @@ function getComplexityCap(){
 
 // ─── ORGANELLE DEFINITIONS ────────────────────────────────────────────────────
 const ORG={
-  CYTOPLASM:{name:'Cytoplasm',short:'CYT',color:'#aaddff',phColor:0xaaddff,desc:'Living substrate. Passive energy from chemical gradients.',effect:'+Energy',speed:0,energy:0.3,eat:0,sense:0,defense:0.5,mp:0,max:99,needsNucleus:false},
+  CYTOPLASM:{name:'Cytoplasm',short:'CYT',color:'#aaddff',phColor:0xaaddff,desc:'Living substrate. Passive energy from chemical gradients.',effect:'+Energy',speed:0,energy:0.55,eat:0,sense:0,defense:0.5,mp:0,max:99,needsNucleus:false},
   NUCLEUS:{name:'Nucleus',short:'NUC',color:'#ffbb44',phColor:0xffbb44,desc:'Command centre. Unlocks advanced organelles and true evolution.',effect:'Unlocks Tier 2',speed:0,energy:-0.4,eat:0,sense:25,defense:0,mp:5,max:1,needsNucleus:false},
   CELL_WALL:{name:'Cell Wall',short:'WAL',color:'#c8a45a',phColor:0xc8a45a,desc:'Rigid polysaccharide lattice. Exceptional protection at the cost of motility.',effect:'+Defense +4',speed:-8,energy:-0.1,eat:0,sense:0,defense:4.0,mp:8,max:1,needsNucleus:false},
   FLAGELLUM:{name:'Flagellum',short:'FLA',color:'#44ff99',phColor:0x44ff99,desc:'Rhythmic flagellar motor propels the cell through viscous media.',effect:'+Speed +42',speed:42,energy:-0.7,eat:0,sense:0,defense:0,mp:10,max:4,needsNucleus:false},
@@ -354,7 +357,7 @@ class Cell{
     this.age++;const biome=getBiome(this.x,this.y);
     const light=this.stats.hasChloro?this.stats.energy*biome.lightMult*0.5:0;
     this.energy+=this.stats.energy*dt*7+light*dt*7;
-    this.energy-=1.2*biome.drainMult*dt;
+    this.energy-=0.65*biome.drainMult*dt;
     this.energy=Math.max(0,Math.min(this.stats.maxEnergy,this.energy));
     if(this.energy<=0){this.startDying();return;}
     if(this.damagePulse>0)this.damagePulse=Math.max(0,this.damagePulse-dt*3.5);
@@ -801,6 +804,19 @@ function openInspector(cell){
   document.getElementById('inspector').classList.add('open');
 }
 document.getElementById('insp-close').addEventListener('click',()=>document.getElementById('inspector').classList.remove('open'));
+
+let inspectedCell = null;
+const _origOpenInspector = openInspector;
+function openInspector(cell) {
+  inspectedCell = cell;
+  _origOpenInspector(cell);
+}
+
+document.getElementById('edit-cell-btn').addEventListener('click', () => {
+  if (!inspectedCell || inspectedCell.dead) return;
+  document.getElementById('inspector').classList.remove('open');
+  openEditorForCell(inspectedCell);
+});
 document.getElementById('inspector').addEventListener('click',e=>{if(e.target===document.getElementById('inspector'))document.getElementById('inspector').classList.remove('open');});
 
 // ─── SPEED CONTROLS ───────────────────────────────────────────────────────────
@@ -811,9 +827,32 @@ let editorGenome={organelles:['CYTOPLASM'],colorHue:160+Math.random()*60,mutatio
 let selectedOrg='NUCLEUS';
 let edCanvas,edCtx;
 
+function openEditorForCell(cell) {
+  // Pre-populate editor with this cell's genome
+  editorGenome = {
+    organelles: [...cell.genome.organelles],
+    colorHue: cell.genome.colorHue,
+    mutationRate: cell.genome.mutationRate,
+    divisionThreshold: cell.genome.divisionThreshold,
+  };
+  editorMode = 'edit';
+  editTargetCell = cell;
+  selectedOrg = editorGenome.organelles.find(o => o !== 'CYTOPLASM' && ORG[o]) || 'NUCLEUS';
+  document.getElementById('editor').classList.add('open');
+  document.getElementById('release-btn').textContent = '🔬  Apply genome to this cell';
+  const ws = getWS(); if (ws) ws.simSpeed = 0;
+  document.querySelectorAll('.speed-btn').forEach(b => b.classList.toggle('active', parseInt(b.dataset.speed) === 0));
+  requestAnimationFrame(() => requestAnimationFrame(() => { setupEdCanvas(); buildPalette(); updateEdStats(); updateComplexityBar(); drawEdHex(); }));
+}
+
+let editorMode = 'create'; // 'create' or 'edit'
+let editTargetCell = null;
+
 function openEditor(){
+  editorMode = 'create'; editTargetCell = null;
   editorGenome={organelles:['CYTOPLASM'],colorHue:160+Math.random()*60,mutationRate:0.08,divisionThreshold:0.75};
   selectedOrg=isUnlocked('NUCLEUS')?'NUCLEUS':'CYTOPLASM';
+  document.getElementById('release-btn').textContent = '🌊  Release into the ocean';
   document.getElementById('editor').classList.add('open');
   const ws=getWS();if(ws)ws.simSpeed=0;
   document.querySelectorAll('.speed-btn').forEach(b=>b.classList.toggle('active',parseInt(b.dataset.speed)===0));
@@ -830,7 +869,15 @@ document.getElementById('release-btn').addEventListener('click',()=>{
   const clean=editorGenome.organelles.filter(o=>o&&ORG[o]);
   if(!clean.includes('CYTOPLASM'))clean.unshift('CYTOPLASM');
   const ws=getWS();
-  if(ws){ws.simSpeed=1;ws.spawnCell({...editorGenome,organelles:clean});}
+  if(editorMode === 'edit' && editTargetCell && !editTargetCell.dead) {
+    // Apply genome changes to the living cell
+    editTargetCell.genome = {...editorGenome, organelles: clean};
+    editTargetCell.stats = computeStats(clean);
+    editTargetCell.radius = 10 + editTargetCell.stats.organelleCount * 1.3;
+    if(ws) ws.simSpeed=1;
+  } else {
+    if(ws){ws.simSpeed=1;ws.spawnCell({...editorGenome,organelles:clean});}
+  }
   document.querySelectorAll('.speed-btn').forEach(b=>b.classList.toggle('active',parseInt(b.dataset.speed)===1));
   closeEditor();
 });
