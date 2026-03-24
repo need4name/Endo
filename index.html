@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -13,11 +14,11 @@
 html{height:100%;background:#0ab8d4;}
 body{width:100%;height:100dvh;background:#0ab8d4;overflow:hidden;position:fixed;overscroll-behavior:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;font-family:'IBM Plex Sans',system-ui,sans-serif;color:#E0F4FF;touch-action:none;}
 canvas{display:block;position:fixed;top:0;left:0;touch-action:none;-webkit-tap-highlight-color:transparent;}
-#vignette{position:fixed;inset:0;pointer-events:none;z-index:5;background:radial-gradient(circle at 50% 50%,transparent 55%,rgba(0,80,120,0.06) 72%,rgba(0,60,100,0.2) 88%,rgba(0,50,90,0.45) 100%);}
+#vignette{position:fixed;inset:0;pointer-events:none;z-index:5;background:radial-gradient(circle at 50% 50%,transparent 55%,rgba(0,80,120,0.06) 72%,rgba(0,60,100,0.18) 88%,rgba(0,50,90,0.42) 100%);}
 
 /* HUD */
 #hud{position:fixed;top:0;left:0;right:0;padding:calc(env(safe-area-inset-top,0px) + 10px) 16px 10px;display:flex;align-items:center;gap:8px;z-index:20;pointer-events:none;background:linear-gradient(to bottom,rgba(2,10,19,0.7) 0%,transparent 100%);}
-.hud-pill{display:flex;align-items:center;gap:5px;background:rgba(255,255,255,0.55);border:1.5px solid rgba(255,255,255,0.85);border-radius:20px;padding:5px 10px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:#004466;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);}
+.hud-pill{display:flex;align-items:center;gap:5px;background:rgba(255,255,255,0.55);border:1.5px solid rgba(255,255,255,0.85);border-radius:20px;padding:5px 10px;font-family:‘IBM Plex Mono’,monospace;font-size:11px;color:#004466;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);}
 .hud-pill .val{color:#006688;font-weight:700;}
 
 /* Stage progress dots */
@@ -25,16 +26,41 @@ canvas{display:block;position:fixed;top:0;left:0;touch-action:none;-webkit-tap-h
 .stage-dot{width:9px;height:9px;border-radius:50%;border:1.5px solid rgba(0,212,255,0.2);background:rgba(0,212,255,0.04);transition:all 0.5s;}
 .stage-dot.active{background:rgba(0,212,255,0.35);border-color:rgba(0,212,255,0.65);box-shadow:0 0 8px rgba(0,212,255,0.35);}
 .stage-dot.done{background:#26FFF8;border-color:#26FFF8;box-shadow:0 0 6px rgba(38,255,248,0.5);}
+/* Objective tracker */
+#obj-tracker{position:fixed;top:calc(env(safe-area-inset-top,0px) + 10px);right:12px;z-index:30;display:flex;flex-direction:column;align-items:flex-end;gap:4px;}
+#obj-tracker-btn{width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,0.7);border:2px solid rgba(255,255,255,0.95);display:flex;align-items:center;justify-content:center;font-size:16px;cursor:pointer;touch-action:manipulation;box-shadow:0 2px 8px rgba(0,80,140,0.15);}
+#obj-tracker-panel{background:rgba(255,255,255,0.96);border:2px solid rgba(0,160,200,0.25);border-radius:12px;padding:12px 14px;min-width:210px;display:none;box-shadow:0 4px 16px rgba(0,80,140,0.15);}
+#obj-tracker-panel.open{display:block;}
+#obj-tracker-title{font-size:9px;text-transform:uppercase;letter-spacing:0.1em;color:#0077aa;margin-bottom:8px;font-family:‘IBM Plex Mono’,monospace;}
+.obj-row{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid #e8f4f8;}
+.obj-row:last-child{border-bottom:none;}
+.obj-tick{width:18px;height:18px;border-radius:4px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px;border:2px solid #c8e0f0;}
+.obj-tick.done{background:#22cc66;border-color:#22cc66;color:#fff;}
+.obj-tick.current{background:#fff3cc;border-color:#ffcc00;color:#886600;}
+.obj-text{font-size:11px;color:#003355;line-height:1.3;flex:1;}
+.obj-text.done{color:#88aacc;text-decoration:line-through;}
+/* Species panel */
+#species-panel{position:fixed;top:calc(env(safe-area-inset-top,0px) + 52px);right:12px;z-index:30;display:flex;flex-direction:column;align-items:flex-end;gap:4px;}
+#species-btn{width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,0.7);border:2px solid rgba(255,255,255,0.95);display:flex;align-items:center;justify-content:center;font-size:16px;cursor:pointer;touch-action:manipulation;box-shadow:0 2px 8px rgba(0,80,140,0.15);}
+#species-dropdown{background:rgba(255,255,255,0.96);border:2px solid rgba(0,160,200,0.25);border-radius:12px;padding:10px 14px;min-width:220px;display:none;box-shadow:0 4px 16px rgba(0,80,140,0.15);}
+#species-dropdown.open{display:block;}
+#species-title{font-size:9px;text-transform:uppercase;letter-spacing:0.1em;color:#0077aa;margin-bottom:8px;font-family:‘IBM Plex Mono’,monospace;}
+.species-row{display:flex;align-items:center;gap:8px;padding:7px 6px;border-radius:8px;cursor:pointer;touch-action:manipulation;}
+.species-row:active{background:rgba(0,160,200,0.1);}
+.species-dot{width:14px;height:14px;border-radius:50%;flex-shrink:0;border:2px solid rgba(0,0,0,0.12);}
+.species-name{font-size:12px;font-weight:600;color:#003355;flex:1;}
+.species-count{font-size:10px;color:#0077aa;font-family:‘IBM Plex Mono’,monospace;}
+.species-empty{font-size:11px;color:#88aacc;font-style:italic;padding:4px 0;}
 /* Guide panel */
 #guide{position:fixed;bottom:calc(env(safe-area-inset-bottom,0px) + 90px);left:12px;right:12px;z-index:25;transition:opacity 0.4s,transform 0.4s;pointer-events:none;opacity:0;transform:translateY(10px);}
 #guide.visible{opacity:1;transform:translateY(0);pointer-events:auto;}
-#guide-inner{background:rgba(255,255,255,0.93);border:2px solid rgba(0,160,200,0.35);border-radius:16px;padding:14px 16px;backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);box-shadow:0 4px 18px rgba(0,80,120,0.18);}
-#guide-step{font-size:9px;text-transform:uppercase;letter-spacing:0.12em;color:#0077aa;margin-bottom:4px;font-family:'IBM Plex Mono',monospace;}
-#guide-title{font-size:15px;font-weight:600;color:#004466;margin-bottom:5px;}
-#guide-body{font-size:12px;color:#336688;line-height:1.55;margin-bottom:10px;}
+#guide-inner{background:rgba(4,14,28,0.94);border:1px solid rgba(0,212,255,0.22);border-radius:14px;padding:14px 16px;backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);}
+#guide-step{font-size:9px;text-transform:uppercase;letter-spacing:0.12em;color:#3B5B81;margin-bottom:4px;font-family:‘IBM Plex Mono’,monospace;}
+#guide-title{font-size:15px;font-weight:500;color:#A5F8E5;margin-bottom:5px;}
+#guide-body{font-size:12px;color:#7BA8C9;line-height:1.55;margin-bottom:10px;}
 #guide-footer{display:flex;align-items:center;justify-content:space-between;}
-#guide-action{display:inline-flex;align-items:center;gap:6px;background:rgba(0,160,200,0.9);border:2px solid rgba(0,200,240,0.8);border-radius:20px;padding:8px 16px;font-size:12px;color:#ffffff;font-weight:600;cursor:pointer;touch-action:manipulation;box-shadow:0 2px 8px rgba(0,100,150,0.25);}
-#guide-dismiss{font-size:11px;color:#0077aa;cursor:pointer;touch-action:manipulation;padding:4px 8px;}
+#guide-action{display:inline-flex;align-items:center;gap:6px;background:rgba(0,212,255,0.12);border:1px solid rgba(0,212,255,0.35);border-radius:20px;padding:8px 16px;font-size:12px;color:#00D4FF;cursor:pointer;touch-action:manipulation;}
+#guide-dismiss{font-size:11px;color:#3B5B81;cursor:pointer;touch-action:manipulation;padding:4px 8px;}
 /* Unlock flash */
 #unlock-flash{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(4,14,28,0.96);border:1px solid rgba(38,255,248,0.45);border-radius:16px;padding:22px 24px;text-align:center;z-index:200;display:none;backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);min-width:220px;}
 .uf-emoji{font-size:34px;margin-bottom:8px;}
@@ -46,12 +72,8 @@ canvas{display:block;position:fixed;top:0;left:0;touch-action:none;-webkit-tap-h
 #biome-toast{position:fixed;top:calc(env(safe-area-inset-top,0px) + 56px);left:50%;transform:translateX(-50%);background:rgba(7,20,38,0.85);border:1px solid rgba(0,212,255,0.2);border-radius:20px;padding:8px 18px;font-size:12px;color:#A5F8E5;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);z-index:30;transition:opacity 0.5s;opacity:0;pointer-events:none;text-align:center;white-space:pre;line-height:1.5;}
 
 /* Speed controls */
-#speed-controls{position:fixed;bottom:calc(env(safe-area-inset-bottom,0px) + 16px);left:16px;display:flex;gap:6px;z-index:20;}
-.speed-btn{width:42px;height:42px;border-radius:50%;background:rgba(255,255,255,0.62);border:2px solid rgba(255,255,255,0.9);color:#005577;font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:500;display:flex;align-items:center;justify-content:center;cursor:pointer;-webkit-tap-highlight-color:transparent;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);transition:all 0.15s;touch-action:manipulation;}
-.speed-btn.active{background:rgba(0,170,210,0.9);border-color:#00aadd;color:#ffffff;box-shadow:0 3px 10px rgba(0,100,150,0.3);}
 
-/* Create button */
-#create-btn{position:fixed;bottom:calc(env(safe-area-inset-bottom,0px) + 16px);right:16px;width:58px;height:58px;border-radius:50%;background:rgba(0,170,210,0.9);border:2.5px solid rgba(255,255,255,0.9);color:#ffffff;font-size:28px;line-height:1;display:flex;align-items:center;justify-content:center;cursor:pointer;-webkit-tap-highlight-color:transparent;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);z-index:20;transition:all 0.2s;box-shadow:0 0 20px rgba(0,212,255,0.15);touch-action:manipulation;}
+#create-btn-hidden{position:fixed;bottom:calc(env(safe-area-inset-bottom,0px) + 16px);right:16px;width:58px;height:58px;border-radius:50%;background:rgba(0,170,210,0.9);border:2.5px solid rgba(255,255,255,0.9);color:#ffffff;font-size:28px;line-height:1;display:flex;align-items:center;justify-content:center;cursor:pointer;-webkit-tap-highlight-color:transparent;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);z-index:20;transition:all 0.2s;box-shadow:0 0 20px rgba(0,212,255,0.15);touch-action:manipulation;}
 #create-btn:active{background:rgba(0,212,255,0.25);box-shadow:0 0 30px rgba(0,212,255,0.3);transform:scale(0.95);}
 
 /* Inspector */
@@ -60,12 +82,12 @@ canvas{display:block;position:fixed;top:0;left:0;touch-action:none;-webkit-tap-h
 #inspector-panel{width:min(340px,92vw);background:rgba(7,20,38,0.92);border:1px solid rgba(0,212,255,0.2);border-radius:16px;padding:20px;backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);box-shadow:0 8px 40px rgba(0,0,0,0.6);max-height:80vh;overflow-y:auto;}
 .insp-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;}
 .insp-stage{font-size:18px;font-weight:500;color:#A5F8E5;}
-.insp-gen{font-family:'IBM Plex Mono',monospace;font-size:11px;color:#3B5B81;margin-top:3px;}
+.insp-gen{font-family:‘IBM Plex Mono’,monospace;font-size:11px;color:#3B5B81;margin-top:3px;}
 .insp-close{width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:#3B5B81;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;touch-action:manipulation;}
 .stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;}
 .stat-item{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:8px;padding:10px 12px;}
 .stat-label{font-size:10px;color:#3B5B81;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:3px;}
-.stat-value{font-family:'IBM Plex Mono',monospace;font-size:14px;color:#00D4FF;font-weight:500;}
+.stat-value{font-family:‘IBM Plex Mono’,monospace;font-size:14px;color:#00D4FF;font-weight:500;}
 .organelle-list h4{font-size:10px;color:#3B5B81;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px;}
 .organelle-chip{display:inline-flex;align-items:center;gap:5px;background:rgba(0,212,255,0.07);border:1px solid rgba(0,212,255,0.15);border-radius:12px;padding:4px 10px;font-size:11px;color:#7BA8C9;margin:0 4px 4px 0;}
 .chip-dot{width:7px;height:7px;border-radius:50%;}
@@ -80,55 +102,162 @@ canvas{display:block;position:fixed;top:0;left:0;touch-action:none;-webkit-tap-h
 .editor-header{padding:calc(env(safe-area-inset-top,0px) + 12px) 20px 12px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(0,212,255,0.1);flex-shrink:0;}
 .editor-title{font-size:12px;font-weight:500;color:#A5F8E5;letter-spacing:0.1em;text-transform:uppercase;}
 .editor-hint{font-size:11px;color:#3B5B81;margin-top:3px;font-style:italic;max-width:240px;line-height:1.3;}
-.editor-cancel{padding:8px 16px;border-radius:20px;background:rgba(231,76,60,0.1);border:1px solid rgba(231,76,60,0.3);color:#E74C3C;font-size:12px;cursor:pointer;touch-action:manipulation;font-family:'IBM Plex Sans',sans-serif;}
+.editor-cancel{padding:8px 16px;border-radius:20px;background:rgba(231,76,60,0.1);border:1px solid rgba(231,76,60,0.3);color:#E74C3C;font-size:12px;cursor:pointer;touch-action:manipulation;font-family:‘IBM Plex Sans’,sans-serif;}
 #editor-grid-area{flex:0 0 auto;display:flex;align-items:center;justify-content:center;padding:8px 0;}
 #editor-canvas-wrap{width:min(220px,55vw);height:min(220px,55vw);position:relative;}
 #editor-canvas{width:100%;height:100%;position:relative;z-index:1;}
 /* complexity bar */
 #complexity-bar{display:flex;align-items:center;gap:8px;padding:4px 16px 0;flex-shrink:0;}
-.cbar-label{font-size:10px;color:#3B5B81;font-family:'IBM Plex Mono',monospace;}
+.cbar-label{font-size:10px;color:#3B5B81;font-family:‘IBM Plex Mono’,monospace;}
 .cbar-track{flex:1;height:5px;background:rgba(255,255,255,0.05);border-radius:3px;overflow:hidden;}
 .cbar-fill{height:100%;border-radius:3px;transition:width 0.3s,background 0.3s;}
 #editor-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding:6px 16px;flex-shrink:0;}
 .e-stat{text-align:center;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:8px;padding:6px 4px;}
-.e-stat-val{font-family:'IBM Plex Mono',monospace;font-size:14px;color:#00D4FF;font-weight:500;}
+.e-stat-val{font-family:‘IBM Plex Mono’,monospace;font-size:14px;color:#00D4FF;font-weight:500;}
 .e-stat-label{font-size:9px;color:#3B5B81;text-transform:uppercase;letter-spacing:0.07em;margin-top:2px;}
 #palette-label{padding:4px 16px 6px;font-size:10px;color:#3B5B81;text-transform:uppercase;letter-spacing:0.08em;flex-shrink:0;border-top:1px solid rgba(0,212,255,0.08);}
 #palette{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:0 16px;overflow-y:auto;flex-shrink:0;max-height:28vh;}
 .org-card{background:rgba(7,20,38,0.8);border:1px solid rgba(0,212,255,0.1);border-radius:10px;padding:10px;cursor:pointer;touch-action:manipulation;transition:all 0.15s;display:flex;flex-direction:column;gap:3px;}
+.org-card.org-active{background:rgba(0,180,220,0.12);border-color:rgba(0,160,200,0.6);}
 .org-card.selected{background:rgba(0,212,255,0.1);border-color:rgba(0,212,255,0.45);box-shadow:0 0 14px rgba(0,212,255,0.12);}
 .org-card.locked{opacity:0.35;cursor:default;}
 .org-card:active:not(.locked){transform:scale(0.97);}
 .org-dot{width:26px;height:26px;border-radius:50%;margin-bottom:2px;}
 .org-name{font-size:11px;font-weight:500;color:#E0F4FF;line-height:1.2;}
-.org-desc{font-size:9px;color:#3B5B81;line-height:1.3;font-style:italic;}
-.org-cost{font-family:'IBM Plex Mono',monospace;font-size:9px;color:#00D4FF;margin-top:1px;}
+.org-desc{font-size:9px;color:#8ab4cc;line-height:1.3;font-style:italic;}
+.org-cost{font-family:‘IBM Plex Mono’,monospace;font-size:9px;color:#00D4FF;margin-top:1px;}
 .org-locked-txt{font-size:9px;color:#E74C3C;font-style:italic;}
 #editor-footer{padding:10px 16px calc(env(safe-area-inset-bottom,0px) + 90px);flex-shrink:0;position:relative;z-index:10;}
-#release-btn{width:100%;padding:15px;border-radius:12px;background:rgba(0,212,255,0.12);border:1.5px solid rgba(0,212,255,0.35);color:#00D4FF;font-size:14px;font-weight:500;font-family:'IBM Plex Sans',sans-serif;cursor:pointer;touch-action:manipulation;letter-spacing:0.05em;box-shadow:0 0 20px rgba(0,212,255,0.08);transition:all 0.2s;}
+#release-btn{width:100%;padding:15px;border-radius:12px;background:rgba(0,212,255,0.12);border:1.5px solid rgba(0,212,255,0.35);color:#00D4FF;font-size:14px;font-weight:500;font-family:‘IBM Plex Sans’,sans-serif;cursor:pointer;touch-action:manipulation;letter-spacing:0.05em;box-shadow:0 0 20px rgba(0,212,255,0.08);transition:all 0.2s;}
 #release-btn:active{background:rgba(0,212,255,0.22);box-shadow:0 0 30px rgba(0,212,255,0.2);}
 </style>
+
 </head>
 <body>
 <div id="vignette"></div>
 
 <!-- HUD -->
+
 <div id="hud">
   <div class="hud-pill"><span>◉</span><span id="h-cells" class="val">0</span><span>cells</span></div>
   <div class="hud-pill"><span>⌬</span><span id="h-gen" class="val">0</span><span>gen</span></div>
   <div class="hud-pill"><span>✦</span><span id="h-nuts" class="val">0</span><span>nutrients</span></div>
 </div>
+<div id="colony-hud-btn" style="display:none;position:fixed;top:calc(env(safe-area-inset-top,0px)+58px);left:12px;right:12px;z-index:26;background:rgba(0,140,180,0.92);border:1.5px solid rgba(255,255,255,0.7);border-radius:10px;padding:8px 14px;font-size:12px;font-weight:700;color:#fff;cursor:pointer;touch-action:manipulation;text-align:center;" onclick="openMyColony()">🫧 Colony alive — tap to edit body plan</div>
 
 <!-- Stage progress dots -->
+
 <div id="stage-strip">
   <div class="stage-dot active" id="dot-0"></div>
   <div class="stage-dot" id="dot-1"></div>
   <div class="stage-dot" id="dot-2"></div>
   <div class="stage-dot" id="dot-3"></div>
   <div class="stage-dot" id="dot-4"></div>
+  <div class="stage-dot" id="dot-5"></div>
+</div>
+
+<!-- Colony inspector -->
+
+<div id="colony-inspector" style="position:fixed;inset:0;z-index:70;display:none;align-items:flex-end;justify-content:center;padding-bottom:20px;">
+  <div style="background:rgba(255,255,255,0.96);border-radius:20px 20px 0 0;padding:20px;width:100%;max-width:420px;box-shadow:0 -4px 20px rgba(0,80,140,0.18);">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+      <div>
+        <div id="ci-name" style="font-size:16px;font-weight:700;color:#003366;">Colony</div>
+        <div id="ci-cells" style="font-size:11px;color:#0077aa;margin-top:2px;font-family:'IBM Plex Mono',monospace;"></div>
+      </div>
+      <div id="ci-close" style="width:32px;height:32px;border-radius:50%;background:#f0f6ff;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px;">✕</div>
+    </div>
+    <!-- Hex body plan preview -->
+    <canvas id="colony-canvas" width="260" height="200" style="display:block;margin:0 auto 14px;border-radius:12px;background:rgba(200,230,255,0.3);"></canvas>
+    <!-- Cell roster -->
+    <div id="ci-roster" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px;"></div>
+    <!-- Stats -->
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px;">
+      <div style="text-align:center;background:#f0f8ff;border-radius:8px;padding:8px;">
+        <div style="font-size:9px;color:#0077aa;text-transform:uppercase;">Speed</div>
+        <div id="ci-speed" style="font-size:14px;font-weight:700;color:#003366;">—</div>
+      </div>
+      <div style="text-align:center;background:#f0f8ff;border-radius:8px;padding:8px;">
+        <div style="font-size:9px;color:#0077aa;text-transform:uppercase;">Defense</div>
+        <div id="ci-defense" style="font-size:14px;font-weight:700;color:#003366;">—</div>
+      </div>
+      <div style="text-align:center;background:#f0f8ff;border-radius:8px;padding:8px;">
+        <div style="font-size:9px;color:#0077aa;text-transform:uppercase;">Cells</div>
+        <div id="ci-count" style="font-size:14px;font-weight:700;color:#003366;">—</div>
+      </div>
+    </div>
+    <button id="ci-edit-btn" style="width:100%;padding:13px;border-radius:12px;background:rgba(0,170,210,0.9);border:2px solid rgba(255,255,255,0.8);color:#fff;font-size:14px;font-weight:600;cursor:pointer;font-family:'IBM Plex Sans',sans-serif;" style="width:100%;padding:16px;border-radius:14px;background:rgba(0,170,210,0.95);border:2px solid rgba(255,255,255,0.85);color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:'IBM Plex Sans',sans-serif;box-shadow:0 4px 14px rgba(0,100,160,0.3);touch-action:manipulation;">✏️ Edit Body Plan</button>
+  </div>
+</div>
+
+<!-- Colony body plan editor -->
+
+<div id="colony-editor" style="position:fixed;inset:0;z-index:80;display:none;flex-direction:column;background:rgba(6,18,36,0.97);">
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid rgba(0,212,255,0.15);">
+    <div>
+      <div style="font-size:13px;font-weight:600;color:#E0F4FF;">Colony Body Plan</div>
+      <div style="font-size:11px;color:#8ab4cc;margin-top:2px;">Select a type below, then tap a slot</div>
+    </div>
+    <div id="ce-cancel" style="padding:8px 16px;border-radius:20px;background:rgba(231,76,60,0.12);border:1.5px solid rgba(231,76,60,0.4);color:#ff6655;font-size:12px;cursor:pointer;touch-action:manipulation;">Cancel</div>
+  </div>
+  <div style="flex:1;display:flex;align-items:center;justify-content:center;flex-direction:column;padding:20px;">
+    <canvas id="colony-edit-canvas" width="300" height="260" style="border-radius:16px;background:rgba(0,30,60,0.4);border:1px solid rgba(0,212,255,0.15);touch-action:none;"></canvas>
+    <div id="ce-palette" style="display:flex;flex-wrap:wrap;gap:4px;padding:10px 8px 4px;"></div>
+    <div style="margin-top:4px;font-size:11px;color:#8ab4cc;text-align:center;padding-bottom:4px;" id="ce-hint">Select a type, then tap a slot to place it</div>
+  </div>
+  <div style="padding:16px;">
+    <button id="ce-apply-btn" style="width:100%;padding:14px;border-radius:12px;background:rgba(0,170,210,0.9);border:2px solid rgba(255,255,255,0.8);color:#fff;font-size:14px;font-weight:600;cursor:pointer;font-family:'IBM Plex Sans',sans-serif;">🌊 Apply Body Plan</button>
+  </div>
+</div>
+
+<!-- Objective tracker -->
+
+<div id="obj-tracker">
+  <div id="obj-tracker-btn" title="Objectives">☑️</div>
+  <div id="obj-tracker-panel">
+    <div id="obj-tracker-title">Cell Stage Objectives</div>
+    <div id="obj-tracker-list"></div>
+  </div>
+</div>
+
+<!-- Species panel -->
+
+<div id="species-panel">
+  <div id="species-btn" title="Edit a species">🔬</div>
+  <div id="species-dropdown">
+    <div id="species-title">Living Species</div>
+    <div id="species-list"></div>
+  </div>
+</div>
+
+<!-- Stage Complete — persistent corner button + confirmation modal -->
+
+<div id="stage-ready-btn" style="display:none;position:fixed;bottom:calc(env(safe-area-inset-bottom,0px)+20px);left:50%;transform:translateX(-50%);z-index:50;">
+  <button onclick="showStageComplete()" style="padding:13px 18px;border-radius:16px;background:rgba(0,170,210,0.95);border:2.5px solid rgba(255,255,255,0.9);color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:'IBM Plex Sans',sans-serif;box-shadow:0 4px 14px rgba(0,100,160,0.35);touch-action:manipulation;">🫧 Evolve to Blob Stage</button>
+</div>
+<div id="stage-complete" style="display:none;position:fixed;inset:0;z-index:300;background:rgba(0,40,80,0.75);align-items:center;justify-content:center;">
+  <div style="background:rgba(255,255,255,0.97);border-radius:22px;padding:28px 24px;max-width:340px;width:calc(100%-40px);text-align:center;box-shadow:0 8px 32px rgba(0,80,160,0.25);">
+    <div style="font-size:40px;margin-bottom:10px;">🫧</div>
+    <div style="font-size:18px;font-weight:700;color:#003366;margin-bottom:8px;">Ready for the Blob Stage?</div>
+    <div style="font-size:13px;color:#336688;line-height:1.6;margin-bottom:20px;">Your ecosystem has producers, predators, colonies, and decomposers. The next stage sees these cells combine into true multicellular blobs. You can stay here as long as you want.</div>
+    <button onclick="startBlobStage()" style="width:100%;padding:14px;border-radius:12px;background:rgba(0,170,210,0.9);border:2px solid rgba(255,255,255,0.8);color:#fff;font-size:14px;font-weight:600;margin-bottom:10px;cursor:pointer;font-family:'IBM Plex Sans',sans-serif;">🫧 Begin Blob Stage</button>
+    <button onclick="document.getElementById('stage-complete').style.display='none'" style="width:100%;padding:12px;border-radius:12px;background:rgba(0,80,120,0.06);border:1.5px solid rgba(0,160,200,0.25);color:#336688;font-size:13px;cursor:pointer;font-family:'IBM Plex Sans',sans-serif;">🔬 Keep Exploring</button>
+  </div>
+</div>
+
+<!-- Intro guide -->
+
+<div id="intro-guide" style="display:none;position:fixed;inset:0;z-index:200;align-items:flex-end;justify-content:center;padding:0 0 20px;">
+  <div style="background:rgba(6,18,36,0.97);border:1px solid rgba(0,212,255,0.2);border-radius:20px 20px 0 0;padding:22px 20px 20px;width:100%;max-width:480px;">
+    <div style="font-size:9px;letter-spacing:0.12em;color:#00D4FF;font-family:'IBM Plex Mono',monospace;margin-bottom:6px;">WELCOME TO ENDO</div>
+    <div style="font-size:18px;font-weight:700;color:#E0F4FF;margin-bottom:10px;">Life begins with a cell</div>
+    <div style="font-size:13px;color:#8ab4cc;line-height:1.6;margin-bottom:16px;">Your ocean already has simple cells. They have a Nucleus — the control centre — but a nucleus alone cannot feed. Without energy, a cell starves and dies.<br><br>Your first task: build a cell that can <strong style="color:#E0F4FF;">feed itself</strong>.</div>
+    <button onclick="document.getElementById('intro-guide').style.display='none';showGuide(0);" style="width:100%;padding:14px;border-radius:12px;background:rgba(0,170,210,0.9);border:2px solid rgba(255,255,255,0.8);color:#fff;font-size:14px;font-weight:600;cursor:pointer;font-family:'IBM Plex Sans',sans-serif;touch-action:manipulation;">Begin →</button>
+  </div>
 </div>
 
 <!-- Guide panel -->
+
 <div id="guide">
   <div id="guide-inner">
     <div id="guide-step">Step 1 of 5</div>
@@ -142,6 +271,7 @@ canvas{display:block;position:fixed;top:0;left:0;touch-action:none;-webkit-tap-h
 </div>
 
 <!-- Unlock flash -->
+
 <div id="unlock-flash">
   <div class="uf-emoji" id="uf-emoji">🧬</div>
   <div class="uf-title">Archetype Complete</div>
@@ -152,17 +282,11 @@ canvas{display:block;position:fixed;top:0;left:0;touch-action:none;-webkit-tap-h
 <div id="biome-toast"></div>
 
 <!-- Speed controls -->
-<div id="speed-controls">
-  <div class="speed-btn" data-speed="0">⏸</div>
-  <div class="speed-btn active" data-speed="1">1×</div>
-  <div class="speed-btn" data-speed="2">2×</div>
-  <div class="speed-btn" data-speed="4">4×</div>
-</div>
 
 <!-- Create button -->
-<div id="create-btn">+</div>
 
 <!-- Inspector -->
+
 <div id="inspector">
   <div id="inspector-panel">
     <div class="insp-header">
@@ -182,6 +306,8 @@ canvas{display:block;position:fixed;top:0;left:0;touch-action:none;-webkit-tap-h
       <div class="gen-bar-label"><span>Lineage depth</span><span id="insp-gen-num">Gen 0</span></div>
       <div class="gen-bar-track"><div class="gen-bar-fill" id="insp-gen-bar" style="width:0%"></div></div>
     </div>
+    <div id="colony-status-msg" style="display:none;margin-top:8px;padding:10px 12px;border-radius:10px;background:rgba(255,180,0,0.12);border:1.5px solid rgba(255,180,0,0.4);color:#886600;font-size:12px;text-align:center;line-height:1.4;"></div>
+    <div id="view-colony-btn" style="display:none;margin-top:10px;width:100%;padding:14px;border-radius:12px;background:rgba(0,170,210,0.9);border:2px solid rgba(255,255,255,0.8);color:#fff;font-size:14px;font-weight:700;text-align:center;cursor:pointer;touch-action:manipulation;box-shadow:0 3px 10px rgba(0,100,160,0.3);" onclick="if(inspectedCell&&inspectedCell.colony)openColonyInspector(inspectedCell.colony)">🫧 Edit This Colony's Body Plan</div>
     <div id="edit-cell-btn" style="margin-top:14px;width:100%;padding:12px;border-radius:10px;background:rgba(0,212,255,0.1);border:1.5px solid rgba(0,212,255,0.3);color:#00D4FF;font-size:13px;font-weight:500;text-align:center;cursor:pointer;touch-action:manipulation;font-family:'IBM Plex Sans',sans-serif;letter-spacing:0.04em;">
       ✏️  Edit this cell's genome
     </div>
@@ -189,6 +315,7 @@ canvas{display:block;position:fixed;top:0;left:0;touch-action:none;-webkit-tap-h
 </div>
 
 <!-- Editor -->
+
 <div id="editor">
   <div class="editor-header">
     <div>
@@ -216,9 +343,10 @@ canvas{display:block;position:fixed;top:0;left:0;touch-action:none;-webkit-tap-h
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/phaser/3.60.0/phaser.min.js"></script>
+
 <script>
 // ─── CONSTANTS ────────────────────────────────────────────────────────────────
-const WORLD_RADIUS=2600,SOFT_EDGE=380,MAX_CELLS=120,MAX_NUTRIENTS=240;
+const WORLD_RADIUS=2600,SOFT_EDGE=380,MAX_CELLS=60,MAX_NUTRIENTS=240;
 const SW=window.innerWidth,SH=window.innerHeight;
 
 // ─── BIOMES ───────────────────────────────────────────────────────────────────
@@ -260,32 +388,28 @@ function checkUnlocks(stats){
 }
 
 // Complexity caps
-function getComplexityCap(){
-  if(!unlockedTiers.has(1)) return 3;   // Before first division: simple
-  if(!unlockedTiers.has(3)) return 6;   // Before gen 5: moderate
-  return 10;                             // Full complexity
-}
+function getComplexityCap(){ return 4; }
 
 // ─── ORGANELLE DEFINITIONS ────────────────────────────────────────────────────
 const ORG={
-  CYTOPLASM:{name:'Cytoplasm',short:'CYT',color:'#aaddff',phColor:0xaaddff,desc:'Living substrate. Passive energy from chemical gradients.',effect:'+Energy',speed:0,energy:0.55,eat:0,sense:0,defense:0.5,mp:0,max:99,needsNucleus:false},
-  NUCLEUS:{name:'Nucleus',short:'NUC',color:'#ffbb44',phColor:0xffbb44,desc:'Command centre. Unlocks advanced organelles and true evolution.',effect:'Unlocks Tier 2',speed:0,energy:-0.4,eat:0,sense:25,defense:0,mp:5,max:1,needsNucleus:false},
-  CELL_WALL:{name:'Cell Wall',short:'WAL',color:'#c8a45a',phColor:0xc8a45a,desc:'Rigid polysaccharide lattice. Exceptional protection at the cost of motility.',effect:'+Defense +4',speed:-8,energy:-0.1,eat:0,sense:0,defense:4.0,mp:8,max:1,needsNucleus:false},
-  FLAGELLUM:{name:'Flagellum',short:'FLA',color:'#44ff99',phColor:0x44ff99,desc:'Rhythmic flagellar motor propels the cell through viscous media.',effect:'+Speed +42',speed:42,energy:-0.7,eat:0,sense:0,defense:0,mp:10,max:4,needsNucleus:false},
-  CILIA:{name:'Cilia',short:'CIL',color:'#88ffcc',phColor:0x88ffcc,desc:'Thousands of hair-like projections beat in coordinated waves.',effect:'+Speed +18',speed:18,energy:-0.3,eat:0,sense:0,defense:0,mp:6,max:6,needsNucleus:false},
-  MITOCHONDRIA:{name:'Mitochondria',short:'MIT',color:'#ff6644',phColor:0xff6644,desc:'Powerhouse. Oxidative phosphorylation converts nutrients to raw ATP.',effect:'+Energy +2.2',speed:0,energy:2.2,eat:0.5,sense:0,defense:0,mp:15,max:4,needsNucleus:true},
-  CHLOROPLAST:{name:'Chloroplast',short:'CHL',color:'#55dd22',phColor:0x55dd22,desc:'Ancient endosymbiont. Photons near the surface power sugar synthesis.',effect:'Light→Energy',speed:0,energy:1.8,eat:0,sense:0,defense:0,mp:15,max:4,needsNucleus:true},
-  VACUOLE:{name:'Vacuole',short:'VAC',color:'#bbddff',phColor:0xbbddff,desc:'Fluid reservoir. Stores nutrients, buffers toxins, increases maximum energy.',effect:'+Max energy',speed:0,energy:0,eat:0.3,sense:0,defense:1.0,mp:8,max:3,needsNucleus:false},
-  MOUTH:{name:'Cytostome',short:'MTH',color:'#ff4444',phColor:0xff4444,desc:"Engulfs weaker cells. Doesn't digest so much as disassemble.",effect:'Predation',speed:0,energy:-0.3,eat:2.0,sense:0,defense:0,mp:12,max:2,needsNucleus:false},
-  SPIKE:{name:'Acanthocyte',short:'SPK',color:'#ff8833',phColor:0xff8833,desc:'Hardened protein spurs. Passive contact damage to any colliding cell.',effect:'Contact dmg',speed:0,energy:-0.2,eat:0,sense:0,defense:2.5,mp:10,max:4,needsNucleus:false},
-  CHEMORECEPTOR:{name:'Chemoreceptor',short:'CHM',color:'#dd88ff',phColor:0xdd88ff,desc:'Detects nutrient gradients at extreme range. The cell knows before it sees.',effect:'+Sense +70',speed:0,energy:-0.3,eat:0,sense:70,defense:0,mp:10,max:2,needsNucleus:false},
-  BINDING_AGENT:{name:'Binding Agent',short:'BND',color:'#ffee55',phColor:0xffee55,desc:'Adhesion proteins. Daughter cells remain attached — the first step toward multicellular life.',effect:'Multicellular!',speed:0,energy:-0.4,eat:0,sense:0,defense:0,mp:20,max:2,needsNucleus:true},
+  CYTOPLASM:{name:'Cytoplasm',short:'CYT',color:'#aaddff',phColor:0xaaddff,desc:'The living body of your cell. Slowly absorbs energy from the water — enough to survive, not enough to thrive.',effect:'+Energy',speed:0,energy:0.55,eat:0,sense:0,defense:0.5,mp:0,max:99,needsNucleus:false},
+  NUCLEUS:{name:'Nucleus',short:'NUC',color:'#ffbb44',phColor:0xffbb44,desc:'The control centre of the cell. Contains your DNA. Without it, the cell cannot become more complex.',effect:'Unlocks Tier 2',speed:0,energy:-0.4,eat:0,sense:25,defense:0,mp:5,max:1,needsNucleus:false},
+  CELL_WALL:{name:'Cell Wall',short:'WAL',color:'#c8a45a',phColor:0xc8a45a,desc:'A tough outer shell. Protects against predators but slows the cell down. Plants use this — animals don\'t.',effect:'+Defense +4',speed:-8,energy:-0.1,eat:0,sense:0,defense:4.0,mp:8,max:1,needsNucleus:false},
+  FLAGELLUM:{name:'Flagellum',short:'FLA',color:'#44ff99',phColor:0x44ff99,desc:'A spinning tail that drives the cell forward with real speed. Essential for hunting prey.',effect:'+Speed +42',speed:42,energy:-0.7,eat:0,sense:0,defense:0,mp:10,max:4,needsNucleus:false},
+  CILIA:{name:'Cilia',short:'CIL',color:'#88ffcc',phColor:0x88ffcc,desc:'Tiny hairs that beat in unison for gentle movement. Slower than a flagellum but energy-efficient.',effect:'+Speed +18',speed:18,energy:-0.3,eat:0,sense:0,defense:0,mp:6,max:6,needsNucleus:false},
+  MITOCHONDRIA:{name:'Mitochondria',short:'MIT',color:'#ff6644',phColor:0xff6644,desc:'The powerhouse of the cell. Burns consumed nutrients for huge energy gains. Every animal cell has them.',effect:'+Energy +2.2',speed:0,energy:2.2,eat:0.5,sense:0,defense:0,mp:15,max:4,needsNucleus:true},
+  CHLOROPLAST:{name:'Chloroplast',short:'CHL',color:'#55dd22',phColor:0x55dd22,desc:'Captures sunlight and converts it to energy. Only works near the surface. This is photosynthesis — the foundation of every food chain.',effect:'Light→Energy',speed:0,energy:1.8,eat:0,sense:0,defense:0,mp:15,max:4,needsNucleus:true},
+  VACUOLE:{name:'Vacuole',short:'VAC',color:'#bbddff',phColor:0xbbddff,desc:'A fluid-filled sac. Absorbs dissolved nutrients from dead cells nearby. The basis of fungal life.',effect:'+Max energy',speed:0,energy:0,eat:0.3,sense:0,defense:1.0,mp:8,max:3,needsNucleus:false},
+  MOUTH:{name:'Cytostome',short:'MTH',color:'#ff4444',phColor:0xff4444,desc:'A channel for engulfing other cells whole. Your cell hunts and consumes weaker life — this is predation.',effect:'Predation',speed:12,energy:-0.05,eat:2.0,sense:0,defense:0,mp:12,max:2,needsNucleus:false},
+  SPIKE:{name:'Acanthocyte',short:'SPK',color:'#ff8833',phColor:0xff8833,desc:'Sharp protein spines. Any cell that bumps into you takes damage — no action needed.',effect:'Contact dmg',speed:0,energy:-0.2,eat:0,sense:0,defense:2.5,mp:10,max:4,needsNucleus:false},
+  CHEMORECEPTOR:{name:'Chemoreceptor',short:'CHM',color:'#dd88ff',phColor:0xdd88ff,desc:'Chemical sensors that detect food from far away. Near hydrothermal vents, they also absorb chemical energy directly.',effect:'+Sense +70',speed:0,energy:-0.3,eat:0,sense:70,defense:0,mp:10,max:2,needsNucleus:false},
+  BINDING_AGENT:{name:'Binding Agent',short:'BND',color:'#ffee55',phColor:0xffee55,desc:'Sticky proteins on the membrane. When the cell divides, daughter cells stay attached. This is how multicellular life begins.',effect:'Multicellular!',speed:0,energy:-0.4,eat:0,sense:0,defense:0,mp:20,max:2,needsNucleus:true},
 };
 const ORG_KEYS=Object.keys(ORG);
 const PALETTE_KEYS=['CHLOROPLAST','CHEMORECEPTOR','CILIA','MOUTH','FLAGELLUM','SPIKE','CELL_WALL','VACUOLE','MITOCHONDRIA','BINDING_AGENT','NUCLEUS'];
 
 function computeStats(organelles){
-  let speed=0,energy=0,eat=1,sense=55,defense=0,hasMouth=false,hasChloro=false,hasNucleus=false,hasFlag=false,hasWall=false,hasBind=false,vacCount=0;
+  let speed=0,energy=0,eat=1,sense=120,defense=0,hasMouth=false,hasChloro=false,hasNucleus=false,hasFlag=false,hasWall=false,hasBind=false,vacCount=0;
   for(const k of organelles){
     if(!ORG[k])continue;const o=ORG[k];
     speed+=o.speed;energy+=o.energy;eat+=o.eat;sense+=o.sense;defense+=o.defense;
@@ -309,7 +433,8 @@ function mutateGenome(genome){
   if(Math.random()<rate*0.22&&orgs.length<8){
     const hasNuc=orgs.includes('NUCLEUS');
     // Only mutate into unlocked organelles
-    const cands=ORG_KEYS.filter(k=>isUnlocked(k)&&(!ORG[k].needsNucleus||hasNuc));
+    // Only mutate into organelles the player has already placed in a cell
+    const cands=ORG_KEYS.filter(k=>playerUsedOrgs.has(k)&&isUnlocked(k)&&(!ORG[k].needsNucleus||hasNuc));
     if(cands.length){const type=cands[Math.floor(Math.random()*cands.length)];
       if(orgs.filter(o=>o===type).length<ORG[type].max)orgs.push(type);}
   }
@@ -336,7 +461,7 @@ class Cell{
     this.gen=gen;this.age=0;this.dead=false;this.dying=false;this.deathAlpha=1;
     this.damagePulse=0;this.moveAngle=Math.random()*Math.PI*2;
     this.timeOffset=Math.random()*10000;this.targetNutrient=null;this.targetPrey=null;
-    this.lastDivide=0;this.lastSpike=0;
+    this.lastDivide=0;this.lastSpike=0;this.colonyParent=null;this.colonyChildren=null;this.colony=null;this.colonySlot=-1;this.playerLineage=false;
     this.stats=computeStats(genome.organelles);
     this.radius=10+this.stats.organelleCount*1.3;
     this.energy=this.stats.maxEnergy*(0.45+Math.random()*0.2);
@@ -345,10 +470,9 @@ class Cell{
   seekTarget(nutrients,cells){
     const mp=this.power();
     for(const oc of cells){if(oc.power()>mp*1.4){this.moveAngle=Math.atan2(this.y-oc.y,this.x-oc.x);this.targetPrey=null;this.targetNutrient=null;return;}}
-    const hungry=this.energy<this.stats.maxEnergy*0.65;
-    if(this.stats.hasMouth&&hungry){
+    if(this.stats.hasMouth){
       if(this.targetPrey&&this.targetPrey.dead)this.targetPrey=null;
-      if(!this.targetPrey){let nd=this.stats.sense*0.9,best=null;
+      if(!this.targetPrey){let nd=Math.max(300,this.stats.sense*3),best=null;
         for(const oc of cells){if(oc.dead||oc.power()>=mp*0.85)continue;const d=Math.hypot(oc.x-this.x,oc.y-this.y);if(d<nd){nd=d;best=oc;}}this.targetPrey=best;}
       if(this.targetPrey){this.targetNutrient=null;this.moveAngle=Math.atan2(this.targetPrey.y-this.y,this.targetPrey.x-this.x);return;}
     }
@@ -359,9 +483,9 @@ class Cell{
   }
   tryEat(prey,dt){
     if(!this.stats.hasMouth||prey.dead)return;
-    if(Math.hypot(prey.x-this.x,prey.y-this.y)>this.radius+prey.radius+6)return;
-    if(prey.power()>=this.power()*0.85)return;
-    const drain=20*dt;prey.takeDamage(drain);
+    if(Math.hypot(prey.x-this.x,prey.y-this.y)>this.radius+prey.radius+18)return;
+    if(prey.power()>=this.power()*1.2)return;
+    const drain=80*dt;prey.takeDamage(drain);
     this.energy=Math.min(this.stats.maxEnergy,this.energy+drain*0.15*this.stats.eat);
   }
   spikeContact(other,time){
@@ -371,10 +495,10 @@ class Cell{
     other.takeDamage(8*sc);this.lastSpike=time;
   }
   takeDamage(amt){if(this.dead)return;this.energy-=amt/(1+this.stats.defense*0.08);this.damagePulse=1;if(this.energy<=0)this.startDying();}
-  startDying(){if(this.dying||this.dead)return;this.dying=true;this.deathAlpha=1;}
+  startDying(){if(this.dying||this.dead)return;this.dying=true;this.deathAlpha=1;this._needsCorpse=true;}
   update(dt,time){
     if(this.dead)return;
-    if(this.dying){this.deathAlpha-=dt*1.8;if(this.deathAlpha<=0){this.dead=true;this.dying=false;}return;}
+    if(this.dying){this.deathAlpha-=dt*1.8;if(this.deathAlpha<=0){this.dead=true;this.dying=false;if(this._needsCorpse&&window._worldScene)window._worldScene.addCorpse(this);}return;}
     this.age++;const biome=getBiome(this.x,this.y);
     const light=this.stats.hasChloro?this.stats.energy*biome.lightMult*0.5:0;
     this.energy+=this.stats.energy*dt*7+light*dt*7;
@@ -382,8 +506,10 @@ class Cell{
     this.energy=Math.max(0,Math.min(this.stats.maxEnergy,this.energy));
     if(this.energy<=0){this.startDying();return;}
     if(this.damagePulse>0)this.damagePulse=Math.max(0,this.damagePulse-dt*3.5);
-    if(this.stats.speed>0){
-      if(!this.targetPrey&&!this.targetNutrient)this.moveAngle+=Math.sin((time/1000+this.timeOffset)*0.4)*dt*0.7;
+    // Position controlled by Colony.update() if in a colony
+    if(this.colonyChildren)this.colonyChildren=this.colonyChildren.filter(c=>!c.dead);
+    if(this.stats.speed>0&&!this.colony){
+      if(!this.targetPrey&&!this.targetNutrient)this.moveAngle+=Math.sin((time/1000+this.timeOffset)*0.8)*dt*1.4;
       this.x+=Math.cos(this.moveAngle)*this.stats.speed*dt;
       this.y+=Math.sin(this.moveAngle)*this.stats.speed*dt;
     }else{const w=time/1000+this.timeOffset;this.x+=Math.sin(w*1.1)*0.25;this.y+=Math.cos(w*0.8)*0.25;}
@@ -394,8 +520,29 @@ class Cell{
     const biome=getBiome(this.x,this.y);
     const cg=Math.random()<this.genome.mutationRate*6*biome.mutMult?mutateGenome(this.genome):{...this.genome,organelles:[...this.genome.organelles]};
     const ang=this.moveAngle+Math.PI+(Math.random()-0.5)*0.6;
-    const child=new Cell(cg,this.x+Math.cos(ang)*this.radius*2.5,this.y+Math.sin(ang)*this.radius*2.5,this.gen+1);
-    child.energy=cost*0.78;return child;
+    const bonded=this.genome.organelles.includes('BINDING_AGENT');
+    const child=new Cell(cg,this.x+Math.cos(ang)*this.radius*(bonded?2.05:2.5),this.y+Math.sin(ang)*this.radius*(bonded?2.05:2.5),this.gen+1);
+    child.energy=cost*0.78;
+    child.playerLineage=this.playerLineage;
+    if(bonded){
+      child.colonyParent=this;if(!this.colonyChildren)this.colonyChildren=[];this.colonyChildren.push(child);
+      // If parent is in a colony, try to add child to it
+      if(this.colony&&!this.colony.dead){
+        const slot=this.colony.getFreeSlot();
+        if(slot){this.colony.addCell(child,slot);}
+      } else if(!this.colony&&this.playerLineage){
+        // Only player-lineage cells, max 5 colonies total
+        if(!window._worldScene||window._worldScene.colonies.filter(c=>!c.dead).length<5){
+        if(window._worldScene){
+          const col=new Colony(this);
+          const slot=col.getFreeSlot();
+          if(slot)col.addCell(child,slot);
+          window._worldScene.colonies.push(col);
+          }
+        }
+      }
+    }
+    return child;
   }
 
   // ─── ICONIC ORGANELLE RENDERING ─────────────────────────────────────────────
@@ -429,7 +576,7 @@ class Cell{
     // Interior highlight (cytoplasm glow)
     g.fillStyle(innerC,0.5*alpha);
     g.fillCircle(this.x,this.y,r*0.7);
-    // Membrane — cartoon outline
+    // Membrane
     g.lineStyle(3.5,0x000000,0.45*alpha);
     g.strokeCircle(this.x,this.y,r);
     g.lineStyle(2,glowC,0.95*alpha);
@@ -596,6 +743,14 @@ class Cell{
   }
 }
 
+// ─── CORPSE ──────────────────────────────────────────────────────────────────
+class Corpse{
+  constructor(x,y,radius,hue){this.x=x;this.y=y;this.radius=radius;this.hue=hue;this.alpha=0.85;this.age=0;this.lifetime=9;this.dead=false;this.pulseTimer=0;this.pulseInterval=2.2;this.nutrientsLeft=Math.max(1,Math.floor(radius/10));}
+  update(dt){if(this.dead)return;this.age+=dt;this.alpha=Math.max(0,(1-this.age/this.lifetime)*0.85);this.pulseTimer+=dt;if(this.alpha<=0)this.dead=true;}
+  shouldPulse(){if(this.pulseTimer>=this.pulseInterval&&this.nutrientsLeft>0){this.pulseTimer=0;this.nutrientsLeft--;return true;}return false;}
+  render(g,time){if(this.dead||this.alpha<=0)return;const a=this.alpha,r=this.radius;g.fillStyle(0x886644,a*0.55);g.fillCircle(this.x,this.y,r*1.1);g.fillStyle(0xaaaaaa,a*0.4);g.fillCircle(this.x,this.y,r*0.8);g.lineStyle(2,0x443322,a*0.7);const sv=r*0.32;g.beginPath();g.moveTo(this.x-sv,this.y-sv);g.lineTo(this.x+sv,this.y+sv);g.strokePath();g.beginPath();g.moveTo(this.x+sv,this.y-sv);g.lineTo(this.x-sv,this.y+sv);g.strokePath();}
+}
+
 // ─── NUTRIENT ─────────────────────────────────────────────────────────────────
 class Nutrient{
   constructor(x,y){this.x=x;this.y=y;this.available=true;this.dead=false;this.phase=Math.random()*Math.PI*2;this.dx=0.3+Math.random()*0.9;this.dy=0.3+Math.random()*0.9;this.size=3.5+Math.random()*3;const tp=['organic','organic','organic','mineral','light'][Math.floor(Math.random()*5)];this.color=tp==='organic'?0x44dd55:tp==='mineral'?0xff44aa:0xffdd00;this.energy=10+Math.random()*15;}
@@ -627,18 +782,157 @@ class BootScene extends Phaser.Scene{
   }
 }
 
+// ─── COLONY ───────────────────────────────────────────────────────────────────
+// Hex offsets for a 7-slot body (centre + 6 neighbours)
+const HEX_SLOTS=[
+  {q:0,r:0},  // centre
+  {q:1,r:0},{q:0,r:1},{q:-1,r:1},
+  {q:-1,r:0},{q:0,r:-1},{q:1,r:-1}
+];
+function hexToWorld(q,r,cellR){
+  // flat-top hex layout, spacing = cellR*2.1
+  const size=cellR*2.1;
+  return{x:size*(q+r*0.5),y:size*(r*Math.sqrt(3)/2)};
+}
+
+class Colony{
+  constructor(seedCell){
+    this.id=Math.random().toString(36).slice(2);
+    this.x=seedCell.x;this.y=seedCell.y;
+    this.angle=seedCell.moveAngle||0;
+    this.speed=0;this.vx=0;this.vy=0;
+    this.dead=false;
+    // slots: array of {q,r,cell|null}
+    this.slots=HEX_SLOTS.map(s=>({q:s.q,r:s.r,cell:null}));
+    this.slots[0].cell=seedCell;
+    seedCell.colony=this;seedCell.colonySlot=0;
+    this._computeStats();
+  }
+
+  _computeStats(){
+    const cells=this.getCells();
+    if(!cells.length){this.dead=true;return;}
+    let spd=0,hasFlag=false,hasMouth=false,defense=0,eat=0,sense=55,energy=0;
+    for(const c of cells){
+      spd+=c.stats.speed;
+      if(c.stats.hasFlag)hasFlag=true;
+      if(c.stats.hasMouth)hasMouth=true;
+      defense+=c.stats.defense;
+      eat+=c.stats.eat;
+      sense=Math.max(sense,c.stats.sense);
+      energy+=c.stats.energy;
+    }
+    this.stats={speed:spd,hasFlag,hasMouth,defense,eat,sense,energy,count:cells.length};
+    this._cellRadius=cells[0]?cells[0].radius:22;
+  }
+
+  getCells(){
+    return this.slots.filter(s=>s.cell&&!s.cell.dead).map(s=>s.cell);
+  }
+
+  // Find a free slot adjacent to occupied slots
+  getFreeSlot(){
+    const occupied=new Set(this.slots.filter(s=>s.cell&&!s.cell.dead).map(s=>s.q+','+s.r));
+    for(const s of this.slots){
+      if(s.cell&&!s.cell.dead){
+        // check all 6 neighbours
+        const nbrs=[{q:s.q+1,r:s.r},{q:s.q,r:s.r+1},{q:s.q-1,r:s.r+1},
+                    {q:s.q-1,r:s.r},{q:s.q,r:s.r-1},{q:s.q+1,r:s.r-1}];
+        for(const nb of nbrs){
+          const slot=this.slots.find(sl=>sl.q===nb.q&&sl.r===nb.r);
+          if(slot&&!slot.cell)return slot;
+        }
+      }
+    }
+    return null;
+  }
+
+  addCell(cell,slot){
+    slot.cell=cell;
+    cell.colony=this;cell.colonySlot=this.slots.indexOf(slot);
+    this._computeStats();
+  }
+
+  removeCell(cell){
+    const slot=this.slots.find(s=>s.cell===cell);
+    if(slot)slot.cell=null;
+    cell.colony=null;cell.colonySlot=-1;
+    this._computeStats();
+    // If fewer than 2 cells, dissolve colony
+    if(this.getCells().length<1)this.dead=true;
+  }
+
+  update(dt,time){
+    this._computeStats();
+    const cells=this.getCells();
+    if(!cells.length){this.dead=true;return;}
+
+    // Colony movement: seek prey or nutrients using combined stats
+    const lead=cells.find(c=>c.stats.hasMouth)||cells[0];
+    if(lead.targetPrey&&!lead.targetPrey.dead){
+      this.angle=Math.atan2(lead.targetPrey.y-this.y,lead.targetPrey.x-this.x);
+    } else if(lead.targetNutrient&&lead.targetNutrient.available){
+      this.angle=Math.atan2(lead.targetNutrient.y-this.y,lead.targetNutrient.x-this.x);
+    } else {
+      this.angle+=Math.sin(time/3000+cells.length)*dt*0.3;
+    }
+
+    const spd=Math.max(0,this.stats.speed)*0.7;
+    this.vx=this.vx*0.85+Math.cos(this.angle)*spd*dt;
+    this.vy=this.vy*0.85+Math.sin(this.angle)*spd*dt;
+    this.x+=this.vx;this.y+=this.vy;
+
+    // Clamp to world
+    const dist=Math.hypot(this.x,this.y);
+    if(dist>WORLD_RADIUS-50){const s=(WORLD_RADIUS-50)/dist;this.x*=s;this.y*=s;this.vx*=-0.3;this.vy*=-0.3;}
+
+    // Update each cell position to its slot offset
+    const cr=this._cellRadius;
+    for(const slot of this.slots){
+      if(!slot.cell||slot.cell.dead)continue;
+      const off=hexToWorld(slot.q,slot.r,cr);
+      // Rotate offset by colony angle
+      const ca=this.angle,cs=Math.cos(ca),sn=Math.sin(ca);
+      const rx=off.x*cs-off.y*sn,ry=off.x*sn+off.y*cs;
+      slot.cell.x=this.x+rx;slot.cell.y=this.y+ry;
+      slot.cell.moveAngle=this.angle;
+    }
+  }
+
+  render(g,time){
+    if(this.dead)return;
+    const cells=this.getCells();
+    if(cells.length<2)return;
+    // Draw bonds between adjacent occupied slots
+    g.lineStyle(3,0xaaddff,0.45);
+    for(let i=0;i<this.slots.length;i++){
+      const a=this.slots[i];if(!a.cell||a.cell.dead)continue;
+      for(let j=i+1;j<this.slots.length;j++){
+        const b=this.slots[j];if(!b.cell||b.cell.dead)continue;
+        // Are they adjacent? (hex distance 1)
+        const dq=a.q-b.q,dr=a.r-b.r;
+        if(Math.max(Math.abs(dq),Math.abs(dr),Math.abs(dq+dr))===1){
+          g.beginPath();g.moveTo(a.cell.x,a.cell.y);g.lineTo(b.cell.x,b.cell.y);g.strokePath();
+        }
+      }
+    }
+  }
+}
+
 // ─── WORLD SCENE ──────────────────────────────────────────────────────────────
 class WorldScene extends Phaser.Scene{
   constructor(){super('World');}
   create(){
-    this.cells=[];this.nutrients=[];this.pending=[];this.tick=0;this.stagger=0;this.nutAcc=0;this.maxGen=0;this.simSpeed=1;this.biomeName='Sunlit Shallows';
+    this.cells=[];this.nutrients=[];this.pending=[];this.corpses=[];this.colonies=[];this.tick=0;this.stagger=0;this.nutAcc=0;this.maxGen=0;this.simSpeed=1;this.biomeName='Sunlit Shallows';
     this.totalDivisions=0;this.peakCells=0;
     this.cellHash=new SpatialHash(200,WORLD_RADIUS*2+200);
     this.nutHash=new SpatialHash(100,WORLD_RADIUS*2+200);
     this.bgLayer=this.add.graphics().setDepth(0);
     this.partLayer=this.add.graphics().setDepth(1);
-    this.nutLayer=this.add.graphics().setDepth(2);
-    this.cellLayer=this.add.graphics().setDepth(3);
+    this.bondLayer=this.add.graphics().setDepth(2);
+    this.corpseLayer=this.add.graphics().setDepth(3);
+    this.nutLayer=this.add.graphics().setDepth(4);
+    this.cellLayer=this.add.graphics().setDepth(5);
     this.drawBg();
     this.spawnNutrients(Math.floor(MAX_NUTRIENTS*0.65));
     this.cameras.main.setBackgroundColor(0x0ab8d4);
@@ -646,10 +940,11 @@ class WorldScene extends Phaser.Scene{
     this.cameras.main.setZoom(1.5);
     this.setupCam();this.setupParticles();
     // Starter cells
-    this.time.delayedCall(1000,()=>showGuide(0));
+    window._worldScene=this;
+    this.time.delayedCall(1000,()=>showIntroGuide());
     this.time.delayedCall(300,()=>{
       for(let i=0;i<4;i++){
-        const ang=Math.random()*Math.PI*2,dist=500+Math.random()*700;
+        const ang=Math.random()*Math.PI*2,dist=300+Math.random()*1800;
         this.spawnCell({organelles:['CYTOPLASM'],colorHue:Math.random()*360,mutationRate:0.05+Math.random()*0.05,divisionThreshold:0.72},Math.cos(ang)*dist,Math.sin(ang)*dist);
       }
     });
@@ -674,7 +969,7 @@ class WorldScene extends Phaser.Scene{
       for(let i=0;i<6;i++){const a1=(i/6)*Math.PI*2+Math.PI/6,a2=((i+1)/6)*Math.PI*2+Math.PI/6;g.beginPath();g.moveTo(x+Math.cos(a1)*hs*0.5,y+Math.sin(a1)*hs*0.5);g.lineTo(x+Math.cos(a2)*hs*0.5,y+Math.sin(a2)*hs*0.5);g.strokePath();}
     }
     
-    for(let r=WORLD_RADIUS+5;r<WORLD_RADIUS+350;r+=7){g.lineStyle(12,0x0077aa,Math.min(0.65,(r-WORLD_RADIUS)/180));g.strokeCircle(0,0,r);}
+    for(let r=WORLD_RADIUS+5;r<WORLD_RADIUS+350;r+=7){g.lineStyle(12,0x0077aa,Math.min(0.6,(r-WORLD_RADIUS)/180));g.strokeCircle(0,0,r);}
   }
   setupParticles(){
     this._parts=[];
@@ -693,9 +988,9 @@ class WorldScene extends Phaser.Scene{
     this.input.on('wheel',(_p,_x,_y,dz)=>{cam.setZoom(Phaser.Math.Clamp(cam.zoom-dz*0.001,0.3,5));this.clampCam();});
   }
   clampCam(){const cam=this.cameras.main,vr=Math.hypot(cam.width,cam.height)/(2*cam.zoom),md=Math.max(0,WORLD_RADIUS-vr),cx=cam.scrollX+cam.width/(2*cam.zoom),cy=cam.scrollY+cam.height/(2*cam.zoom),d=Math.hypot(cx,cy);if(d>md){const s=md/d;cam.scrollX=cx*s-cam.width/(2*cam.zoom);cam.scrollY=cy*s-cam.height/(2*cam.zoom);}}
-  tapWorld(sx,sy){const cam=this.cameras.main,wx=cam.scrollX+sx/cam.zoom,wy=cam.scrollY+sy/cam.zoom;let nearest=null,nd=40;for(const c of this.cells){if(c.dead)continue;const d=Math.hypot(c.x-wx,c.y-wy);if(d<nd){nd=d;nearest=c;}}if(nearest)openInspector(nearest);}
+  tapWorld(sx,sy){closeDropdowns();const cam=this.cameras.main,wx=cam.scrollX+sx/cam.zoom,wy=cam.scrollY+sy/cam.zoom;let nearest=null,nd=60;for(const c of this.cells){if(c.dead)continue;const d=Math.hypot(c.x-wx,c.y-wy);if(d<nd){nd=d;nearest=c;}}if(nearest){if(nearest.colony&&!nearest.colony.dead)openColonyInspector(nearest.colony);else openInspector(nearest);}}
   spawnCell(genome,x,y){const cam=this.cameras.main,wx=x??(cam.scrollX+cam.width/(2*cam.zoom)+(Math.random()-0.5)*60),wy=y??(cam.scrollY+cam.height/(2*cam.zoom)+(Math.random()-0.5)*60);const cell=new Cell(genome,wx,wy);this.cells.push(cell);if(cell.gen>this.maxGen)this.maxGen=cell.gen;}
-  spawnNutrients(count){for(let i=0;i<count&&this.nutrients.length<MAX_NUTRIENTS;i++){const ang=Math.random()*Math.PI*2,dist=Math.random()*WORLD_RADIUS*0.95,x=Math.cos(ang)*dist,y=Math.sin(ang)*dist;if(Math.random()>getBiome(x,y).nutMult*0.8)continue;this.nutrients.push(new Nutrient(x,y));}}
+  spawnNutrients(count,ox,oy){for(let i=0;i<count&&this.nutrients.length<MAX_NUTRIENTS;i++){const ang=Math.random()*Math.PI*2,dist=Math.random()*WORLD_RADIUS*0.95;const x=(ox!==undefined?ox+(Math.random()-0.5)*40:Math.cos(ang)*dist),y=(oy!==undefined?oy+(Math.random()-0.5)*40:Math.sin(ang)*dist);if(Math.random()>getBiome(x,y).nutMult*0.8)continue;this.nutrients.push(new Nutrient(x,y));}}
   update(time,delta){
     if(this.simSpeed===0)return;
     const dt=delta/1000*this.simSpeed;this.tick++;
@@ -711,10 +1006,12 @@ class WorldScene extends Phaser.Scene{
       const c=this.cells[i];if(c.dead)continue;
       c.update(dt,time);
       const dist=Math.hypot(c.x,c.y);
-      if(dist>WORLD_RADIUS-SOFT_EDGE){if(dist>WORLD_RADIUS){const s=WORLD_RADIUS/dist;c.x*=s;c.y*=s;c.vx*=-0.3;c.vy*=-0.3;}else{const tf=((dist-(WORLD_RADIUS-SOFT_EDGE))/SOFT_EDGE)**2;c.vx-=(c.x/dist)*tf*120*dt;c.vy-=(c.y/dist)*tf*120*dt;}}
+      // Strong separation — skip if predator is actively chasing this cell
+      {const near=this.cellHash.query(c.x,c.y,c.radius*6);for(const n of near){if(n===c)continue;if(c.targetPrey===n||n.targetPrey===c)continue;const dd=Math.hypot(n.x-c.x,n.y-c.y);const minD=c.radius+n.radius+12;if(dd<minD&&dd>0.1){const f=(minD-dd)*0.5/dd;c.x-=(n.x-c.x)*f;c.y-=(n.y-c.y)*f;}}}
+      if(!this.colony&&dist>WORLD_RADIUS-SOFT_EDGE){if(dist>WORLD_RADIUS){const s=WORLD_RADIUS/dist;c.x*=s;c.y*=s;c.vx*=-0.3;c.vy*=-0.3;}else{const tf=((dist-(WORLD_RADIUS-SOFT_EDGE))/SOFT_EDGE)**2;c.vx-=(c.x/dist)*tf*120*dt;c.vy-=(c.y/dist)*tf*120*dt;}}
       if(i%4===ag){
-        c.seekTarget(this.nutHash.query(c.x,c.y,c.stats.sense),this.cellHash.query(c.x,c.y,c.stats.sense).filter(oc=>oc!==c));
-        if(c.stats.hasMouth){const prey=this.cellHash.query(c.x,c.y,c.radius+30);for(const p of prey)if(p!==c&&!p.dead)c.tryEat(p,dt);}
+        if(!c.colony||c.colony.slots[0]?.cell===c)c.seekTarget(this.nutHash.query(c.x,c.y,c.stats.sense),this.cellHash.query(c.x,c.y,c.stats.sense).filter(oc=>oc!==c));
+        if(c.stats.hasMouth){const prey=this.cellHash.query(c.x,c.y,c.radius+50);for(const p of prey)if(p!==c&&!p.dead)c.tryEat(p,dt);}
         if(c.stats.defense>2){const co=this.cellHash.query(c.x,c.y,c.radius+16);for(const oc of co)if(oc!==c&&!oc.dead)c.spikeContact(oc,time);}
       }
       if(c.targetNutrient?.available){const dn=Math.hypot(c.targetNutrient.x-c.x,c.targetNutrient.y-c.y);if(dn<20+c.radius){c.energy=Math.min(c.stats.maxEnergy,c.energy+c.targetNutrient.consume()*c.stats.eat);c.targetNutrient=null;}}
@@ -723,18 +1020,33 @@ class WorldScene extends Phaser.Scene{
     const alive=this.cells.filter(c=>!c.dead).length;
     if(alive>this.peakCells)this.peakCells=alive;
     for(const n of this.nutrients)n.update(dt,time);
+    // Update colonies
+    for(let ci=this.colonies.length-1;ci>=0;ci--){
+      const col=this.colonies[ci];
+      if(col.dead){this.colonies.splice(ci,1);continue;}
+      col.update(dt,time);
+    }
+    for(let ci=this.corpses.length-1;ci>=0;ci--){const co=this.corpses[ci];co.update(dt);if(co.shouldPulse()&&this.nutrients.length<MAX_NUTRIENTS)this.spawnNutrients(1,co.x,co.y);if(co.dead)this.corpses.splice(ci,1);}
     this.renderFrame(time,dt);
     const cam=this.cameras.main,cx=cam.scrollX+cam.width/(2*cam.zoom),cy=cam.scrollY+cam.height/(2*cam.zoom);
     const b=getBiome(cx,cy);if(b.name!==this.biomeName){this.biomeName=b.name;showBiomeToast(b);}
     if(this.tick%15===0){
       document.getElementById('h-cells').textContent=alive;
       document.getElementById('h-gen').textContent=this.maxGen;
+      if(speciesOpen)renderSpeciesPanel();
+      if(objTrackerOpen)renderObjTracker();
+      updateColonyHudBtn();
+      // Refresh colony status in inspector while it's open
+      if(document.getElementById('inspector').classList.contains('open')&&inspectedCell&&!inspectedCell.dead){const _h=inspectedCell.colony&&!inspectedCell.colony.dead;const _vcb2=document.getElementById('view-colony-btn');const _csb2=document.getElementById('colony-status-msg');if(_vcb2)_vcb2.style.display=_h?'block':'none';if(_csb2){if(_h)_csb2.style.display='none';else if(inspectedCell.genome.organelles.includes('BINDING_AGENT')){_csb2.style.display='block';_csb2.textContent='⏳ Cell has Binding Agent — colony forms after first division. Watch the banner above.';}else _csb2.style.display='none';}}
       document.getElementById('h-nuts').textContent=this.nutrients.filter(n=>n.available).length;
       checkArchetypeProgress(this.cells);
     }
   }
+  addCorpse(cell){this.corpses.push(new Corpse(cell.x,cell.y,cell.radius,cell.genome.colorHue));}
   renderFrame(time,dt){
     const pg=this.partLayer;pg.clear();
+    this.bondLayer.clear();for(const col of this.colonies)col.render(this.bondLayer,time);
+    this.corpseLayer.clear();for(const co of this.corpses)co.render(this.corpseLayer,0);
     for(const p of this._parts){p.drift+=dt*0.2;p.x+=Math.cos(p.drift)*p.spd;p.y-=p.spd*0.3;const d=Math.hypot(p.x,p.y);if(d>WORLD_RADIUS*0.98){const s=(WORLD_RADIUS*0.5)/d;p.x*=s;p.y*=s;}pg.fillStyle(p.color,p.alpha*(0.7+Math.sin(time/3000+p.drift)*0.3));pg.fillCircle(p.x,p.y,p.size);}
     const ng=this.nutLayer;ng.clear();
     for(const n of this.nutrients){if(!n.available)continue;const pulse=1+Math.sin(time/1000*2+n.phase)*0.35;ng.fillStyle(0x000000,0.1);ng.fillCircle(n.x+1,n.y+1,n.size*pulse*1.4);ng.fillStyle(n.color,0.95);ng.fillCircle(n.x,n.y,n.size*pulse*1.6);ng.fillStyle(0xffffff,0.5);ng.fillCircle(n.x-n.size*0.3,n.y-n.size*0.3,n.size*0.5);}
@@ -755,72 +1067,73 @@ function getWS(){return game.scene.getScene('World');}
 
 // ─── FIVE ARCHETYPE PROGRESSION ──────────────────────────────────────────────
 const ARCHETYPES = [
-  {id:'producer', step:0, emoji:'🌿', name:'The Bottom of the Food Chain',
-   desc:'A cell that feeds on sunlight near the surface, or on chemical energy from the vents. This is the foundation — without producers, nothing else can eat.',
+  {id:'producer',step:0,emoji:'🌿',name:'The Bottom of the Food Chain',
+   desc:'A cell that feeds on sunlight near the surface, or on chemical energy from the vents. The foundation — without producers, nothing else can eat.',
    hint:'Add a Chloroplast to feed on sunlight. Near the vents, a Chemoreceptor harvests chemical energy instead.',
-   startOrg:'CHLOROPLAST',
-   unlocks:['CHLOROPLAST','CHEMORECEPTOR','CILIA'],
+   startOrg:'CHLOROPLAST',unlocks:['CHLOROPLAST'],
    check:(cells)=>cells.some(c=>c.genome.organelles.includes('CHLOROPLAST')||c.genome.organelles.includes('CHEMORECEPTOR'))},
-  {id:'predator', step:1, emoji:'🦷', name:'The Next Link',
+  {id:'predator',step:1,emoji:'🦷',name:'The Next Link',
    desc:'Your producers are thriving. Now introduce a hunter. A cell with a Cytostome can engulf weaker cells — this creates your first food chain.',
    hint:'Add a Cytostome. Your predator will actively hunt cells smaller and weaker than itself.',
-   startOrg:'MOUTH',
-   unlocks:['MOUTH','FLAGELLUM','SPIKE'],
+   startOrg:'MOUTH',unlocks:['MOUTH','CILIA'],
    check:(cells)=>cells.some(c=>c.genome.organelles.includes('MOUTH'))},
-  {id:'armoured', step:2, emoji:'🛡️', name:'Survival of the Fittest',
-   desc:'Your producers are being eaten. Reinforce them. A Cell Wall provides passive protection. A Binding Agent allows daughter cells to stay together — the first step toward multicellular plant life.',
+  {id:'armoured',step:2,emoji:'🛡️',name:'Survival of the Fittest',
+   desc:'Your producers are being eaten. Reinforce them. A Cell Wall provides passive protection — the first step toward multicellular plant life.',
    hint:'Add a Cell Wall to your producer to protect against predators.',
-   startOrg:'CELL_WALL',
-   unlocks:['CELL_WALL','VACUOLE','BINDING_AGENT'],
-   check:(cells)=>cells.some(c=>(c.genome.organelles.includes('CHLOROPLAST')||c.genome.organelles.includes('CHEMORECEPTOR'))&&(c.genome.organelles.includes('CELL_WALL')||c.genome.organelles.includes('BINDING_AGENT')))},
-  {id:'hunter', step:3, emoji:'⚡', name:'The First Animal',
-   desc:'Speed and aggression combined. A predator with both a Cytostome and Flagellum is the ancestor of all animal-like multicellular life.',
-   hint:'Build a cell with both a Cytostome and a Flagellum together.',
-   startOrg:'MOUTH',
-   unlocks:['MITOCHONDRIA'],
-   check:(cells)=>cells.some(c=>c.genome.organelles.includes('MOUTH')&&c.genome.organelles.includes('FLAGELLUM'))},
-  {id:'decomposer', step:4, emoji:'🍄', name:'The Cycle of Life',
-   desc:'Life cannot progress without decay. A Vacuole-based cell absorbs nutrients from the dead — completing the food cycle and founding fungal life.',
+   startOrg:'CELL_WALL',unlocks:['CELL_WALL'],
+   check:(cells)=>cells.some(c=>(c.genome.organelles.includes('CHLOROPLAST')||c.genome.organelles.includes('CHEMORECEPTOR'))&&c.genome.organelles.includes('CELL_WALL'))},
+  {id:'colony',step:3,emoji:'🫧',name:'The First Colony',
+   desc:'Your armoured producer is surviving. Now make it colonial — add a Binding Agent. When it divides, the daughter cell stays physically attached. Wait and watch: two cells bonded together as one organism. That cluster is the first multicellular life.',
+   hint:'Release a cell with a Binding Agent. When it divides, a 🫧 View My Colony button appears at the top of the screen. Tap it to open the Colony Inspector, then tap Edit Body Plan to complete this step.',
+   startOrg:'BINDING_AGENT',unlocks:['BINDING_AGENT','FLAGELLUM'],
+   check:(cells)=>{const ws=window._worldScene;return playerHasEditedColony&&ws&&ws.colonies.some(col=>col.getCells().length>=2);}},
+  {id:'hunter',step:4,emoji:'⚡',name:'The First Animal',
+   desc:'A predator with both a Cytostome and Flagellum is fast enough to hunt anything. The ancestor of all animal-like multicellular life.',
+   hint:'Tap Build to design a cell with both a Cytostome AND a Flagellum. It will actively hunt prey across the entire ocean.',
+   startOrg:'MOUTH',unlocks:['SPIKE','CHEMORECEPTOR','MITOCHONDRIA','VACUOLE'],
+   check:(cells)=>playerUsedOrgs.has('FLAGELLUM')&&cells.some(c=>c.genome.organelles.includes('MOUTH')&&c.genome.organelles.includes('FLAGELLUM'))},
+  {id:'decomposer',step:5,emoji:'🍄',name:'The Cycle of Life',
+   desc:'Life cannot progress without decay. A Vacuole-based cell absorbs dissolved nutrients from dead cells — the ancestor of all fungal life.',
    hint:'Add a Vacuole. Your decomposer thrives wherever cells have died.',
-   startOrg:'VACUOLE',
-   unlocks:['BINDING_AGENT','NUCLEUS'],
-   check:(cells)=>cells.some(c=>c.genome.organelles.includes('VACUOLE'))},
+   startOrg:'VACUOLE',unlocks:['CHEMORECEPTOR','MITOCHONDRIA'],
+   check:(cells)=>playerUsedOrgs.has('VACUOLE')&&cells.some(c=>c.genome.organelles.includes('VACUOLE'))},
 ];
-let archetypeDone = new Set();
-let currentStep = 0;
-let unlockedOrgs = new Set(['CYTOPLASM']);
+
+let archetypeDone=new Set();
+let currentStep=0;
+let unlockedOrgs=new Set(['CYTOPLASM','NUCLEUS']);
+let playerUsedOrgs=new Set(['CYTOPLASM']); // organelles player has ever placed
 function getVisibleOrgs(){
   const v=new Set(unlockedOrgs);
-  if(currentStep<ARCHETYPES.length) ARCHETYPES[currentStep].unlocks.forEach(k=>v.add(k));
+  if(currentStep<ARCHETYPES.length)ARCHETYPES[currentStep].unlocks.forEach(k=>v.add(k));
   return v;
 }
-
 function checkArchetypeProgress(cells){
   const alive=cells.filter(c=>!c.dead);
   for(let i=currentStep;i<ARCHETYPES.length;i++){
     const a=ARCHETYPES[i];
     if(!archetypeDone.has(a.id)&&a.check(alive)){
-      archetypeDone.add(a.id);
-      a.unlocks.forEach(k=>unlockedOrgs.add(k));
+      archetypeDone.add(a.id);a.unlocks.forEach(k=>unlockedOrgs.add(k));
       document.getElementById('dot-'+i).className='stage-dot done';
       currentStep=i+1;
-      if(currentStep<ARCHETYPES.length) document.getElementById('dot-'+currentStep).className='stage-dot active';
-      showUnlockFlash(a,i);
-      break;
+      if(currentStep<ARCHETYPES.length)document.getElementById('dot-'+currentStep).className='stage-dot active';
+      showUnlockFlash(a,i);break;
     }
   }
 }
 function showUnlockFlash(a,stepIndex){
   document.getElementById('uf-emoji').textContent=a.emoji;
   document.getElementById('uf-name').textContent=a.name+' — Complete';
-  document.getElementById('uf-desc').textContent=stepIndex<4?'New organelles unlocked. Tap + to build the next archetype.':'Cell stage complete!';
+  const _msgs=['A predator is next. Tap Build to design one with a Cytostome.','Now armour a producer. Tap Build to add a Cell Wall to a producer cell.','Now add a Binding Agent to your armoured cell. Tap Build — then wait for it to divide.','Build a fast hunter: Cytostome + Flagellum together.','Build a Vacuole cell to feed on the dead.'];
+  document.getElementById('uf-desc').textContent=stepIndex<5?_msgs[stepIndex]:'Cell stage complete! Your ecosystem is ready for the next stage.';
   document.getElementById('unlock-flash').style.display='block';
-  setTimeout(()=>{document.getElementById('unlock-flash').style.display='none';if(currentStep<ARCHETYPES.length)showGuide(currentStep);},3500);
+  if(objTrackerOpen)renderObjTracker();
+  setTimeout(()=>{document.getElementById('unlock-flash').style.display='none';if(currentStep<ARCHETYPES.length)showGuide(currentStep);else showStageReadyButton();},3500);
 }
 function showGuide(stepIndex){
   if(stepIndex>=ARCHETYPES.length){document.getElementById('guide').classList.remove('visible');return;}
   const a=ARCHETYPES[stepIndex];
-  document.getElementById('guide-step').textContent='Step '+(stepIndex+1)+' of 5 · '+a.emoji+' '+a.name;
+  document.getElementById('guide-step').textContent='Step '+(stepIndex+1)+' of 6 · '+a.emoji+' '+a.name;
   document.getElementById('guide-title').textContent=a.name;
   document.getElementById('guide-body').textContent=a.desc;
   document.getElementById('guide-action').textContent='🔬 Build '+a.name;
@@ -829,32 +1142,27 @@ function showGuide(stepIndex){
 document.getElementById('guide-dismiss').addEventListener('click',()=>document.getElementById('guide').classList.remove('visible'));
 document.getElementById('guide-action').addEventListener('click',()=>{
   document.getElementById('guide').classList.remove('visible');
-  if(currentStep<ARCHETYPES.length) openEditorForArchetype(currentStep);
+  if(currentStep<ARCHETYPES.length)openEditorForArchetype(currentStep);
+  else showStageReadyButton();
 });
 function openEditorForArchetype(stepIndex){
-  if(stepIndex>=ARCHETYPES.length) return;
+  if(stepIndex>=ARCHETYPES.length)return;
   const a=ARCHETYPES[stepIndex];
-  editorMode='create'; editTargetCell=null;
-  editorGenome={organelles:['CYTOPLASM'],colorHue:Math.random()*360,mutationRate:0.07,divisionThreshold:0.74};
+  editorMode='create';editTargetCell=null;
+  editorGenome={organelles:a.id==='predator'?['CYTOPLASM','MOUTH','CILIA']:a.id==='armoured'?['CYTOPLASM','CELL_WALL','CILIA']:['CYTOPLASM',a.startOrg],colorHue:Math.random()*360,mutationRate:0.07,divisionThreshold:0.74};
   selectedOrg=a.startOrg;
   document.getElementById('editor-title').textContent='Create: '+a.name;
   document.getElementById('editor-hint').textContent=a.hint;
   document.getElementById('release-btn').textContent='🌊  Release into the ocean';
   document.getElementById('editor').classList.add('open');
   const ws=getWS();if(ws)ws.simSpeed=0;
-  document.querySelectorAll('.speed-btn').forEach(b=>b.classList.toggle('active',parseInt(b.dataset.speed)===0));
+
   requestAnimationFrame(()=>requestAnimationFrame(()=>{setupEdCanvas();buildPalette();updateEdStats();updateComplexityBar();drawEdHex();}));
 }
 
 // ─── UNLOCK TOAST ─────────────────────────────────────────────────────────────
 let unlockTimer=null;
-function showUnlockToast(names){
-  const el=document.getElementById('unlock-toast');
-  document.getElementById('ut-items').textContent=names;
-  el.style.display='block';
-  if(unlockTimer)clearTimeout(unlockTimer);
-  unlockTimer=setTimeout(()=>{el.style.display='none';},3200);
-}
+function showUnlockToast(names){} // removed - using unlock-flash instead
 
 // ─── BIOME TOAST ──────────────────────────────────────────────────────────────
 let biomeTimer=null;
@@ -863,7 +1171,335 @@ function showBiomeToast(b){
   if(biomeTimer)clearTimeout(biomeTimer);biomeTimer=setTimeout(()=>{el.style.opacity='0';},3000);
 }
 
+function showIntroGuide(){
+  const panel=document.getElementById('intro-guide');
+  if(panel)panel.style.display='flex';
+}
+function showStageComplete(){
+  document.getElementById('stage-complete').style.display='flex';
+}
+function showStageReadyButton(){
+  document.getElementById('stage-ready-btn').style.display='block';
+}
+function startBlobStage(){
+  document.getElementById('stage-complete').style.display='none';
+  // Blob stage placeholder — will be built next
+  showBiomeToast({emoji:'🫧',name:'Blob Stage Coming Soon',desc:'Your cells are ready to combine into something greater.'});
+}
+
+// ─── OBJECTIVE TRACKER ───────────────────────────────────────────────────────
+let objTrackerOpen=false;
+document.getElementById('obj-tracker-btn').addEventListener('click',()=>{
+  objTrackerOpen=!objTrackerOpen;
+  document.getElementById('obj-tracker-panel').classList.toggle('open',objTrackerOpen);
+  if(objTrackerOpen)renderObjTracker();
+});
+function renderObjTracker(){
+  const list=document.getElementById('obj-tracker-list');
+  list.innerHTML='';
+  ARCHETYPES.forEach((a,i)=>{
+    const done=archetypeDone.has(a.id),current=i===currentStep&&!done;
+    const row=document.createElement('div');row.className='obj-row';
+    row.innerHTML=`<div class="obj-tick ${done?'done':current?'current':''}">${done?'✓':current?'●':''}</div><div class="obj-text ${done?'done':''}">${a.emoji} ${a.name}</div>`;
+    list.appendChild(row);
+  });
+}
+
+// ─── SPECIES PANEL ────────────────────────────────────────────────────────────
+let speciesOpen=false;
+document.getElementById('species-btn').addEventListener('click',()=>{
+  speciesOpen=!speciesOpen;
+  document.getElementById('species-dropdown').classList.toggle('open',speciesOpen);
+  if(speciesOpen)renderSpeciesPanel();
+});
+function speciesLabel(organelles){
+  const has=k=>organelles.includes(k);
+  if(has('MOUTH')&&has('FLAGELLUM'))return 'Hunter';
+  if(has('MOUTH')&&has('SPIKE'))return 'Armoured Predator';
+  if(has('MOUTH'))return 'Predator';
+  if(has('CHLOROPLAST')&&has('CELL_WALL')&&has('BINDING_AGENT'))return 'Colonial Alga';
+  if(has('CHLOROPLAST')&&has('CELL_WALL'))return 'Armoured Alga';
+  if(has('CHLOROPLAST')&&has('BINDING_AGENT'))return 'Colonial Producer';
+  if(has('CHLOROPLAST'))return 'Photosynthesiser';
+  if(has('CHEMORECEPTOR')&&has('VACUOLE'))return 'Vent Decomposer';
+  if(has('CHEMORECEPTOR'))return 'Chemotroph';
+  if(has('VACUOLE')&&has('BINDING_AGENT'))return 'Colonial Decomposer';
+  if(has('VACUOLE'))return 'Decomposer';
+  if(has('CELL_WALL')&&has('BINDING_AGENT'))return 'Colonial Walled Cell';
+  if(has('CELL_WALL'))return 'Armoured Cell';
+  if(has('FLAGELLUM'))return 'Swimmer';
+  if(has('MITOCHONDRIA'))return 'Aerobe';
+  if(has('BINDING_AGENT'))return 'Colonial Cell';
+  const orgs=organelles.filter(o=>o!=='CYTOPLASM'&&o!=='NUCLEUS');
+  return orgs.length&&ORG[orgs[0]]?ORG[orgs[0]].name+' Cell':'Primordial Cell';
+}
+function getSpecies(){
+  const ws=getWS();if(!ws)return[];
+  const alive=ws.cells.filter(c=>!c.dead);
+  const groups=new Map();
+  for(const cell of alive){
+    const key=[...cell.genome.organelles].sort().join(',');
+    if(!groups.has(key))groups.set(key,{organelles:cell.genome.organelles,cells:[],hue:cell.genome.colorHue});
+    groups.get(key).cells.push(cell);
+  }
+  return[...groups.values()].sort((a,b)=>b.cells.length-a.cells.length);
+}
+function renderSpeciesPanel(){
+  const list=document.getElementById('species-list');list.innerHTML='';
+  const species=getSpecies();
+  if(!species.length){list.innerHTML='<div class="species-empty">No living cells yet</div>';return;}
+  species.slice(0,8).forEach(sp=>{
+    const row=document.createElement('div');row.className='species-row';
+    const color=`hsl(${sp.hue},60%,55%)`;
+    row.innerHTML=`<div class="species-dot" style="background:${color}"></div><div class="species-name">${speciesLabel(sp.organelles)}</div><div class="species-count">×${sp.cells.length}</div>`;
+    row.addEventListener('click',()=>{
+      speciesOpen=false;document.getElementById('species-dropdown').classList.remove('open');
+      const best=sp.cells.reduce((a,b)=>a.energy/a.stats.maxEnergy>b.energy/b.stats.maxEnergy?a:b);
+      const hasBind=best.genome.organelles.includes('BINDING_AGENT');
+      if(best.colony&&!best.colony.dead){
+        openColonyInspector(best.colony);
+      } else if(hasBind){
+        // Create a colony for this cell on demand
+        const ws=getWS();
+        if(ws){
+          const col=new Colony(best);
+          ws.colonies.push(col);
+          best.playerLineage=true;
+          openColonyInspector(col);
+        }
+      } else {
+        openEditorForCell(best);
+      }
+    });
+    list.appendChild(row);
+  });
+}
+function closeDropdowns(){
+  if(objTrackerOpen){objTrackerOpen=false;document.getElementById('obj-tracker-panel').classList.remove('open');}
+  if(speciesOpen){speciesOpen=false;document.getElementById('species-dropdown').classList.remove('open');}
+}
+
+
+// ─── COLONY INSPECTOR ─────────────────────────────────────────────────────────
+let inspectedColony = null;
+
+function colonyRoleName(colony){
+  const cells=colony.getCells();
+  const has=k=>cells.some(c=>c.genome.organelles.includes(k));
+  if(has('MOUTH')&&has('FLAGELLUM'))return 'Predatory Organism';
+  if(has('MOUTH'))return 'Colonial Predator';
+  if(has('CHLOROPLAST')&&has('CELL_WALL'))return 'Armoured Plant Colony';
+  if(has('CHLOROPLAST'))return 'Plant Colony';
+  if(has('VACUOLE'))return 'Fungal Colony';
+  return 'Colonial Organism';
+}
+
+function drawColonyPreview(canvas, colony, editable, activeSlot){
+  const ctx=canvas.getContext('2d');
+  const W=canvas.width,H=canvas.height,cx=W/2,cy=H/2;
+  ctx.clearRect(0,0,W,H);
+  const cellR=Math.min(W,H)/7;
+  // Draw each slot
+  colony.slots.forEach((slot,i)=>{
+    const off=hexToWorld(slot.q,slot.r,cellR);
+    const sx=cx+off.x,sy=cy+off.y;
+    // Slot background
+    ctx.beginPath();ctx.arc(sx,sy,cellR*0.9,0,Math.PI*2);
+    ctx.fillStyle=editable?(activeSlot===i?'rgba(0,150,220,0.25)':'rgba(200,230,255,0.4)'):'rgba(180,215,240,0.3)';
+    ctx.fill();
+    ctx.strokeStyle=activeSlot===i?'rgba(0,150,220,0.8)':'rgba(100,160,200,0.4)';
+    ctx.lineWidth=editable?2:1;ctx.stroke();
+    if(slot.cell&&!slot.cell.dead){
+      // Draw the cell
+      const orgs=slot.cell.genome.organelles;
+      const hue=slot.cell.genome.colorHue;
+      const grad=ctx.createRadialGradient(sx-cellR*0.2,sy-cellR*0.2,0,sx,sy,cellR*0.82);
+      const h=hue/360;
+      grad.addColorStop(0,`hsla(${hue},70%,75%,0.95)`);
+      grad.addColorStop(1,`hsla(${hue},60%,45%,0.92)`);
+      ctx.beginPath();ctx.arc(sx,sy,cellR*0.82,0,Math.PI*2);
+      ctx.fillStyle=grad;ctx.fill();
+      ctx.strokeStyle='#233044';ctx.lineWidth=cellR*0.12;ctx.stroke();
+      // Label
+      const mainOrg=orgs.filter(o=>o!=='CYTOPLASM'&&o!=='NUCLEUS')[0];
+      if(mainOrg&&ORG[mainOrg]){
+        ctx.fillStyle='rgba(255,255,255,0.9)';
+        ctx.font=`bold ${cellR*0.38}px 'IBM Plex Sans',sans-serif`;
+        ctx.textAlign='center';ctx.textBaseline='middle';
+        ctx.fillText(ORG[mainOrg].short||mainOrg.slice(0,3),sx,sy);
+      }
+    } else if(editable){
+      // Empty slot hint
+      ctx.fillStyle='rgba(100,150,200,0.35)';
+      ctx.font=`${cellR*0.38}px sans-serif`;
+      ctx.textAlign='center';ctx.textBaseline='middle';
+      ctx.fillText('+',sx,sy);
+    }
+  });
+  // Draw bonds
+  colony.slots.forEach((a,i)=>{
+    if(!a.cell||a.cell.dead)return;
+    colony.slots.forEach((b,j)=>{
+      if(j<=i)return;if(!b.cell||b.cell.dead)return;
+      const dq=a.q-b.q,dr=a.r-b.r;
+      if(Math.max(Math.abs(dq),Math.abs(dr),Math.abs(dq+dr))===1){
+        const aOff=hexToWorld(a.q,a.r,cellR),bOff=hexToWorld(b.q,b.r,cellR);
+        ctx.beginPath();ctx.moveTo(cx+aOff.x,cy+aOff.y);ctx.lineTo(cx+bOff.x,cy+bOff.y);
+        ctx.strokeStyle='rgba(0,160,200,0.5)';ctx.lineWidth=3;ctx.stroke();
+      }
+    });
+  });
+}
+
+function openColonyInspector(colony){
+  inspectedColony=colony;
+  const cells=colony.getCells();
+  document.getElementById('ci-name').textContent=colonyRoleName(colony);
+  document.getElementById('ci-cells').textContent=cells.length+' cells · generation '+Math.max(...cells.map(c=>c.gen));
+  document.getElementById('ci-speed').textContent=colony.stats.speed.toFixed(0);
+  document.getElementById('ci-defense').textContent=colony.stats.defense.toFixed(1);
+  document.getElementById('ci-count').textContent=cells.length+'/7';
+  // Roster chips
+  const roster=document.getElementById('ci-roster');roster.innerHTML='';
+  cells.forEach(c=>{
+    const mainOrg=c.genome.organelles.filter(o=>o!=='CYTOPLASM'&&o!=='NUCLEUS')[0];
+    const chip=document.createElement('div');
+    chip.style.cssText=`padding:4px 10px;border-radius:20px;font-size:11px;font-weight:600;color:#003355;background:rgba(0,160,200,0.1);border:1.5px solid rgba(0,160,200,0.25);`;
+    chip.textContent=mainOrg&&ORG[mainOrg]?ORG[mainOrg].name:'Simple Cell';
+    roster.appendChild(chip);
+  });
+  // Draw preview
+  const canvas=document.getElementById('colony-canvas');
+  document.getElementById('colony-inspector').style.display='flex';
+  // Draw after layout is complete
+  setTimeout(()=>drawColonyPreview(document.getElementById('colony-canvas'),colony,false,-1),50);
+  // Pause world
+  const ws=getWS();if(ws)ws.simSpeed=0;
+}
+document.getElementById('ci-close').addEventListener('click',()=>{
+  document.getElementById('colony-inspector').style.display='none';
+  const ws=getWS();if(ws)ws.simSpeed=1;
+});
+document.getElementById('ci-edit-btn').addEventListener('click',()=>{
+  document.getElementById('colony-inspector').style.display='none';
+  openColonyEditor(inspectedColony);
+});
+
+// ─── COLONY BODY PLAN EDITOR ──────────────────────────────────────────────────
+let editingColony=null;
+let ceActiveSlot=-1;
+let ceSelectedType='CHLOROPLAST';
+let playerHasEditedColony=false;
+// Cycle order for cell types in editor
+const COLONY_CELL_TYPES=['CHLOROPLAST','MOUTH','CELL_WALL','FLAGELLUM','CILIA','VACUOLE','CHEMORECEPTOR','MITOCHONDRIA','BINDING_AGENT'];
+
+function openColonyEditor(colony){
+  editingColony=colony;ceActiveSlot=-1;
+  playerHasEditedColony=true;
+  document.getElementById('colony-editor').style.display='flex';
+  buildColonyPalette();drawColonyEditorCanvas();
+}
+function buildColonyPalette(){
+  const pal=document.getElementById('ce-palette');if(!pal)return;pal.innerHTML='';
+  for(const key of COLONY_CELL_TYPES){
+    if(!isUnlocked(key))continue;const o=ORG[key];if(!o)continue;
+    const btn=document.createElement('div');
+    const sel=key===ceSelectedType;
+    btn.style.cssText=`display:inline-flex;align-items:center;gap:5px;padding:5px 10px;border-radius:16px;cursor:pointer;touch-action:manipulation;border:2px solid ${sel?o.color:'rgba(255,255,255,0.2)'};background:${sel?'rgba(255,255,255,0.15)':'rgba(255,255,255,0.04)'};color:#fff;font-size:11px;font-weight:${sel?'700':'500'};white-space:nowrap;margin:2px;`;
+    btn.innerHTML=`<div style="width:9px;height:9px;border-radius:50%;background:${o.color};flex-shrink:0;"></div>${o.name}`;
+    btn.onclick=()=>{ceSelectedType=key;buildColonyPalette();};
+    pal.appendChild(btn);
+  }
+}
+function drawColonyEditorCanvas(){
+  const canvas=document.getElementById('colony-edit-canvas');
+  drawColonyPreview(canvas,editingColony,true,ceActiveSlot);
+}
+document.getElementById('colony-edit-canvas').addEventListener('click',e=>{
+  if(!editingColony)return;
+  const canvas=document.getElementById('colony-edit-canvas');
+  const rect=canvas.getBoundingClientRect();
+  const mx=(e.clientX-rect.left)*(canvas.width/rect.width);
+  const my=(e.clientY-rect.top)*(canvas.height/rect.height);
+  const cx=canvas.width/2,cy=canvas.height/2;
+  const cellR=Math.min(canvas.width,canvas.height)/7;
+  // Find which slot was tapped
+  let best=-1,bestD=cellR*1.1;
+  editingColony.slots.forEach((slot,i)=>{
+    const off=hexToWorld(slot.q,slot.r,cellR);
+    const d=Math.hypot(mx-(cx+off.x),my-(cy+off.y));
+    if(d<bestD){bestD=d;best=i;}
+  });
+  if(best===-1)return;
+  const slot=editingColony.slots[best];
+  ceActiveSlot=best;
+  const baseCell=editingColony.getCells()[0];
+  if(slot.cell&&!slot.cell.dead){
+    if(editingColony.slots.indexOf(slot)===0){
+      document.getElementById('ce-hint').textContent='Founding cell — cannot be removed.';
+    } else {
+      const curOrg=slot.cell.genome.organelles.find(o=>o!=='CYTOPLASM'&&o!=='NUCLEUS')||'';
+      if(curOrg===ceSelectedType){
+        // Tap same type = remove
+        editingColony.removeCell(slot.cell);
+        const ws=getWS();if(ws){const i2=ws.cells.indexOf(slot.cell);if(i2!==-1)ws.cells.splice(i2,1);}
+        document.getElementById('ce-hint').textContent='Cell removed.';
+      } else {
+        slot.cell.genome={...slot.cell.genome,organelles:['CYTOPLASM',ceSelectedType]};
+        slot.cell.stats=computeStats(slot.cell.genome.organelles);
+        document.getElementById('ce-hint').textContent='Changed to: '+ORG[ceSelectedType].name;
+      }
+    }
+  } else if(editingColony.getCells().length<7&&baseCell){
+    const lead=editingColony.getCells()[0];
+    if(lead&&lead.energy<lead.stats.maxEnergy*0.15){
+      document.getElementById('ce-hint').textContent='Need 15% energy to add a cell — wait for it to feed.';
+    } else {
+      const ws=getWS();if(ws){
+        const newG={organelles:['CYTOPLASM',ceSelectedType],colorHue:baseCell.genome.colorHue+(Math.random()-0.5)*60,mutationRate:0.05,divisionThreshold:0.75};
+        const off=hexToWorld(slot.q,slot.r,baseCell.radius*2);
+        const nc=new Cell(newG,editingColony.x+off.x,editingColony.y+off.y,baseCell.gen);
+        nc.energy=nc.stats.maxEnergy*0.8;nc.playerLineage=true;
+        ws.cells.push(nc);editingColony.addCell(nc,slot);
+        if(lead)lead.energy=Math.max(0,lead.energy-lead.stats.maxEnergy*0.15);
+        playerUsedOrgs.add(ceSelectedType);
+        document.getElementById('ce-hint').textContent='Added: '+ORG[ceSelectedType].name;
+      }
+    }
+  }
+  drawColonyEditorCanvas();
+});
+document.getElementById('ce-cancel').addEventListener('click',()=>{
+  document.getElementById('colony-editor').style.display='none';
+  const ws=getWS();if(ws)ws.simSpeed=1;
+});
+document.getElementById('ce-apply-btn').addEventListener('click',()=>{
+  document.getElementById('colony-editor').style.display='none';
+  editingColony=null;
+  const ws=getWS();if(ws)ws.simSpeed=1;
+  // Colony step: mark as complete if colony has 2+ cells
+  if(editingColony===null&&inspectedColony){
+    const c=inspectedColony.getCells();
+    if(c.length>=2){
+      document.getElementById('ce-hint');// just trigger re-check
+      checkArchetypeProgress(getWS()?.cells||[]);
+    }
+  }
+});
+
+function openMyColony(){
+  const ws=getWS();if(!ws)return;
+  const col=ws.colonies.find(c=>!c.dead&&c.getCells().length>=1);
+  if(col)openColonyInspector(col);
+}
+function updateColonyHudBtn(){
+  const ws=getWS();if(!ws)return;
+  const has=ws.colonies.some(c=>!c.dead&&c.getCells().length>=1);
+  document.getElementById('colony-hud-btn').style.display=has?'block':'none';
+}
+
 // ─── INSPECTOR ────────────────────────────────────────────────────────────────
+let inspectedCell=null;
 function openInspector(cell){
   const s=cell.stats;
   document.getElementById('insp-stage').textContent=s.hasNucleus?'Eukaryote':'Prokaryote';
@@ -880,16 +1516,20 @@ function openInspector(cell){
   for(const k of [...new Set(cell.genome.organelles)]){if(!ORG[k])continue;const chip=document.createElement('div');chip.className='organelle-chip';chip.innerHTML=`<div class="chip-dot" style="background:${ORG[k].color}"></div>${ORG[k].name}`;orgEl.appendChild(chip);}
   const gf=Math.min(1,cell.gen/30);document.getElementById('insp-gen-bar').style.width=(gf*100)+'%';
   document.getElementById('insp-gen-num').textContent='Gen '+cell.gen;
+  // Create colony on demand if cell has BINDING_AGENT
+  if(cell.genome.organelles.includes('BINDING_AGENT')&&(!cell.colony||cell.colony.dead)){
+    const ws=getWS();
+    if(ws){const col=new Colony(cell);ws.colonies.push(col);cell.playerLineage=true;}
+  }
   document.getElementById('inspector').classList.add('open');
+  inspectedCell=cell;
+  const _vcb=document.getElementById('view-colony-btn');
+  const _csb=document.getElementById('colony-status-msg');
+  const hasColony=cell.colony&&!cell.colony.dead;
+  if(_vcb)_vcb.style.display=hasColony?'block':'none';
+  if(_csb)_csb.style.display='none';
 }
 document.getElementById('insp-close').addEventListener('click',()=>document.getElementById('inspector').classList.remove('open'));
-
-let inspectedCell = null;
-const _origOpenInspector = openInspector;
-function openInspector(cell) {
-  inspectedCell = cell;
-  _origOpenInspector(cell);
-}
 
 document.getElementById('edit-cell-btn').addEventListener('click', () => {
   if (!inspectedCell || inspectedCell.dead) return;
@@ -899,7 +1539,7 @@ document.getElementById('edit-cell-btn').addEventListener('click', () => {
 document.getElementById('inspector').addEventListener('click',e=>{if(e.target===document.getElementById('inspector'))document.getElementById('inspector').classList.remove('open');});
 
 // ─── SPEED CONTROLS ───────────────────────────────────────────────────────────
-document.querySelectorAll('.speed-btn').forEach(btn=>{btn.addEventListener('click',()=>{const s=parseInt(btn.dataset.speed);const ws=getWS();if(ws)ws.simSpeed=s;document.querySelectorAll('.speed-btn').forEach(b=>b.classList.toggle('active',parseInt(b.dataset.speed)===s));});});
+// speed controls removed
 
 // ─── EDITOR ───────────────────────────────────────────────────────────────────
 let editorGenome={organelles:['CYTOPLASM'],colorHue:160+Math.random()*60,mutationRate:0.08,divisionThreshold:0.75};
@@ -918,9 +1558,9 @@ function openEditorForCell(cell) {
   editTargetCell = cell;
   selectedOrg = editorGenome.organelles.find(o => o !== 'CYTOPLASM' && ORG[o]) || 'NUCLEUS';
   document.getElementById('editor').classList.add('open');
-  document.getElementById('release-btn').textContent = '🔬  Apply genome to this cell';
+  document.getElementById('release-btn').textContent = '🌊  Spawn evolved offspring nearby';
   const ws = getWS(); if (ws) ws.simSpeed = 0;
-  document.querySelectorAll('.speed-btn').forEach(b => b.classList.toggle('active', parseInt(b.dataset.speed) === 0));
+
   requestAnimationFrame(() => requestAnimationFrame(() => { setupEdCanvas(); buildPalette(); updateEdStats(); updateComplexityBar(); drawEdHex(); }));
 }
 
@@ -936,33 +1576,27 @@ function openEditor(){
   document.getElementById('release-btn').textContent = '🌊  Release into the ocean';
   document.getElementById('editor').classList.add('open');
   const ws=getWS();if(ws)ws.simSpeed=0;
-  document.querySelectorAll('.speed-btn').forEach(b=>b.classList.toggle('active',parseInt(b.dataset.speed)===0));
+
   requestAnimationFrame(()=>requestAnimationFrame(()=>{setupEdCanvas();buildPalette();updateEdStats();drawEdHex();}));
 }
 function closeEditor(){
   document.getElementById('editor').classList.remove('open');
   const ws=getWS();if(ws)ws.simSpeed=1;
-  document.querySelectorAll('.speed-btn').forEach(b=>b.classList.toggle('active',parseInt(b.dataset.speed)===1));
+
 }
-document.getElementById('create-btn').addEventListener('click',()=>{
-  if(currentStep<ARCHETYPES.length) openEditorForArchetype(currentStep);
-  else openEditor();
-});
+// create-btn removed
 document.getElementById('editor-cancel-btn').addEventListener('click',closeEditor);
 document.getElementById('release-btn').addEventListener('click',()=>{
   const clean=editorGenome.organelles.filter(o=>o&&ORG[o]);
   if(!clean.includes('CYTOPLASM'))clean.unshift('CYTOPLASM');
   const ws=getWS();
-  if(editorMode === 'edit' && editTargetCell && !editTargetCell.dead) {
-    // Apply genome changes to the living cell
-    editTargetCell.genome = {...editorGenome, organelles: clean};
-    editTargetCell.stats = computeStats(clean);
-    editTargetCell.radius = 10 + editTargetCell.stats.organelleCount * 1.3;
-    if(ws) ws.simSpeed=1;
+    // Always spawn a NEW cell — original continues unchanged
+  if(editorMode==='edit'&&editTargetCell&&!editTargetCell.dead){
+    if(ws){ws.simSpeed=1;clean.forEach(k=>playerUsedOrgs.add(k));const _nc=ws.spawnCell({...editorGenome,organelles:clean},editTargetCell.x+(Math.random()-0.5)*60,editTargetCell.y+(Math.random()-0.5)*60);if(_nc)_nc.playerLineage=true;}
   } else {
-    if(ws){ws.simSpeed=1;ws.spawnCell({...editorGenome,organelles:clean});}
+    if(ws){ws.simSpeed=1;clean.forEach(k=>playerUsedOrgs.add(k));const _nc2=ws.spawnCell({...editorGenome,organelles:clean});if(_nc2)_nc2.playerLineage=true;}
   }
-  document.querySelectorAll('.speed-btn').forEach(b=>b.classList.toggle('active',parseInt(b.dataset.speed)===1));
+
   closeEditor();
 });
 
@@ -972,142 +1606,69 @@ function setupEdCanvas(){
   const size=wrap.clientWidth;
   edCanvas.width=size;edCanvas.height=size;
   edCtx=edCanvas.getContext('2d');
-  edCanvas.removeEventListener('click',handleEdTap);
-  edCanvas.addEventListener('click',handleEdTap);
+  // view-only canvas
 }
 
 function drawEdHex(){
   if(!edCtx)return;
-  const sz=edCanvas.width,cx=sz/2,cy=sz/2,hexSize=sz/8.5;
+  const sz=edCanvas.width,cx=sz/2,cy=sz/2;
   edCtx.clearRect(0,0,sz,sz);
-  // Body
-  const hue=editorGenome.colorHue;
-  const r=sz*0.38;
-  const grad=edCtx.createRadialGradient(cx,cy,0,cx,cy,r);
-  grad.addColorStop(0,`hsla(${hue},40%,18%,0.55)`);
-  grad.addColorStop(1,`hsla(${hue},35%,8%,0.35)`);
-  edCtx.beginPath();edCtx.arc(cx,cy,r,0,Math.PI*2);edCtx.fillStyle=grad;edCtx.fill();
-  edCtx.strokeStyle=`hsla(${hue},55%,50%,0.32)`;edCtx.lineWidth=2;edCtx.stroke();
-
-  // Hex slots
-  const hexList=hexesInRadius(2);
-  for(const h of hexList){
-    const px=hexToPixel(h.q,h.r,hexSize);
-    const x=cx+px.x,y=cy+px.y;
-    const isC=h.q===0&&h.r===0;
-    const idx=hexList.findIndex(hh=>hh.q===h.q&&hh.r===h.r);
-    const org=editorGenome.organelles[idx];
-    const ok=org&&ORG[org]?org:null;
-
-    edCtx.beginPath();
-    for(let i=0;i<6;i++){const a=Math.PI/6+(i/6)*Math.PI*2;if(i===0)edCtx.moveTo(x+Math.cos(a)*hexSize*0.46,y+Math.sin(a)*hexSize*0.46);else edCtx.lineTo(x+Math.cos(a)*hexSize*0.46,y+Math.sin(a)*hexSize*0.46);}
-    edCtx.closePath();
-
-    if(ok){
-      // Parse hex color to rgba
-      const hc=ORG[ok].color;
-      edCtx.fillStyle=hc+'cc';edCtx.fill();
-      edCtx.strokeStyle='rgba(255,255,255,0.3)';edCtx.lineWidth=1;edCtx.stroke();
-      // Draw iconic shape inside hex
-      drawOrgIcon(edCtx,ok,x,y,hexSize*0.32);
-    }else if(isC){
-      edCtx.fillStyle='rgba(26,58,106,0.55)';edCtx.fill();
-      edCtx.strokeStyle='rgba(0,212,255,0.35)';edCtx.lineWidth=1;edCtx.stroke();
-      // Show CYT text
-      edCtx.fillStyle='rgba(0,212,255,0.5)';edCtx.font=`${hexSize*0.22}px 'IBM Plex Mono',monospace`;edCtx.textAlign='center';edCtx.textBaseline='middle';
-      edCtx.fillText('CYT',x,y);
-    }else{
-      edCtx.fillStyle='rgba(7,20,38,0.65)';edCtx.fill();
-      edCtx.strokeStyle='rgba(0,212,255,0.09)';edCtx.lineWidth=0.8;edCtx.stroke();
-    }
+  const rx=sz*0.44,ry=sz*0.36;
+  const glow=edCtx.createRadialGradient(cx,cy,sz*0.05,cx,cy,sz*0.58);
+  glow.addColorStop(0,'rgba(180,220,255,0)');glow.addColorStop(1,'rgba(160,205,240,0.2)');
+  edCtx.beginPath();edCtx.ellipse(cx,cy,rx+sz*0.06,ry+sz*0.06,0,0,Math.PI*2);edCtx.fillStyle=glow;edCtx.fill();
+  const bg=edCtx.createRadialGradient(cx-rx*0.22,cy-ry*0.28,0,cx,cy,Math.max(rx,ry));
+  bg.addColorStop(0,'rgba(232,245,255,0.96)');bg.addColorStop(0.6,'rgba(208,232,250,0.94)');bg.addColorStop(1,'rgba(182,214,240,0.90)');
+  edCtx.beginPath();edCtx.ellipse(cx,cy,rx,ry,0,0,Math.PI*2);edCtx.fillStyle=bg;edCtx.fill();
+  edCtx.strokeStyle='#233044';edCtx.lineWidth=sz*0.026;
+  edCtx.beginPath();edCtx.ellipse(cx,cy,rx,ry,0,0,Math.PI*2);edCtx.stroke();
+  edCtx.save();edCtx.beginPath();edCtx.ellipse(cx,cy,rx-sz*0.02,ry-sz*0.02,0,0,Math.PI*2);edCtx.clip();
+  edCtx.strokeStyle='rgba(255,255,255,0.48)';edCtx.lineWidth=sz*0.016;
+  edCtx.beginPath();edCtx.ellipse(cx-rx*0.1,cy-ry*0.12,rx*0.7,ry*0.55,-0.1,Math.PI*1.05,Math.PI*1.68);edCtx.stroke();edCtx.restore();
+  const placed=editorGenome.organelles.filter(o=>o&&ORG[o]&&o!=='CYTOPLASM');
+  const slots=getEditorSlots(sz);
+  for(const key of placed){
+    const s=slots[key];if(!s)continue;
+    drawCartoonOrg(edCtx,key,s.x,s.y,s.r,sz);
+    if(key===selectedOrg){edCtx.setLineDash([4,3]);edCtx.strokeStyle='rgba(0,150,220,0.9)';edCtx.lineWidth=2.5;edCtx.beginPath();edCtx.ellipse(s.x,s.y,s.r*1.42,s.r*1.18,0,0,Math.PI*2);edCtx.stroke();edCtx.setLineDash([]);}
   }
+  if(placed.length===0){edCtx.fillStyle='rgba(80,130,180,0.38)';edCtx.font=`${sz*0.06}px 'IBM Plex Sans',sans-serif`;edCtx.textAlign='center';edCtx.textBaseline='middle';edCtx.fillText('tap an organelle',cx,cy-sz*0.04);edCtx.font=`${sz*0.05}px 'IBM Plex Sans',sans-serif`;edCtx.fillText('card below to add it',cx,cy+sz*0.055);}
 }
-
-function drawOrgIcon(ctx,key,x,y,r){
+function getEditorSlots(sz){
+  const cx=sz/2,cy=sz/2;
+  return{NUCLEUS:{x:cx-sz*0.04,y:cy+sz*0.0,r:sz*0.108},CHLOROPLAST:{x:cx-sz*0.25,y:cy+sz*0.14,r:sz*0.088},CHEMORECEPTOR:{x:cx-sz*0.26,y:cy-sz*0.14,r:sz*0.06},SPIKE:{x:cx-sz*0.37,y:cy-sz*0.03,r:sz*0.052},VACUOLE:{x:cx+sz*0.16,y:cy-sz*0.16,r:sz*0.092},MOUTH:{x:cx+sz*0.27,y:cy+sz*0.0,r:sz*0.072},MITOCHONDRIA:{x:cx+sz*0.23,y:cy+sz*0.17,r:sz*0.074},FLAGELLUM:{x:cx+sz*0.33,y:cy-sz*0.13,r:sz*0.052},CILIA:{x:cx-sz*0.1,y:cy+sz*0.25,r:sz*0.052},BINDING_AGENT:{x:cx+sz*0.12,y:cy+sz*0.25,r:sz*0.052},CELL_WALL:{x:cx,y:cy,r:sz*0.42}};
+}
+function drawCartoonOrg(ctx,key,x,y,r,sz){
   ctx.save();
+  const ol=(c,lw)=>{ctx.strokeStyle=c||'#233044';ctx.lineWidth=lw||r*0.14;ctx.stroke();};
+  const shine=(ox,oy,rw,rh)=>{ctx.fillStyle='rgba(255,255,255,0.36)';ctx.beginPath();ctx.ellipse(x+ox,y+oy,rw,rh,-0.4,0,Math.PI*2);ctx.fill();};
   switch(key){
-    case 'NUCLEUS':
-      ctx.fillStyle='#1a2a8a';ctx.beginPath();ctx.arc(x,y,r*0.75,0,Math.PI*2);ctx.fill();
-      ctx.strokeStyle='#4466ff';ctx.lineWidth=1.5;ctx.stroke();
-      ctx.fillStyle='rgba(100,136,255,0.3)';ctx.beginPath();ctx.arc(x,y,r*0.35,0,Math.PI*2);ctx.fill();
-      break;
-    case 'MITOCHONDRIA':
-      ctx.fillStyle='#cc3322';ctx.beginPath();ctx.ellipse(x,y,r,r*0.5,0,0,Math.PI*2);ctx.fill();
-      ctx.strokeStyle='#ff6644';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(x-r*0.6,y);ctx.lineTo(x+r*0.6,y);ctx.stroke();
-      break;
-    case 'CHLOROPLAST':
-      ctx.fillStyle='#229944';ctx.beginPath();ctx.ellipse(x,y,r,r*0.5,0,0,Math.PI*2);ctx.fill();
-      ctx.strokeStyle='#55ff44';ctx.lineWidth=0.8;
-      for(let b=-1;b<=1;b++){ctx.beginPath();ctx.moveTo(x-r*0.7,y+b*r*0.22);ctx.lineTo(x+r*0.7,y+b*r*0.22);ctx.stroke();}
-      break;
-    case 'VACUOLE':
-      ctx.strokeStyle='#aaddff';ctx.lineWidth=1.5;ctx.globalAlpha=0.6;
-      ctx.beginPath();ctx.arc(x,y,r*0.75,0,Math.PI*2);ctx.stroke();
-      ctx.globalAlpha=0.12;ctx.fillStyle='#88aacc';ctx.fill();ctx.globalAlpha=1;
-      break;
-    case 'FLAGELLUM':
-      ctx.strokeStyle='#44ff99';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(x,y);
-      for(let s=1;s<=6;s++){const f=s/6;ctx.lineTo(x+f*r*1.4,y+Math.sin(f*Math.PI*2)*r*0.35);}ctx.stroke();
-      break;
-    case 'CILIA':
-      ctx.strokeStyle='#88ffcc';ctx.lineWidth=1;
-      for(let i=0;i<6;i++){const a=(i/6)*Math.PI*2;ctx.beginPath();ctx.moveTo(x+Math.cos(a)*r*0.5,y+Math.sin(a)*r*0.5);ctx.lineTo(x+Math.cos(a)*r,y+Math.sin(a)*r);ctx.stroke();}
-      break;
-    case 'MOUTH':
-      ctx.fillStyle='#220000';ctx.beginPath();ctx.arc(x,y+r*0.15,r*0.6,0.2,Math.PI-0.2);ctx.closePath();ctx.fill();
-      ctx.fillStyle='#ff2211';
-      for(let i=0;i<3;i++){ctx.beginPath();ctx.arc(x+(i-1)*r*0.35,y+r*0.1,2,0,Math.PI*2);ctx.fill();}
-      break;
-    case 'SPIKE':
-      ctx.fillStyle='#ff8833';
-      for(let i=0;i<3;i++){const a=(i/3)*Math.PI*2;ctx.beginPath();ctx.moveTo(x+Math.cos(a-0.3)*r*0.5,y+Math.sin(a-0.3)*r*0.5);ctx.lineTo(x+Math.cos(a+0.3)*r*0.5,y+Math.sin(a+0.3)*r*0.5);ctx.lineTo(x+Math.cos(a)*r,y+Math.sin(a)*r);ctx.closePath();ctx.fill();}
-      break;
-    case 'CHEMORECEPTOR':
-      ctx.fillStyle='#dd88ff';
-      for(let i=0;i<4;i++){const a=(i/4)*Math.PI*2;ctx.beginPath();ctx.arc(x+Math.cos(a)*r*0.7,y+Math.sin(a)*r*0.7,2.5,0,Math.PI*2);ctx.fill();}
-      break;
-    case 'CELL_WALL':
-      ctx.strokeStyle='#c8a45a';ctx.lineWidth=3;ctx.globalAlpha=0.8;
-      ctx.beginPath();ctx.arc(x,y,r*0.85,0,Math.PI*2);ctx.stroke();ctx.globalAlpha=1;
-      break;
-    case 'BINDING_AGENT':
-      ctx.fillStyle='#ffee55';
-      for(let i=0;i<5;i++){const a=(i/5)*Math.PI*2;ctx.beginPath();ctx.arc(x+Math.cos(a)*r*0.7,y+Math.sin(a)*r*0.7,2.5,0,Math.PI*2);ctx.fill();}
-      break;
-    default:
-      ctx.fillStyle='#888';ctx.beginPath();ctx.arc(x,y,r*0.5,0,Math.PI*2);ctx.fill();
+    case 'NUCLEUS':{const ng=ctx.createRadialGradient(x-r*0.2,y-r*0.2,0,x,y,r);ng.addColorStop(0,'#cc88ee');ng.addColorStop(1,'#7722bb');ctx.beginPath();ctx.ellipse(x,y,r,r*0.76,0,0,Math.PI*2);ctx.fillStyle=ng;ctx.fill();ol('#340960',r*0.11);ctx.strokeStyle='rgba(80,10,130,0.28)';ctx.lineWidth=r*0.13;ctx.beginPath();ctx.ellipse(x,y,r*0.4,r*0.32,0,0,Math.PI*2);ctx.stroke();shine(-r*0.26,-r*0.26,r*0.2,r*0.12);break;}
+    case 'MITOCHONDRIA':{const mg=ctx.createRadialGradient(x-r*0.2,y-r*0.2,0,x,y,r);mg.addColorStop(0,'#ffcc55');mg.addColorStop(1,'#dd6615');ctx.beginPath();ctx.ellipse(x,y,r,r*0.56,0.28,0,Math.PI*2);ctx.fillStyle=mg;ctx.fill();ol('#7a3500',r*0.11);ctx.strokeStyle='rgba(120,48,0,0.32)';ctx.lineWidth=r*0.09;for(let i=-1;i<=1;i++){ctx.beginPath();ctx.moveTo(x+i*r*0.28,y-r*0.38);ctx.lineTo(x+i*r*0.28,y+r*0.38);ctx.stroke();}shine(-r*0.18,-r*0.2,r*0.2,r*0.11);break;}
+    case 'CHLOROPLAST':{const cg=ctx.createRadialGradient(x-r*0.2,y-r*0.2,0,x,y,r);cg.addColorStop(0,'#88ee44');cg.addColorStop(1,'#3a9918');ctx.beginPath();ctx.ellipse(x,y,r,r*0.5,0.18,0,Math.PI*2);ctx.fillStyle=cg;ctx.fill();ol('#1a5500',r*0.11);ctx.strokeStyle='rgba(12,75,0,0.28)';ctx.lineWidth=r*0.08;for(let b=-1;b<=1;b++){ctx.beginPath();ctx.moveTo(x-r*0.65,y+b*r*0.18);ctx.lineTo(x+r*0.65,y+b*r*0.18);ctx.stroke();}shine(-r*0.2,-r*0.16,r*0.18,r*0.1);break;}
+    case 'VACUOLE':{const vg=ctx.createRadialGradient(x-r*0.28,y-r*0.28,0,x,y,r);vg.addColorStop(0,'rgba(155,210,255,0.9)');vg.addColorStop(1,'rgba(65,135,215,0.85)');ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fillStyle=vg;ctx.fill();ol('#1a4488',r*0.11);shine(-r*0.28,-r*0.28,r*0.28,r*0.16);break;}
+    case 'MOUTH':{const mtg=ctx.createRadialGradient(x,y-r*0.1,0,x,y,r);mtg.addColorStop(0,'#ff7755');mtg.addColorStop(1,'#bb1100');ctx.beginPath();ctx.arc(x,y,r,0.28,Math.PI-0.28);ctx.closePath();ctx.fillStyle=mtg;ctx.fill();ol('#660000',r*0.11);ctx.fillStyle='rgba(255,255,255,0.65)';for(let i=-2;i<=2;i++){ctx.beginPath();ctx.arc(x+i*r*0.26,y+r*0.08,r*0.1,0,Math.PI*2);ctx.fill();}break;}
+    case 'FLAGELLUM':{ctx.strokeStyle='#33ee77';ctx.lineWidth=r*0.52;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(x-r*0.25,y);ctx.bezierCurveTo(x+r*0.5,y-r*1.35,x+r*1.3,y+r*0.9,x+r*2.1,y-r*0.25);ctx.stroke();ctx.strokeStyle='rgba(8,150,55,0.22)';ctx.lineWidth=r*0.75;ctx.stroke();ctx.fillStyle='rgba(255,255,255,0.22)';ctx.beginPath();ctx.arc(x,y,r*0.36,0,Math.PI*2);ctx.fill();break;}
+    case 'CILIA':{const cilg=ctx.createRadialGradient(x,y,0,x,y,r*0.42);cilg.addColorStop(0,'#88ffee');cilg.addColorStop(1,'#22bbaa');ctx.beginPath();ctx.arc(x,y,r*0.42,0,Math.PI*2);ctx.fillStyle=cilg;ctx.fill();ol('#006655',r*0.11);ctx.strokeStyle='#44ddcc';ctx.lineWidth=r*0.16;ctx.lineCap='round';for(let i=0;i<8;i++){const a=(i/8)*Math.PI*2;ctx.beginPath();ctx.moveTo(x+Math.cos(a)*r*0.42,y+Math.sin(a)*r*0.42);ctx.lineTo(x+Math.cos(a)*r,y+Math.sin(a)*r);ctx.stroke();}break;}
+    case 'SPIKE':{for(let i=0;i<6;i++){const a=(i/6)*Math.PI*2;const spg=ctx.createLinearGradient(x,y,x+Math.cos(a)*r,y+Math.sin(a)*r);spg.addColorStop(0,'#ffcc44');spg.addColorStop(1,'#ee6600');ctx.beginPath();ctx.moveTo(x+Math.cos(a-0.32)*r*0.4,y+Math.sin(a-0.32)*r*0.4);ctx.lineTo(x+Math.cos(a)*r,y+Math.sin(a)*r);ctx.lineTo(x+Math.cos(a+0.32)*r*0.4,y+Math.sin(a+0.32)*r*0.4);ctx.closePath();ctx.fillStyle=spg;ctx.fill();ctx.strokeStyle='#7a3300';ctx.lineWidth=r*0.09;ctx.stroke();}break;}
+    case 'CHEMORECEPTOR':{const chg=ctx.createRadialGradient(x,y,0,x,y,r*0.62);chg.addColorStop(0,'#ee99ff');chg.addColorStop(1,'#9933cc');ctx.beginPath();ctx.arc(x,y,r*0.62,0,Math.PI*2);ctx.fillStyle=chg;ctx.fill();ol('#440077',r*0.11);ctx.fillStyle='#dd66ff';for(let i=0;i<4;i++){const a=(i/4)*Math.PI*2;ctx.beginPath();ctx.arc(x+Math.cos(a)*r*0.86,y+Math.sin(a)*r*0.86,r*0.2,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#440077';ctx.lineWidth=r*0.09;ctx.stroke();}break;}
+    case 'CELL_WALL':{ctx.strokeStyle='#b89030';ctx.lineWidth=sz*0.026;ctx.setLineDash([sz*0.038,sz*0.018]);ctx.beginPath();ctx.ellipse(sz/2,sz/2,sz*0.41,sz*0.33,0,0,Math.PI*2);ctx.stroke();ctx.setLineDash([]);ctx.strokeStyle='rgba(200,160,40,0.22)';ctx.lineWidth=sz*0.014;ctx.stroke();break;}
+    case 'BINDING_AGENT':{ctx.fillStyle='#ffee44';for(let i=0;i<5;i++){const a=(i/5)*Math.PI*2;ctx.beginPath();ctx.arc(x+Math.cos(a)*r*0.68,y+Math.sin(a)*r*0.68,r*0.27,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#aa8800';ctx.lineWidth=r*0.11;ctx.stroke();}break;}
   }
   ctx.restore();
 }
-
-function handleEdTap(e){
-  const rect=edCanvas.getBoundingClientRect();
-  const rx=(e.clientX-rect.left)*(edCanvas.width/rect.width);
-  const ry=(e.clientY-rect.top)*(edCanvas.height/rect.height);
-  const cx=edCanvas.width/2,cy=edCanvas.height/2,hs=edCanvas.width/8.5;
-  const hex=pixelToHex((rx-cx)/hs,(ry-cy)/hs,1);
-  if(Math.max(Math.abs(hex.q),Math.abs(hex.r),Math.abs(-hex.q-hex.r))>2)return;
-  if(hex.q===0&&hex.r===0)return;
-  const hexList=hexesInRadius(2);
-  const idx=hexList.findIndex(h=>h.q===hex.q&&h.r===hex.r);if(idx<0)return;
-  if(editorGenome.organelles[idx]&&editorGenome.organelles[idx]!==undefined){
-    editorGenome.organelles[idx]=undefined;
-  }else{
-    const def=ORG[selectedOrg];if(!def)return;
-    if(!isUnlocked(selectedOrg)){showEdWarn('Not yet discovered');return;}
-    if(def.needsNucleus&&!editorGenome.organelles.includes('NUCLEUS')){showEdWarn('Nucleus required first');return;}
-    const cap=getComplexityCap();
-    const used=editorGenome.organelles.filter(o=>o&&o!=='CYTOPLASM').length;
-    if(used>=cap){showEdWarn(`Complexity limit: ${cap} organelles`);return;}
-    if(editorGenome.organelles.filter(o=>o===selectedOrg).length>=def.max){showEdWarn(`Max ${def.max} per cell`);return;}
-    while(editorGenome.organelles.length<=idx)editorGenome.organelles.push(undefined);
-    editorGenome.organelles[idx]=selectedOrg;
-  }
-  const cleaned=editorGenome.organelles.filter(o=>o&&o!==undefined);
-  if(!cleaned.includes('CYTOPLASM'))cleaned.unshift('CYTOPLASM');
-  editorGenome.organelles=cleaned;
+function handleOrgCardTap(key){
+  if(!isUnlocked(key)){showEdWarn('Not yet discovered');return;}
+  const placed=editorGenome.organelles.filter(o=>o&&ORG[o]&&o!=='CYTOPLASM');
+  const alreadyOn=placed.includes(key);
+  if(alreadyOn){editorGenome.organelles=editorGenome.organelles.filter(o=>o!==key);if(!editorGenome.organelles.includes('CYTOPLASM'))editorGenome.organelles.unshift('CYTOPLASM');}
+  else{const cap=getComplexityCap(),used=placed.length;if(used>=cap){showEdWarn('Max '+cap+' organelles per cell');return;}if(placed.filter(o=>o===key).length>=(ORG[key].max||1)){showEdWarn('Max '+ORG[key].max+' of this type');return;}editorGenome.organelles.push(key);}
+  selectedOrg=key;
   drawEdHex();updateEdStats();updateComplexityBar();
+  document.querySelectorAll('.org-card').forEach(c=>{const on=editorGenome.organelles.includes(c.dataset.orgKey);c.classList.toggle('org-active',on);c.classList.toggle('selected',c.dataset.orgKey===key&&!alreadyOn);});
 }
+function handleEdTap(e){}
+
 
 function showEdWarn(msg){
   const w=document.createElement('div');
@@ -1137,14 +1698,16 @@ function buildPalette(){
   const palette=document.getElementById('palette');palette.innerHTML='';
   for(const key of PALETTE_KEYS){
     const def=ORG[key];
-    const locked=!isUnlocked(key);
+    if(!isUnlocked(key))continue;
     const card=document.createElement('div');
-    card.className='org-card'+(key===selectedOrg&&!locked?' selected':'')+(locked?' locked':'');
-    card.innerHTML=`<div class="org-dot" style="background:radial-gradient(circle at 35% 35%,${def.color}cc,${def.color}44)"></div><div class="org-name">${def.name}</div><div class="${locked?'org-locked-txt':'org-desc'}">${locked?'Not yet discovered':def.desc}</div><div class="org-cost">${locked?'':'⧬ '+def.mp+' MP'}</div>`;
-    if(!locked){card.addEventListener('click',()=>{selectedOrg=key;document.querySelectorAll('.org-card').forEach(c=>{c.classList.remove('selected');if(c===card)c.classList.add('selected');});});}
+    card.dataset.orgKey=key;
+    card.className='org-card'+(key===selectedOrg?' selected':'');
+    card.innerHTML=`<div class="org-dot" style="background:radial-gradient(circle at 35% 35%,${def.color}cc,${def.color}44)"></div><div class="org-name">${def.name}</div><div class="org-desc">${def.desc}</div>`;
+    card.addEventListener('click',()=>handleOrgCardTap(key));
     palette.appendChild(card);
   }
 }
 </script>
+
 </body>
 </html>
