@@ -1103,12 +1103,12 @@ const ARCHETYPES = [
   {id:'hunter',step:4,emoji:'⚡',name:'The First Animal',
    desc:'A predator with both a Cytostome and Flagellum is fast enough to hunt anything. The ancestor of all animal-like multicellular life.',
    hint:'Tap Build to design a cell with both a Cytostome AND a Flagellum. It will actively hunt prey across the entire ocean.',
-   startOrg:'MOUTH',unlocks:['SPIKE','CHEMORECEPTOR','MITOCHONDRIA','VACUOLE'],
+   startOrg:'MOUTH',unlocks:['SPIKE','CHEMORECEPTOR','MITOCHONDRIA','FLAGELLUM'],
    check:(cells)=>playerUsedOrgs.has('FLAGELLUM')&&cells.some(c=>c.genome.organelles.includes('MOUTH')&&c.genome.organelles.includes('FLAGELLUM'))},
   {id:'decomposer',step:5,emoji:'🍄',name:'The Cycle of Life',
    desc:'Life cannot progress without decay. A Vacuole-based cell absorbs dissolved nutrients from dead cells — the ancestor of all fungal life.',
    hint:'Add a Vacuole. Your decomposer thrives wherever cells have died.',
-   startOrg:'VACUOLE',unlocks:['CHEMORECEPTOR','MITOCHONDRIA'],
+   startOrg:'VACUOLE',unlocks:['CHEMORECEPTOR','MITOCHONDRIA','VACUOLE'],
    check:(cells)=>playerUsedOrgs.has('VACUOLE')&&cells.some(c=>c.genome.organelles.includes('VACUOLE'))},
 ];
 
