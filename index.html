@@ -1098,7 +1098,7 @@ const ARCHETYPES = [
   {id:'colony',step:3,emoji:'🫧',name:'The First Colony',
    desc:'Your armoured producer is surviving. Now make it colonial — add a Binding Agent. When it divides, the daughter cell stays physically attached. Wait and watch: two cells bonded together as one organism. That cluster is the first multicellular life.',
    hint:'Release a cell with a Binding Agent. When it divides, a 🫧 View My Colony button appears at the top of the screen. Tap it to open the Colony Inspector, then tap Edit Body Plan to complete this step.',
-   startOrg:'BINDING_AGENT',unlocks:['BINDING_AGENT','FLAGELLUM'],
+   startOrg:'BINDING_AGENT',unlocks:['BINDING_AGENT'],
    check:(cells)=>{const ws=window._worldScene;return playerHasEditedColony&&ws&&ws.colonies.some(col=>col.getCells().length>=2);}},
   {id:'hunter',step:4,emoji:'⚡',name:'The First Animal',
    desc:'A predator with both a Cytostome and Flagellum is fast enough to hunt anything. The ancestor of all animal-like multicellular life.',
