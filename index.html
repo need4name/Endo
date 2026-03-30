@@ -1017,10 +1017,11 @@ class WorldScene extends Phaser.Scene{
     for(let i=0;i<this.cells.length;i++){
       const c=this.cells[i];if(c.dead)continue;
       c.update(dt,time);
-      const dist=Math.hypot(c.x,c.y);
-      // Strong separation — skip if predator is actively chasing this cell
+            // Strong separation — skip if predator is actively chasing this cell
       {const near=this.cellHash.query(c.x,c.y,c.radius*6);for(const n of near){if(n===c)continue;if(c.targetPrey===n||n.targetPrey===c)continue;const dd=Math.hypot(n.x-c.x,n.y-c.y);const minD=c.radius+n.radius+12;if(dd<minD&&dd>0.1){const f=(minD-dd)*0.5/dd;c.x-=(n.x-c.x)*f;c.y-=(n.y-c.y)*f;}}}
-      if(!this.colony&&dist>WORLD_RADIUS-SOFT_EDGE){if(dist>WORLD_RADIUS){const s=WORLD_RADIUS/dist;c.x*=s;c.y*=s;c.vx*=-0.3;c.vy*=-0.3;}else{const tf=((dist-(WORLD_RADIUS-SOFT_EDGE))/SOFT_EDGE)**2;c.vx-=(c.x/dist)*tf*120*dt;c.vy-=(c.y/dist)*tf*120*dt;}}
+      const dist=Math.hypot(c.x,c.y);
+      if(!c.colony&&dist>WORLD_RADIUS-SOFT_EDGE){if(dist>WORLD_RADIUS){const s=WORLD_RADIUS/dist;c.x*=s;c.y*=s;c.vx*=-0.3;c.vy*=-0.3;}else{const tf=((dist-(WORLD_RADIUS-SOFT_EDGE))/SOFT_EDGE)**2;c.vx-=(c.x/dist)*tf*120*dt;c.vy-=(c.y/dist)*tf*120*dt;}}
+      if(dist>WORLD_RADIUS){const _hcs=(WORLD_RADIUS-2)/dist;c.x*=_hcs;c.y*=_hcs;}
       if(i%4===ag){
         if(!c.colony||c.colony.slots[0]?.cell===c)c.seekTarget(this.nutHash.query(c.x,c.y,c.stats.sense),this.cellHash.query(c.x,c.y,c.stats.sense).filter(oc=>oc!==c));
         if(c.stats.hasMouth){const prey=this.cellHash.query(c.x,c.y,c.radius+50);for(const p of prey)if(p!==c&&!p.dead)c.tryEat(p,dt);}
